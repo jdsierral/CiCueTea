@@ -12,19 +12,6 @@
 
 namespace jsa {
 
-inline double square(double x) { return x * x; }
-
-inline constexpr uint32_t nextPow2(uint32_t x) {
-    if (x == 0) return 1;
-    x--;
-    x |= x >> 1;
-    x |= x >> 2;
-    x |= x >> 4;
-    x |= x >> 8;
-    x |= x >> 16;
-    return x + 1;
-}
-
 inline size_t constrain(size_t idx, size_t size) {
     return idx % size;
 }

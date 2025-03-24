@@ -11,38 +11,8 @@
 
 #include "Benchtools.h"
 
-//#define REALTIME_CHECKS
-//
-//#ifdef REALTIME_CHECKS
-//  #define ENTERING_REAL_TIME_CRITICAL_CODE Eigen::internal::set_is_malloc_allowed(false);
-//  #define EXITING_REAL_TIME_CRITICAL_CODE Eigen::internal::set_is_malloc_allowed(true);
-//#else
-//  #define ENTERING_REAL_TIME_CRITICAL_CODE
-//  #define EXITING_REAL_TIME_CRITICAL_CODE
-//#endif
-
 using namespace jsa;
 using namespace Eigen;
-
-inline double square(double x) { return x * x; }
-inline ArrayXd regspace(Index num) {
-    return ArrayXd::LinSpaced(num, 0, num-1);
-}
-
-inline ArrayXd regspace(Index low, Index high) {
-    return ArrayXd::LinSpaced(high-low+1, low, high);
-}
-
-constexpr uint32_t nextPow2(uint32_t x) {
-    if (x == 0) return 1;
-    x--;
-    x |= x >> 1;
-    x |= x >> 2;
-    x |= x >> 4;
-    x |= x >> 8;
-    x |= x >> 16;
-    return x + 1;
-}
 
 void NsgfCqtCommon::init(double sampleRate, Index numSamples, double pointsPerOctave,
                          double minFrequency, double maxFrequency, double refFrequency)
@@ -57,6 +27,7 @@ void NsgfCqtCommon::init(double sampleRate, Index numSamples, double pointsPerOc
     // Initialize Stuff
     Xdft.resize(nSamps);
     dft.init(nSamps);
+    Xdft.setZero();
     
     Index nBandsUp = Index(ceil(ppo * log2(fMax / fRef)));
     Index nBandsDown = Index(ceil(ppo * log2(fRef / fMin)));
@@ -91,8 +62,10 @@ void NsgfCqtFull::init(double sampleRate, Index numSamples, double ppo,
     d = g.square().rowwise().sum();
     gDual = g.colwise() / d;
     
-    g.bottomRows(nFreqs/2-1).fill(0);
-    gDual.bottomRows(nFreqs/2-1).fill(0);
+    g.bottomRows(nFreqs/2-1).setZero();
+    gDual.bottomRows(nFreqs/2-1).setZero();
+    
+    Xmat.setZero();
 }
 
 void NsgfCqtFull::forward(const ArrayXd& x, ArrayXXcd& Xcq) {
