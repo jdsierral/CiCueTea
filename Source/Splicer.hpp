@@ -16,6 +16,11 @@ public:
     void setSize(Eigen::Index newBlockSize, Eigen::Index newHopSize);
     void pushBlock(const Eigen::ArrayXd& block);
     double getSample();
+    
+    Eigen::Index getBlockSize() const { return blockSize; }
+    Eigen::Index getOverlapSize() const { return overlapSize; }
+    Eigen::Index getHopSize() const { return hopSize; }
+    Eigen::Index getBufferSize() const { return bufferSize; }
 
 private:
     Eigen::ArrayXd buffer;

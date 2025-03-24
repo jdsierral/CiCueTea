@@ -18,6 +18,11 @@ public:
     bool hasBlock();
     Eigen::Map<const Eigen::ArrayXd> getBlock();
     
+    Eigen::Index getBlockSize() const { return blockSize; }
+    Eigen::Index getOverlapSize() const { return overlapSize; }
+    Eigen::Index getHopSize() const { return hopSize; }
+    Eigen::Index getBufferSize() const { return bufferSize; }
+    
 private:
     Eigen::ArrayXd buffer;
     Eigen::Index bufferSize;

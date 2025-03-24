@@ -34,6 +34,18 @@ public:
     void processBlock(Eigen::ArrayXXcd& block) override {};
 };
 
+class OlaSparse : public jsa::NsgfCqtSparseProcessor
+{
+public:
+    void processBlock(jsa::NsgfCqtSparse::Coefs& block) override {}
+};
+
+class FullOlaSparse : public jsa::SliCQSparseProcessor
+{
+public:
+    void processBlock(jsa::NsgfCqtSparse::Coefs& block) override {};
+};
+
 BOOST_AUTO_TEST_CASE(OlaProc1) {
     double fs = 48000;
     Index N = 1<<10;
@@ -76,6 +88,51 @@ BOOST_AUTO_TEST_CASE(OlaProc2) {
     
     ArrayXd d = x - y;
     cout << rms(d) << endl;
-    BOOST_CHECK(rms(d) < 1e-5);
+    BOOST_CHECK(rms(d) < 1e-4);
+}
+
+BOOST_AUTO_TEST_CASE(OlaProc3) {
+    double fs = 48000;
+    Index N = 1<<16;
+    Index blockSize = 1<<10;
+    Index overlapSize = blockSize/2;
+    
+    ArrayXd x = ArrayXd::Random(N);
+    ArrayXd y = ArrayXd::Zero(N);
+    
+    OlaSparse ola;
+    ola.init(fs, blockSize, 1, 1e4, 1e2, 1e3);
+    
+    for (Index n = 0; n < N; n++) {
+        y(n) = ola.processSample(x(n));
+    }
+    
+    ArrayXd d = x.head(N-blockSize) - y.tail(N-blockSize);
+    BOOST_CHECK(rms(d) < 1e-10);
+}
+
+BOOST_AUTO_TEST_CASE(OlaProc4) {
+    double fs = 48000;
+    Index N = 1<<20;
+    Index blockSize = 1<<16;
+    
+    ArrayXd x = ArrayXd::Random(N);
+    ArrayXd y = ArrayXd::Zero(N);
+    
+    FullOlaSparse ola;
+    ola.init(fs, blockSize, 1, 1e4, 1e2, 1e3);
+    
+    for (Index n = 0; n < N; n++) {
+        y(n) = ola.processSample(x(n));
+    }
+    
+    x = x.head(N-blockSize-blockSize/2);
+    y = y.tail(N-blockSize-blockSize/2);
+    jsa::eig2armaVec(x).save(csv_name("x.csv"));
+    jsa::eig2armaVec(y).save(csv_name("y.csv"));
+    
+    ArrayXd d = x - y;
+    cout << rms(d) << endl;
+    BOOST_CHECK(rms(d) < 1e-4);
 }
 

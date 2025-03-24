@@ -23,8 +23,11 @@ public:
     void init(double fs, double blockSize, double ppo, double fMax, double fMin, double fRef);
     double processSample(double sample);
     virtual void processBlock(Eigen::ArrayXXcd& block) = 0;
-private:
+    
+protected:
     NsgfCqtFull cqt;
+    
+private:
     Eigen::ArrayXd xi;
     Eigen::ArrayXXcd Xcq;
     Eigen::ArrayXd win;
@@ -37,18 +40,19 @@ public:
     void init(double fs, double blockSize, double ppo, double fMax, double fMin, double fRef);
     double processSample(double sample);
     virtual void processBlock(Eigen::ArrayXXcd& block) = 0;
-private:
+    
+protected:
     NsgfCqtFull cqt;
+    
+private:
     Eigen::ArrayXd xi;
     Eigen::ArrayXd yi;
-    
     DoubleBuffer<Eigen::ArrayXXcd> Xcq;
     DoubleBuffer<Eigen::ArrayXXcd> Zcq;
     Eigen::ArrayXXcd Ycq;
     Eigen::ArrayXd win;
     Slicer slicer;
     Splicer splicer;
-    MatBuffer cqtBuf;
 };
 
 }

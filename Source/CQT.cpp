@@ -70,6 +70,8 @@ void NsgfCqtFull::init(double sampleRate, Index numSamples, double ppo,
 
 void NsgfCqtFull::forward(const ArrayXd& x, ArrayXXcd& Xcq) {
     RealTimeChecker ck;
+    
+    if (fs < 0) return;
     assert(Xcq.cols() == Index(nBands));
     assert(Xcq.rows() == Index(nSamps));
     dft.rdft(x, Xdft);
@@ -81,6 +83,8 @@ void NsgfCqtFull::forward(const ArrayXd& x, ArrayXXcd& Xcq) {
 
 void NsgfCqtFull::inverse(const ArrayXXcd& Xcq, ArrayXd& x) {
     RealTimeChecker ck;
+    
+    if (fs < 0) return;
     dft.dft(Xcq, Xmat);
     Xdft = (Xmat * gDual).rowwise().sum() / 2;
     dft.irdft(Xdft, x);
@@ -130,9 +134,14 @@ void NsgfCqtSparse::init(double sampleRate, Index numSamples, double ppo,
     Index end = nBands - 1;
     g_.col( 0 ) = (fax < bax( 0 )).select(1, g_.col( 0 ));
     g_.col(end) = (fax > bax(end)).select(1, g_.col(end));
+    
+    g_ = (g_ < th).select(0.0, g_);
+    
     g_ = g_.sqrt();
     d = g_.square().rowwise().sum();
     ArrayXXd gDual_ = g_.colwise() / d;
+    
+    gDual_ = (gDual_ < th).select(0.0, gDual_);
     
     g_.bottomRows(nFreqs/2-1).fill(0);
     gDual_.bottomRows(nFreqs/2-1).fill(0);
@@ -158,6 +167,8 @@ void NsgfCqtSparse::init(double sampleRate, Index numSamples, double ppo,
 
 void NsgfCqtSparse::forward(const ArrayXd& x, Coefs& Xcq) {
     RealTimeChecker ck;
+    
+    if (fs < 0) return;
     assert(Index(Xcq.size()) == nBands);
     Xdft.fill(0);
     dft.rdft(x, Xdft);
@@ -169,6 +180,8 @@ void NsgfCqtSparse::forward(const ArrayXd& x, Coefs& Xcq) {
 
 void NsgfCqtSparse::inverse(const Coefs& Xcq, ArrayXd& x) {
     RealTimeChecker ck;
+    
+    if (fs < 0) return;
     assert(Index(Xcq.size()) == nBands);
     Xdft.fill(0);
     for (Index k = 0; k < nBands; k++) {
@@ -199,12 +212,36 @@ NsgfCqtSparse::Idx NsgfCqtSparse::getIdx(const ArrayXd& x) {
     return {i0, len};
 }
 
+NsgfCqtSparse::Frame NsgfCqtSparse::getFrame() const {
+    assert(fs > 0);
+    assert(bax.size() > 0);
+    Frame frame(nBands);
+    for (Index k = 0; k < nBands; k++) {
+        Index sz = g[k].size();
+        frame[k].resize(sz);
+    }
+    return frame;
+}
+
 NsgfCqtSparse::Coefs NsgfCqtSparse::getCoefs() const {
     assert(fs > 0);
     assert(bax.size() > 0);
     Coefs coefs(nBands);
     for (Index k = 0; k < nBands; k++) {
-        coefs[k].resize(g[k].size());
+        Index sz = g[k].size();
+        coefs[k].resize(sz);
+    }
+    return coefs;
+}
+
+NsgfCqtSparse::Coefs NsgfCqtSparse::getValidCoefs() const {
+    assert(fs > 0);
+    assert(bax.size() > 0);
+    Coefs coefs(nBands);
+    for (Index k = 0; k < nBands; k++) {
+        Index sz = g[k].size();
+        assert(sz % 2 == 0);
+        coefs[k].resize(sz/2);
     }
     return coefs;
 }
