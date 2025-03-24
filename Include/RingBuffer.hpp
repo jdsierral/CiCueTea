@@ -40,7 +40,7 @@ public:
     
 private:
     std::array<T, 2> buffer;
-    bool state;
+    bool state = false;
 };
 
 class MatBuffer {

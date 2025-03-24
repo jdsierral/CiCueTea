@@ -59,13 +59,13 @@ inline Eigen::ArrayXd regspace(Eigen::Index low, Eigen::Index high) {
     return Eigen::ArrayXd::LinSpaced(high-low+1, low, high);
 }
 
-static Eigen::ArrayXd hann(Eigen::Index N) {
+inline Eigen::ArrayXd hann(Eigen::Index N) {
     Eigen::ArrayXd n = regspace(N);
     Eigen::ArrayXd win = (M_PI * n / N).sin().square();
     return win;
 }
 
-static Eigen::ArrayXd logChirp(const Eigen::ArrayXd& t, double f0, double f1) {
+inline Eigen::ArrayXd logChirp(const Eigen::ArrayXd& t, double f0, double f1) {
     double t1 = t(t.size() - 1);
     Eigen::ArrayXd r = t.unaryExpr([&](double val){ return pow(f1/f0, val/t1); });
     Eigen::ArrayXd phase = (t1/std::log(f1/f0)*f0)*(r - 1.0);

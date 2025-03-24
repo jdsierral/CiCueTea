@@ -93,7 +93,10 @@ public:
               double maxFrequency, double refFrequency) override;
     void forward(const Eigen::ArrayXd&  x, Coefs& Xcq) override;
     void inverse(const Coefs& Xcq, Eigen::ArrayXd& x ) override;
+    
+    Frame getFrame() const;
     Coefs getCoefs() const;
+    Coefs getValidCoefs() const;
     
     Idx getIdx(const Eigen::ArrayXd& ii);
     
