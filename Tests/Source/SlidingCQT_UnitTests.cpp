@@ -17,7 +17,6 @@
 #include <OverlapAddProcessor.hpp>
 #include <VectorOps.h>
 
-using namespace Eigen;
 using namespace arma;
 using namespace std;
 using namespace jsa;
@@ -25,13 +24,13 @@ using namespace jsa;
 class cqtFull : public jsa::cqtFullProcessor
 {
 public:
-    void processBlock(Eigen::ArrayXXcd& block) override {}
+    void processBlock(arma::cx_mat& block) override {}
 };
 
 class sliCQTFull : public jsa::slidingCQTFullProcessor
 {
 public:
-    void processBlock(Eigen::ArrayXXcd& block) override {};
+    void processBlock(arma::cx_mat& block) override {};
 };
 
 class cqtSparse : public jsa::cqtSparseProcessor
@@ -46,96 +45,93 @@ public:
     void processBlock(jsa::NsgfCqtSparse::Coefs& block) override {};
 };
 
+
 BOOST_AUTO_TEST_CASE(OlaProc1) {
     double fs = 48000;
-    Index N = 1<<10;
-    Index blockSize = 1<<5;
-    Index overlapSize = 1<<4;
+    uword N = 1<<10;
+    uword blockSize = 1<<5;
+    uword overlapSize = 1<<4;
     
-    ArrayXd x = ArrayXd::Random(N);
-    ArrayXd y = ArrayXd::Zero(N);
+    vec x = randn(N);
+    vec y = zeros(N);
     
     cqtFull ola;
     ola.init(fs, blockSize, 1, 1e2, 1e4, 1e3);
     
-    for (Index n = 0; n < N; n++) {
+    for (uword n = 0; n < N; n++) {
         y(n) = ola.processSample(x(n));
     }
     
-    ArrayXd d = x.head(N-blockSize) - y.tail(N-blockSize);
+    vec d = x.head(N-blockSize) - y.tail(N-blockSize);
     BOOST_CHECK(rms(d) < 1e-10);
 }
 
 BOOST_AUTO_TEST_CASE(OlaProc2) {
     double fs = 48000;
-    Index N = 1<<20;
-    Index blockSize = 1<<16;
+    uword N = 1<<20;
+    uword blockSize = 1<<16;
     
-    ArrayXd x = ArrayXd::Random(N);
-    ArrayXd y = ArrayXd::Zero(N);
+    vec x = randn(N);
+    vec y = zeros(N);
     
     sliCQTFull ola;
     ola.init(fs, blockSize, 1, 1e2, 1e4, 1e3);
     
-    for (Index n = 0; n < N; n++) {
+    for (uword n = 0; n < N; n++) {
         y(n) = ola.processSample(x(n));
     }
     
     x = x.head(N-blockSize-blockSize/2);
     y = y.tail(N-blockSize-blockSize/2);
-//    jsa::eig2armaVec(x).save(csv_name("x.csv"));
-//    jsa::eig2armaVec(y).save(csv_name("y.csv"));
     
-    ArrayXd d = x - y;
+    vec d = x - y;
 //    cout << rms(d) << endl;
 //    BOOST_CHECK(rms(d) < 1e-4);
 }
 
 BOOST_AUTO_TEST_CASE(OlaProc3) {
     double fs = 48000;
-    Index N = 1<<16;
-    Index blockSize = 1<<10;
-    Index overlapSize = blockSize/2;
+    uword N = 1<<16;
+    uword blockSize = 1<<10;
+    uword overlapSize = blockSize/2;
     
-    ArrayXd x = ArrayXd::Random(N);
-    ArrayXd y = ArrayXd::Zero(N);
+    vec x = randn(N);
+    vec y = zeros(N);
     
     cqtSparse ola;
     ola.init(fs, blockSize, 1, 1e2, 1e4, 1e3);
     
-    for (Index n = 0; n < N; n++) {
+    for (uword n = 0; n < N; n++) {
         y(n) = ola.processSample(x(n));
     }
     
-    ArrayXd d = x.head(N-blockSize) - y.tail(N-blockSize);
+    vec d = x.head(N-blockSize) - y.tail(N-blockSize);
     BOOST_CHECK(rms(d) < 1e-10);
 }
 
 BOOST_AUTO_TEST_CASE(OlaProc4) {
     double fs = 48000;
-    Index N = 1<<18;
-    Index blockSize = 1<<16;
+    uword N = 1<<18;
+    uword blockSize = 1<<16;
     double ppo = 3;
     double fMax = 1e4;
     double fMin = 1e2;
     double fRef = 1e3;
     
-    ArrayXd x = ArrayXd::Random(N);
-    ArrayXd y = ArrayXd::Zero(N);
+    vec x = randn(N);
+    vec y = zeros(N);
     
     sliCQTSparse ola;
     ola.init(fs, blockSize, ppo, fMin, fMax, fRef);
     
-    for (Index n = 0; n < N; n++) {
+    for (uword n = 0; n < N; n++) {
         y(n) = ola.processSample(x(n));
     }
     
     x = x.head(N-blockSize-blockSize/2);
     y = y.tail(N-blockSize-blockSize/2);
-    jsa::eig2armaVec(x).save(csv_name("x.csv"));
-    jsa::eig2armaVec(y).save(csv_name("y.csv"));
     
-    ArrayXd d = x - y;
+    vec d = x - y;
 //    cout << rms(d) << endl;
 //    BOOST_CHECK(rms(d) < 1e-4);
 }

@@ -16,21 +16,21 @@
 #include <Slicer.hpp>
 #include <VectorOps.h>
 
-using namespace Eigen;
+using namespace arma;
 using namespace std;
 using namespace jsa;
 
 BOOST_AUTO_TEST_CASE(Slicing1) {
     Slicer slicer;
     
-    Index N = (1<<8);
-    Index blockSize = 8;
-    Index hopSize = 4;
+    uword N = (1<<8);
+    uword blockSize = 8;
+    uword hopSize = 4;
     
     slicer.setSize(blockSize, hopSize);
-    ArrayXd x = ArrayXd::LinSpaced(N, 0, N-1);
+    vec x = regspace(0, N-1);
     
-    for (Index n = 0; n < N; n++) {
+    for (uword n = 0; n < N; n++) {
         slicer.pushSample(x(n));
         if (slicer.hasBlock()) {
 //            std::cout << slicer.getBlock().transpose() << std::endl;
@@ -42,25 +42,25 @@ BOOST_AUTO_TEST_CASE(Slicing2) {
     Slicer slicer;
     Splicer splicer;
     
-    Index blockSize = 1<<10;
-    Index hopSize = blockSize/2;
+    uword blockSize = 1<<10;
+    uword hopSize = blockSize/2;
     
     slicer.setSize(blockSize, hopSize);
     splicer.setSize(blockSize, hopSize);
     
-    Index N = (1<<16);
-    ArrayXd x = ArrayXd::Random(N);
-    ArrayXd y = ArrayXd::Zero(N);
+    uword N = (1<<16);
+    vec x = randn(N);
+    vec y = zeros(N);
     
-    ArrayXd window = hann(blockSize).sqrt();
+    vec window = sqrt(hann(blockSize));
     
-    for (Index n = 0; n < N; n++) {
+    for (uword n = 0; n < N; n++) {
         double sample = x(n);
         slicer.pushSample(sample);
         sample = splicer.getSample();
         
         if (slicer.hasBlock()) {
-            ArrayXd block = slicer.getBlock();
+            vec block = slicer.getBlock();
             block *= window;
             block *= window;
             splicer.pushBlock(block);
@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(Slicing2) {
         y(n) = sample;
     }
     
-    ArrayXd d = x.head(N - blockSize) - y.tail(N - blockSize);
+    vec d = x.head(N - blockSize) - y.tail(N - blockSize);
     BOOST_CHECK(rms(d) < 1e-6);
 }
 
@@ -84,28 +84,28 @@ BOOST_AUTO_TEST_CASE(CQTSlicing1) {
     double fMax = 10000;
     double fRef = 1500;
     
-    Index blockSize = 1<<10;
-    Index hopSize = blockSize/2;
+    uword blockSize = 1<<10;
+    uword hopSize = blockSize/2;
     
-    Index N = (1<<16);
-    ArrayXd x = ArrayXd::Random(N);
-    ArrayXd y = ArrayXd::Zero(N);
-    ArrayXd w = hann(blockSize);
+    uword N = (1<<16);
+    vec x = randn(N);
+    vec y = zeros(N);
+    vec w = hann(blockSize);
     
     cqt.init(fs, blockSize, ppo, fMin, fMax, fRef);
     slicer.setSize(blockSize, hopSize);
     composer.setSize(blockSize, hopSize);
     
-    Index nBands = cqt.nBands;
-    ArrayXXcd Xcq(blockSize, nBands);
-    ArrayXXcd Ycq(blockSize, nBands);
-    Xcq.setZero();
-    Ycq.setZero();
+    uword nBands = cqt.nBands;
+    cx_mat Xcq(blockSize, nBands);
+    cx_mat Ycq(blockSize, nBands);
+    Xcq.zeros();
+    Ycq.zeros();
     
-    ArrayXd xi(blockSize);
-    ArrayXd yi(blockSize);
+    vec xi(blockSize);
+    vec yi(blockSize);
     
-    for (Index n = 0; n < N; n++) {
+    for (uword n = 0; n < N; n++) {
         double sample = x(n);
         slicer.pushSample(sample);
         y(n) = composer.getSample();
@@ -120,7 +120,7 @@ BOOST_AUTO_TEST_CASE(CQTSlicing1) {
         }
     }
     
-    ArrayXd d = x.head(N - blockSize) - y.tail(N - blockSize);
+    vec d = x.head(N - blockSize) - y.tail(N - blockSize);
     BOOST_CHECK(rms(d) < 1e-6);
 }
 
@@ -137,40 +137,40 @@ BOOST_AUTO_TEST_CASE(CQTSlicing2) {
     double fMax = 10000;
     double fRef = 1500;
     
-    Index blockSize = 1<<16;
-    Index hopSize = blockSize/2;
-    Index overlapSize = blockSize - hopSize;
+    uword blockSize = 1<<16;
+    uword hopSize = blockSize/2;
+    uword overlapSize = blockSize - hopSize;
     
-    Index N = (1<<20);
-    ArrayXd t = regspace(N) / fs;
+    uword N = (1<<20);
+    vec t = regspace(0, N-1) / fs;
 //    ArrayXd x = ArrayXd::Random(N);
-    ArrayXd x = logChirp(t, fMin, fMax);
-    ArrayXd y = ArrayXd::Zero(N);
-    ArrayXd w = hann(blockSize);
-    x.head(blockSize).setZero();
-    x.tail(blockSize).setZero();
+    vec x = logChirp(t, fMin, fMax);
+    vec y = zeros(N);
+    vec w = hann(blockSize);
+    x.head(blockSize).zeros();
+    x.tail(blockSize).zeros();
     
     cqt.init(fs, blockSize, ppo, fMin, fMax, fRef);
     slicer.setSize(blockSize, hopSize);
     composer.setSize(blockSize, hopSize);
     
-    Index nBands = cqt.nBands;
-    ArrayXXcd Xm1(blockSize, nBands);
-    ArrayXXcd X_i(blockSize, nBands);
-    ArrayXXcd Y_i(blockSize, nBands);
-    ArrayXXcd Z_i(overlapSize, nBands);
-    ArrayXXcd Zm1(overlapSize, nBands);
+    uword nBands = cqt.nBands;
+    cx_mat Xm1(blockSize, nBands);
+    cx_mat X_i(blockSize, nBands);
+    cx_mat Y_i(blockSize, nBands);
+    cx_mat Z_i(overlapSize, nBands);
+    cx_mat Zm1(overlapSize, nBands);
     
-    Xm1.setZero();
-    X_i.setZero();
-    Z_i.setZero();
-    Zm1.setZero();
-    Y_i.setZero();
+    Xm1.zeros();
+    X_i.zeros();
+    Z_i.zeros();
+    Zm1.zeros();
+    Y_i.zeros();
     
-    ArrayXd xi(blockSize);
-    ArrayXd yi(blockSize);
+    vec xi(blockSize);
+    vec yi(blockSize);
     
-    for (Index n = 0; n < N; n++) {
+    for (uword n = 0; n < N; n++) {
         double sample = x(n);
         slicer.pushSample(sample);
         y(n) = composer.getSample();
@@ -181,10 +181,10 @@ BOOST_AUTO_TEST_CASE(CQTSlicing2) {
             Xm1 = X_i;
             cqt.forward(xi, X_i);
             Zm1 = Z_i;
-            Z_i = Xm1.bottomRows(overlapSize) + X_i.topRows(overlapSize);
+            Z_i = Xm1.tail_rows(overlapSize) + X_i.head_rows(overlapSize);
             
-            Y_i.topRows(overlapSize) = Zm1;
-            Y_i.bottomRows(overlapSize) = Z_i;
+            Y_i.head_rows(overlapSize) = Zm1;
+            Y_i.tail_rows(overlapSize) = Z_i;
             
             cqt.inverse(Y_i, yi);
             yi *= w;
@@ -193,9 +193,7 @@ BOOST_AUTO_TEST_CASE(CQTSlicing2) {
     }
     y = y.tail(N - blockSize - overlapSize);
     x = x.head(N - blockSize - overlapSize);
-    ArrayXd d = x - y;
-    eig2armaVec(x).save(arma::csv_name("x.csv"));
-    eig2armaVec(y).save(arma::csv_name("y.csv"));
+    vec d = x - y;
     cout << rms(d) << endl;
     BOOST_CHECK(rms(d) < 1e-3);
 }

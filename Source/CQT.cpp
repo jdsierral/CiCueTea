@@ -137,8 +137,10 @@ void NsgfCqtSparse::init(double sampleRate, uword numSamples, double ppo,
     mat g_ = exp(-c * square(log2(outerRatio)));
     
     uword end = nBands - 1;
-    g_.elem(fax < bax(1)).ones();
-    g_.elem(fax > bax(end)).ones();
+    for (uword k = 0; k < fax.size(); k++) {
+        if (fax(k) <  bax(0) ) g_(k,  0 ) = 1;
+        if (fax(k) > bax(end)) g_(k, end) = 1;
+    }
     g_ = sqrt(g_);
     d = sum(arma::square(g_), 1);
     mat gDual_ = g_.each_col() / d;
@@ -186,7 +188,7 @@ void NsgfCqtSparse::inverse(const Coefs& Xcq, vec& x) {
     Xdft.fill(0);
     for (uword k = 0; k < nBands; k++) {
         dfts[k].dft(Xcq[k], Xcoefs[k]);
-        Xdft.subvec(idx[k].i0, idx[k].i0 + idx[k].len - 1) += 0.5 * gDual[k] * conj(phase[k]) * Xcoefs[k];
+        Xdft.subvec(idx[k].i0, idx[k].i0 + idx[k].len - 1) += 0.5 * gDual[k] % conj(phase[k]) % Xcoefs[k];
     }
     dft.irdft(Xdft, x);
 }
