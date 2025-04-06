@@ -14,7 +14,6 @@ set(SourceFiles
     Source/RingBuffer.hpp
     Source/OverlapAddProcessor.cpp
     Source/OverlapAddProcessor.hpp
-    Source/Windows.h
     Source/VectorOps.h
     Source/Benchtools.h
 )
