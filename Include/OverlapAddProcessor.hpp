@@ -18,14 +18,14 @@
 
 namespace jsa {
 
-class NsgfCqtProcessor {
+class cqtFullProcessor {
 public:
     void init(double fs, double blockSize, double ppo, double fMax, double fMin, double fRef);
     double processSample(double sample);
     virtual void processBlock(Eigen::ArrayXXcd& block) = 0;
     
 protected:
-    NsgfCqtFull cqt;
+    std::shared_ptr<NsgfCqtFull> cqt;
     
 private:
     Eigen::ArrayXd xi;
@@ -38,18 +38,17 @@ private:
 
 //==========================================================================
 
-class SliCQOlaProcessor {
+class slidingCQTFullProcessor {
 public:
     void init(double fs, double blockSize, double ppo, double fMax, double fMin, double fRef);
     double processSample(double sample);
     virtual void processBlock(Eigen::ArrayXXcd& block) = 0;
     
 protected:
-    NsgfCqtFull cqt;
+    std::shared_ptr<NsgfCqtFull> cqt;
     
 private:
     Eigen::ArrayXd xi;
-    Eigen::ArrayXd yi;
     DoubleBuffer<Eigen::ArrayXXcd> Xcq;
     DoubleBuffer<Eigen::ArrayXXcd> Zcq;
     Eigen::ArrayXXcd Ycq;
@@ -61,14 +60,14 @@ private:
 
 //==========================================================================
 
-class NsgfCqtSparseProcessor {
+class cqtSparseProcessor {
 public:
     void init(double fs, double blockSize, double ppo, double fMax, double fMin, double fRef);
     double processSample(double sample);
     virtual void processBlock(NsgfCqtSparse::Coefs& block) = 0;
     
 protected:
-    NsgfCqtSparse cqt;
+    std::shared_ptr<NsgfCqtSparse> cqt;
     
 private:
     Eigen::ArrayXd xi;
@@ -81,18 +80,17 @@ private:
 
 //==========================================================================
 
-class SliCQSparseProcessor {
+class slidingCqtSparseProcessor {
 public:
     void init(double fs, double blockSize, double ppo, double fMax, double fMin, double fRef);
     double processSample(double sample);
     virtual void processBlock(NsgfCqtSparse::Coefs& block) = 0;
     
 protected:
-    NsgfCqtSparse cqt;
+    std::shared_ptr<NsgfCqtSparse> cqt;
     
 private:
     Eigen::ArrayXd xi;
-    Eigen::ArrayXd yi;
     DoubleBuffer<NsgfCqtSparse::Coefs> Xcq;
     DoubleBuffer<NsgfCqtSparse::Coefs> Zcq;
     NsgfCqtSparse::Coefs Ycq;

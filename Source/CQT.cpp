@@ -230,6 +230,7 @@ NsgfCqtSparse::Coefs NsgfCqtSparse::getCoefs() const {
     for (Index k = 0; k < nBands; k++) {
         Index sz = g[k].size();
         coefs[k].resize(sz);
+        coefs[k].setZero();
     }
     return coefs;
 }
@@ -242,6 +243,7 @@ NsgfCqtSparse::Coefs NsgfCqtSparse::getValidCoefs() const {
         Index sz = g[k].size();
         assert(sz % 2 == 0);
         coefs[k].resize(sz/2);
+        coefs[k].setZero();
     }
     return coefs;
 }

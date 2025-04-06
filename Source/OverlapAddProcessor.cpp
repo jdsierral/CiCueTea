@@ -12,20 +12,22 @@
 using namespace Eigen;
 using namespace jsa;
 
-void NsgfCqtProcessor::init(double fs, double blockSize, double ppo, double fMax, double fMin, double fRef)
+void cqtFullProcessor::init(double fs, double blockSize, double ppo, double fMax, double fMin, double fRef)
 {
-    cqt.init(fs, blockSize, ppo, fMin, fMax, fRef);
-    Index nBands = cqt.nBands;
+    auto newCqt = std::make_shared<NsgfCqtFull>();
+    newCqt->init(fs, blockSize, ppo, fMin, fMax, fRef);
+    std::atomic_store(&cqt, newCqt);
+    Index nBands = cqt->nBands;
     win.resize(blockSize);
     win = hann(blockSize).sqrt();
     slicer.setSize(blockSize, blockSize/2);
     splicer.setSize(blockSize, blockSize/2);
     xi.resize(blockSize);
     Xcq.resize(blockSize, nBands);
-    xi = ArrayXd::Zero(blockSize);
-    Xcq = ArrayXXcd::Zero(blockSize, nBands);
+    xi.setZero();
+    Xcq.setZero();
     this->fs = fs;
-    assert(blockSize == cqt.nSamps);
+    assert(blockSize == cqt->nSamps);
     assert(blockSize == win.size());
     assert(blockSize == slicer.getBlockSize());
     assert(blockSize == splicer.getBlockSize());
@@ -33,7 +35,7 @@ void NsgfCqtProcessor::init(double fs, double blockSize, double ppo, double fMax
     assert(blockSize == Xcq.rows());
 }
 
-double NsgfCqtProcessor::processSample(double sample) {
+double cqtFullProcessor::processSample(double sample) {
     RealTimeChecker ck;
     
     if (fs < 0) return 0;
@@ -44,12 +46,15 @@ double NsgfCqtProcessor::processSample(double sample) {
         const Index sz = slicer.getBlockSize();
         assert(sz == xi.size());
         assert(sz == win.size());
-        assert(sz == cqt.nSamps);
+        assert(sz == cqt->nSamps);
         assert(sz == Xcq.rows());
         xi *= win;
-        cqt.forward(xi, Xcq);
-        processBlock(Xcq);
-        cqt.inverse(Xcq, xi);
+        auto curCqt = std::atomic_load(&cqt);
+        if (curCqt) {
+            curCqt->forward(xi, Xcq);
+            processBlock(Xcq);
+            curCqt->inverse(Xcq, xi);
+        }
         xi *= win;
         splicer.pushBlock(xi);
     }
@@ -60,15 +65,16 @@ double NsgfCqtProcessor::processSample(double sample) {
 //==========================================================================
 //==========================================================================
 
-void SliCQOlaProcessor::init(double fs, double blockSize, double ppo, double fMax, double fMin, double fRef)
+void slidingCQTFullProcessor::init(double fs, double blockSize, double ppo, double fMax, double fMin, double fRef)
 {
-    cqt.init(fs, blockSize, ppo, fMin, fMax, fRef);
-    Index nBands = cqt.nBands;
+    auto newCqt = std::make_shared<NsgfCqtFull>();
+    newCqt->init(fs, blockSize, ppo, fMin, fMax, fRef);
+    std::atomic_store(&cqt, newCqt);
+    Index nBands = cqt->nBands;
     win = hann(blockSize).sqrt();
     slicer.setSize(blockSize, blockSize/2);
     splicer.setSize(blockSize, blockSize/2);
     xi.resize(blockSize);
-    yi.resize(blockSize);
     ArrayXXcd coefs = ArrayXXcd::Zero(blockSize, nBands);
     ArrayXXcd validCoefs = ArrayXXcd::Zero(blockSize/2, nBands);
     Xcq.fill(coefs);
@@ -76,12 +82,11 @@ void SliCQOlaProcessor::init(double fs, double blockSize, double ppo, double fMa
     Ycq = coefs;
     this->fs = fs;
     
-    assert(blockSize == cqt.nSamps);
+    assert(blockSize == cqt->nSamps);
     assert(blockSize == win.size());
     assert(blockSize == slicer.getBlockSize());
     assert(blockSize == splicer.getBlockSize());
     assert(blockSize == xi.size());
-    assert(blockSize == yi.size());
     assert(blockSize == Xcq.current().rows());
     assert(blockSize == Xcq.last().rows());
     assert(blockSize == Zcq.current().rows() * 2);
@@ -89,7 +94,7 @@ void SliCQOlaProcessor::init(double fs, double blockSize, double ppo, double fMa
     assert(blockSize == Ycq.rows());
 }
 
-double SliCQOlaProcessor::processSample(double sample)
+double slidingCQTFullProcessor::processSample(double sample)
 {
     RealTimeChecker ck;
     
@@ -101,27 +106,30 @@ double SliCQOlaProcessor::processSample(double sample)
         const Index sz = xi.size();
         assert(sz == xi.size());
         assert(sz == win.size());
-        assert(sz == cqt.nSamps);
+        assert(sz == cqt->nSamps);
         xi *= win;
-        Eigen::ArrayXXcd& Xi = Xcq.next();
-        assert(sz == Xi.rows());
-        cqt.forward(xi, Xi);
-        Xi.colwise() *= win;
-        Eigen::ArrayXXcd& Zi = Zcq.next();
-        assert(sz == 2 * Zi.rows());
-        Zi = Xi.topRows(sz/2) + Xcq.last().bottomRows(sz/2);
-        
-        processBlock(Zi);
-        
-        assert(sz == 2 * Zi.rows());
-        Ycq.topRows(sz/2) = Zcq.last();
-        Ycq.bottomRows(sz/2) = Zi;
-        assert(sz == Ycq.rows());
-        Ycq.colwise() *= win;
-        assert(sz == yi.size());
-        cqt.inverse(Ycq, yi);
-        yi *= win;
-        splicer.pushBlock(yi);
+        auto curCqt = std::atomic_load(&cqt);
+        if (curCqt) {
+            Eigen::ArrayXXcd& Xi = Xcq.next();
+            assert(sz == Xi.rows());
+            curCqt->forward(xi, Xi);
+            Xi.colwise() *= win;
+            Eigen::ArrayXXcd& Zi = Zcq.next();
+            assert(sz == 2 * Zi.rows());
+            Zi = Xi.topRows(sz/2) + Xcq.last().bottomRows(sz/2);
+            
+            processBlock(Zi);
+            
+            assert(sz == 2 * Zi.rows());
+            Ycq.topRows(sz/2) = Zcq.last();
+            Ycq.bottomRows(sz/2) = Zi;
+            assert(sz == Ycq.rows());
+            Ycq.colwise() *= win;
+            assert(sz == xi.size());
+            curCqt->inverse(Ycq, xi);
+        }
+        xi *= win;
+        splicer.pushBlock(xi);
     }
     return sample;
 }
@@ -129,25 +137,27 @@ double SliCQOlaProcessor::processSample(double sample)
 //==========================================================================
 //==========================================================================
 
-void NsgfCqtSparseProcessor::init(double fs, double blockSize, double ppo, double fMax, double fMin, double fRef)
+void cqtSparseProcessor::init(double fs, double blockSize, double ppo, double fMax, double fMin, double fRef)
 {
-    cqt.init(fs, blockSize, ppo, fMin, fMax, fRef);
+    auto newCqt = std::make_shared<NsgfCqtSparse>();
+    newCqt->init(fs, blockSize, ppo, fMin, fMax, fRef);
+    std::atomic_store(&cqt, newCqt);
     win.resize(blockSize);
     win = hann(blockSize).sqrt();
     slicer.setSize(blockSize, blockSize/2);
     splicer.setSize(blockSize, blockSize/2);
     xi.resize(blockSize);
-    xi = ArrayXd::Zero(blockSize);
-    Xcq = cqt.getCoefs();
+    xi.setZero();
+    Xcq = cqt->getCoefs();
     this->fs = fs;
-    assert(blockSize == cqt.nSamps);
+    assert(blockSize == cqt->nSamps);
     assert(blockSize == win.size());
     assert(blockSize == slicer.getBlockSize());
     assert(blockSize == splicer.getBlockSize());
     assert(blockSize == xi.size());
 }
 
-double NsgfCqtSparseProcessor::processSample(double sample) {
+double cqtSparseProcessor::processSample(double sample) {
     RealTimeChecker ck;
     
     if (fs < 0) return 0;
@@ -158,11 +168,14 @@ double NsgfCqtSparseProcessor::processSample(double sample) {
         const Index sz = slicer.getBlockSize();
         assert(sz == xi.size());
         assert(sz == win.size());
-        assert(sz == cqt.nSamps);
+        assert(sz == cqt->nSamps);
         xi *= win;
-        cqt.forward(xi, Xcq);
-        processBlock(Xcq);
-        cqt.inverse(Xcq, xi);
+        auto curCqt = std::atomic_load(&cqt);
+        if (curCqt) {
+            curCqt->forward(xi, Xcq);
+            processBlock(Xcq);
+            curCqt->inverse(Xcq, xi);
+        }
         xi *= win;
         splicer.pushBlock(xi);
     }
@@ -173,28 +186,34 @@ double NsgfCqtSparseProcessor::processSample(double sample) {
 //==========================================================================
 
 
-void SliCQSparseProcessor::init(double fs, double blockSize, double ppo, double fMax, double fMin, double fRef)
+void slidingCqtSparseProcessor::init(double fs, double blockSize, double ppo, double fMax, double fMin, double fRef)
 {
-    cqt.init(fs, blockSize, ppo, fMin, fMax, fRef);
+    auto newCqt = std::make_shared<NsgfCqtSparse>();
+    newCqt->init(fs, blockSize, ppo, fMin, fMax, fRef);
+    std::atomic_store(&cqt, newCqt);
     win = hann(blockSize).sqrt();
     slicer.setSize(blockSize, blockSize/2);
     splicer.setSize(blockSize, blockSize/2);
     xi.resize(blockSize);
-    yi.resize(blockSize);
-    Win = cqt.getFrame();
-    auto coefs = cqt.getCoefs();
-    auto validCoefs = cqt.getValidCoefs();
+    Win = cqt->getFrame();
+    
+    for (Index n = 0; n < cqt->nBands; n++) {
+        Index sz = Win[n].size();
+        Win[n] = hann(sz).sqrt();
+    }
+    
+    auto coefs = cqt->getCoefs();
+    auto validCoefs = cqt->getValidCoefs();
     Xcq.fill(coefs);
     Zcq.fill(validCoefs);
     Ycq = coefs;
     this->fs = fs;
     
-    assert(blockSize == cqt.nSamps);
+    assert(blockSize == cqt->nSamps);
     assert(blockSize == win.size());
     assert(blockSize == slicer.getBlockSize());
     assert(blockSize == splicer.getBlockSize());
     assert(blockSize == xi.size());
-    assert(blockSize == yi.size());
 //    assert(blockSize == Xcq.current().rows());
 //    assert(blockSize == Xcq.last().rows());
 //    assert(blockSize == Zcq.current().rows() * 2);
@@ -202,7 +221,7 @@ void SliCQSparseProcessor::init(double fs, double blockSize, double ppo, double 
 //    assert(blockSize == Ycq.rows());
 }
 
-double SliCQSparseProcessor::processSample(double sample)
+double slidingCqtSparseProcessor::processSample(double sample)
 {
     RealTimeChecker ck;
     
@@ -214,40 +233,44 @@ double SliCQSparseProcessor::processSample(double sample)
         const Index sz = xi.size();
         assert(sz == xi.size());
         assert(sz == win.size());
-        assert(sz == cqt.nSamps);
+        assert(sz == cqt->nSamps);
         xi *= win;
-        NsgfCqtSparse::Coefs& Xi = Xcq.next();
-        cqt.forward(xi, Xi);
-        
-        for (Index n = 0; n < cqt.nBands; n++) {
-            assert(Xi[n].size() == Win[n].size());
-            Xi[n] *= Win[n];
+        auto curCqt = std::atomic_load(&cqt);
+        if (curCqt) {
+            NsgfCqtSparse::Coefs& Xi = Xcq.next();
+            curCqt->forward(xi, Xi);
+            Index nBands = curCqt->nBands;
+            
+            for (Index n = 0; n < nBands; n++) {
+                assert(Xi[n].size() == Win[n].size());
+                Xi[n] *= Win[n];
+            }
+            
+            NsgfCqtSparse::Coefs& Zi = Zcq.next();
+            
+            for (Index n = 0; n < nBands; n++) {
+                Index ol = Xi[n].size()/2;
+                Zi[n] = Xi[n].head(ol) + Xcq.last()[n].tail(ol);
+            }
+            
+            processBlock(Zi);
+            
+            for (Index n = 0; n < nBands; n++) {
+                Index ol = Ycq[n].size()/2;
+                Ycq[n].head(ol) = Zcq.last()[n];
+                Ycq[n].tail(ol) = Zi[n];
+            }
+            
+            for (Index n = 0; n < nBands; n++) {
+                assert(Ycq[n].size() == Win[n].size());
+                Ycq[n] *= Win[n];
+            }
+            
+            assert(sz == xi.size());
+            curCqt->inverse(Ycq, xi);
         }
-        
-        NsgfCqtSparse::Coefs& Zi = Zcq.next();
-        
-        for (Index n = 0; n < cqt.nBands; n++) {
-            Index ol = Xi[n].size()/2;
-            Zi[n] = Xi[n].head(ol) + Xcq.last()[n].tail(ol);
-        }
-        
-        processBlock(Zi);
-        
-        for (Index n = 0; n < cqt.nBands; n++) {
-            Index ol = Ycq[n].size()/2;
-            Ycq[n].head(ol) = Zcq.last()[n];
-            Ycq[n].tail(ol) = Zi[n];
-        }
-        
-        for (Index n = 0; n < cqt.nBands; n++) {
-            assert(Ycq[n].size() == Win[n].size());
-            Ycq[n] *= Win[n];
-        }
-        
-        assert(sz == yi.size());
-        cqt.inverse(Ycq, yi);
-        yi *= win;
-        splicer.pushBlock(yi);
+        xi *= win;
+        splicer.pushBlock(xi);
     }
     return sample;
 }

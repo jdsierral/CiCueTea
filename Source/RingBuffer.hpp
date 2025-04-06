@@ -36,6 +36,7 @@ public:
     
     const T& current() const { return buffer[state]; }
     const T& last() const { return buffer[!state]; }
+    T& last() { return buffer[!state]; }
     T& current() { return buffer[state]; }
     
 private:
