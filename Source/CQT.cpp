@@ -12,9 +12,9 @@
 #include "Benchtools.h"
 
 using namespace jsa;
-using namespace Eigen;
+using namespace arma;
 
-void NsgfCqtCommon::init(double sampleRate, Index numSamples, double pointsPerOctave,
+void NsgfCqtCommon::init(double sampleRate, uword numSamples, double pointsPerOctave,
                          double minFrequency, double maxFrequency, double refFrequency)
 {
     fs = sampleRate;
@@ -27,22 +27,22 @@ void NsgfCqtCommon::init(double sampleRate, Index numSamples, double pointsPerOc
     // Initialize Stuff
     Xdft.resize(nSamps);
     dft.init(nSamps);
-    Xdft.setZero();
+    Xdft.zeros();
     
-    Index nBandsUp = Index(ceil(ppo * log2(fMax / fRef)));
-    Index nBandsDown = Index(ceil(ppo * log2(fRef / fMin)));
+    sword nBandsUp = sword(ceil(ppo * log2(fMax / fRef)));
+    sword nBandsDown = sword(ceil(ppo * log2(fRef / fMin)));
     nBands = nBandsDown + nBandsUp + 1;
-    bax = fRef * (log(2) * regspace(-nBandsDown, nBandsUp) / ppo).exp();
+    bax = fRef * exp(log(2) * regspace(-nBandsDown, nBandsUp) / ppo);
     
     nFreqs = nSamps;
-    fax = ArrayXd::LinSpaced(nFreqs, 0, nFreqs-1) * fs / double(nFreqs);
+    fax = regspace(0, nFreqs-1) * fs / double(nFreqs);
 }
 
 //==========================================================================
 //==========================================================================
 //==========================================================================
 
-void NsgfCqtFull::init(double sampleRate, Index numSamples, double ppo,
+void NsgfCqtFull::init(double sampleRate, uword numSamples, double ppo,
                        double minFrequency, double maxFrequency, double refFrequency)
 {
     NsgfCqtCommon::init(sampleRate, numSamples, ppo,
@@ -52,41 +52,46 @@ void NsgfCqtFull::init(double sampleRate, Index numSamples, double ppo,
     Xmat.resize(nSamps, nBands);
     
     double c = log(16) / (square(1.0 / ppo));
-    ArrayXXd outerRatio = fax.rowwise().replicate(bax.size()) / bax.transpose().colwise().replicate(fax.size());
-    g = (-c * (outerRatio).log2().square()).exp();
+    mat outerRatio = fax * (1.0 / bax.t());
+    g = exp(-c * square(log2(outerRatio)));
     
-    Index end = nBands - 1;
-    g.col( 0 ) = (fax < bax( 0 )).select(1, g.col( 0 ));
-    g.col(end) = (fax > bax(end)).select(1, g.col(end));
-    g = g.sqrt();
-    d = g.square().rowwise().sum();
-    gDual = g.colwise() / d;
+    uword end = nBands - 1;
+    for (uword k = 0; k < fax.size(); k++) {
+        if (fax(k) <  bax(0) ) g(k,  0 ) = 1;
+        if (fax(k) > bax(end)) g(k, end) = 1;
+    }
+    g = sqrt(g);
+    d = sum(arma::square(g), 1);
+    gDual = g.each_col() / d;
     
-    g.bottomRows(nFreqs/2-1).setZero();
-    gDual.bottomRows(nFreqs/2-1).setZero();
+    g.tail_rows(nFreqs/2-1).zeros();
+    gDual.tail_rows(nFreqs/2-1).zeros();
     
-    Xmat.setZero();
+    Xmat.zeros();
 }
 
-void NsgfCqtFull::forward(const ArrayXd& x, ArrayXXcd& Xcq) {
+void NsgfCqtFull::forward(const vec& x, cx_mat& Xcq) {
     RealTimeChecker ck;
     
     if (fs < 0) return;
-    assert(Xcq.cols() == Index(nBands));
-    assert(Xcq.rows() == Index(nSamps));
+    assert(Xcq.n_cols == uword(nBands));
+    assert(Xcq.n_rows == uword(nSamps));
     dft.rdft(x, Xdft);
-    for (Index k = 0; k < nBands; k++) {
-        Xmat.col(k) = 2 * g.col(k) * Xdft;
+    for (uword k = 0; k < nBands; k++) {
+        Xmat.col(k) = 2 * (g.col(k) % Xdft);
     }
     dft.idft(Xmat, Xcq);
 }
 
-void NsgfCqtFull::inverse(const ArrayXXcd& Xcq, ArrayXd& x) {
+void NsgfCqtFull::inverse(const cx_mat& Xcq, vec& x) {
     RealTimeChecker ck;
     
     if (fs < 0) return;
     dft.dft(Xcq, Xmat);
-    Xdft = (Xmat * gDual).rowwise().sum() / 2;
+    Xdft.zeros();
+    for (uword k = 0; k < nBands; k++) {
+        Xdft += Xmat.col(k) % gDual.col(k) / 2;
+    }
     dft.irdft(Xdft, x);
 }
 
@@ -95,24 +100,24 @@ void NsgfCqtFull::inverse(const ArrayXXcd& Xcq, ArrayXd& x) {
 //==========================================================================
 //==========================================================================
 
-NsgfCqtSparse::Idx findIdx(const ArrayXd& x, double th) {
-    Index i0 = 0;
-    Index len = 0;
-    for (Index i = 0; i < x.size(); i++) {
+NsgfCqtSparse::Idx findIdx(const vec& x, double th) {
+    uword i0 = 0;
+    uword len = 0;
+    for (uword i = 0; i < x.size(); i++) {
         if (x(i) > th) {
             i0 = i;
             break;
         }
     }
     
-    for (Index i = i0; i < x.size(); i++) {
+    for (uword i = i0; i < x.size(); i++) {
         len++;
         if (x(i) < th) { break; }
     }
     return {i0, len};
 }
 
-void NsgfCqtSparse::init(double sampleRate, Index numSamples, double ppo,
+void NsgfCqtSparse::init(double sampleRate, uword numSamples, double ppo,
                          double minFrequency, double maxFrequency, double refFrequency)
 {
     NsgfCqtCommon::init(sampleRate, numSamples, ppo,
@@ -128,35 +133,30 @@ void NsgfCqtSparse::init(double sampleRate, Index numSamples, double ppo,
     dfts.resize(nBands);
     
     double c = log(16) / (square(1.0 / ppo));
-    ArrayXXd outerRatio = fax.rowwise().replicate(bax.size()) / bax.transpose().colwise().replicate(fax.size());
-    ArrayXXd g_ = (-c * (outerRatio).log2().square()).exp();
+    mat outerRatio = fax * (1.0 / bax.t());
+    mat g_ = exp(-c * square(log2(outerRatio)));
     
-    Index end = nBands - 1;
-    g_.col( 0 ) = (fax < bax( 0 )).select(1, g_.col( 0 ));
-    g_.col(end) = (fax > bax(end)).select(1, g_.col(end));
+    uword end = nBands - 1;
+    g_.elem(fax < bax(1)).ones();
+    g_.elem(fax > bax(end)).ones();
+    g_ = sqrt(g_);
+    d = sum(arma::square(g_), 1);
+    mat gDual_ = g_.each_col() / d;
     
-    g_ = (g_ < th).select(0.0, g_);
-    
-    g_ = g_.sqrt();
-    d = g_.square().rowwise().sum();
-    ArrayXXd gDual_ = g_.colwise() / d;
-    
-    gDual_ = (gDual_ < th).select(0.0, gDual_);
-    
-    g_.bottomRows(nFreqs/2-1).fill(0);
-    gDual_.bottomRows(nFreqs/2-1).fill(0);
+    g_.tail_rows(nFreqs/2-1).zeros();
+    gDual_.tail_rows(nFreqs/2-1).zeros();
     
     using namespace std::complex_literals;
     
-    for (Index k = 0; k < nBands; k++) {
+    for (uword k = 0; k < nBands; k++) {
         idx[k] = getIdx(g_.col(k));
-        Index i0 = idx[k].i0;
-        Index nCoefs = idx[k].len;
+        uword i0 = idx[k].i0;
+        uword nCoefs = idx[k].len;
         scale(k) = double(nCoefs);
-        ArrayXd n = ArrayXd::LinSpaced(nCoefs, 0, nCoefs-1);
-        phase[k] = exp(1i * 2.0 * M_PI * double(i0) * n / double(nCoefs));
-        g[k] = g_.col(k).segment(i0, nCoefs).eval();
-        gDual[k] = gDual_.col(k).segment(i0, nCoefs).eval();
+        vec n = regspace(0, nCoefs-1);
+        phase[k] = exp(1i * datum::tau * double(i0) * n / double(nCoefs));
+        g[k] = vec(g_.colptr(k) + i0, nCoefs);
+        gDual[k] = vec(g_.colptr(k) + i0, nCoefs);
         dfts[k].init(nCoefs);
     }
     
@@ -165,50 +165,50 @@ void NsgfCqtSparse::init(double sampleRate, Index numSamples, double ppo,
     dft.init(nSamps);
 }
 
-void NsgfCqtSparse::forward(const ArrayXd& x, Coefs& Xcq) {
+void NsgfCqtSparse::forward(const vec& x, Coefs& Xcq) {
     RealTimeChecker ck;
     
     if (fs < 0) return;
-    assert(Index(Xcq.size()) == nBands);
+    assert(uword(Xcq.size()) == nBands);
     Xdft.fill(0);
     dft.rdft(x, Xdft);
-    for (Index k = 0; k < nBands; k++) {
-        Xcoefs[k] = 2.0 * g[k] * phase[k] * Xdft.segment(idx[k].i0, idx[k].len);
+    for (uword k = 0; k < nBands; k++) {
+        Xcoefs[k] = 2.0 * g[k] % phase[k] % Xdft.subvec(idx[k].i0, idx[k].i0 + idx[k].len - 1);
         dfts[k].idft(Xcoefs[k], Xcq[k]);
     }
 }
 
-void NsgfCqtSparse::inverse(const Coefs& Xcq, ArrayXd& x) {
+void NsgfCqtSparse::inverse(const Coefs& Xcq, vec& x) {
     RealTimeChecker ck;
     
     if (fs < 0) return;
-    assert(Index(Xcq.size()) == nBands);
+    assert(uword(Xcq.size()) == nBands);
     Xdft.fill(0);
-    for (Index k = 0; k < nBands; k++) {
+    for (uword k = 0; k < nBands; k++) {
         dfts[k].dft(Xcq[k], Xcoefs[k]);
-        Xdft.segment(idx[k].i0, idx[k].len) += 0.5 * gDual[k] * phase[k].conjugate() * Xcoefs[k];
+        Xdft.subvec(idx[k].i0, idx[k].i0 + idx[k].len - 1) += 0.5 * gDual[k] * conj(phase[k]) * Xcoefs[k];
     }
     dft.irdft(Xdft, x);
 }
 
-NsgfCqtSparse::Idx NsgfCqtSparse::getIdx(const ArrayXd& x) {
-    Index i0 = 0;
-    Index i1 = x.size();
-    for (Index i = 0; i < x.size(); i++) {
+NsgfCqtSparse::Idx NsgfCqtSparse::getIdx(const vec& x) {
+    uword i0 = 0;
+    uword i1 = x.size();
+    for (uword i = 0; i < x.size(); i++) {
         if (x(i) < th) continue;
         i0 = i;
         break;
     }
     
-    for (Index i = x.size()-1; i >= 0; i--) {
+    for (uword i = x.size()-1; i >= 0; i--) {
         if (x(i) < th) continue;
         i1 = i;
         break;
     }
     
-    Index len = i1 - i0 + 1;
+    uword len = i1 - i0 + 1;
     if (len < 4) len = 4;
-    len = Index(nextPow2((unsigned int)(len)));
+    len = uword(nextPow2((unsigned int)(len)));
     return {i0, len};
 }
 
@@ -216,8 +216,8 @@ NsgfCqtSparse::Frame NsgfCqtSparse::getFrame() const {
     assert(fs > 0);
     assert(bax.size() > 0);
     Frame frame(nBands);
-    for (Index k = 0; k < nBands; k++) {
-        Index sz = g[k].size();
+    for (uword k = 0; k < nBands; k++) {
+        uword sz = g[k].size();
         frame[k].resize(sz);
     }
     return frame;
@@ -227,10 +227,10 @@ NsgfCqtSparse::Coefs NsgfCqtSparse::getCoefs() const {
     assert(fs > 0);
     assert(bax.size() > 0);
     Coefs coefs(nBands);
-    for (Index k = 0; k < nBands; k++) {
-        Index sz = g[k].size();
+    for (uword k = 0; k < nBands; k++) {
+        uword sz = g[k].size();
         coefs[k].resize(sz);
-        coefs[k].setZero();
+        coefs[k].zeros();
     }
     return coefs;
 }
@@ -239,11 +239,11 @@ NsgfCqtSparse::Coefs NsgfCqtSparse::getValidCoefs() const {
     assert(fs > 0);
     assert(bax.size() > 0);
     Coefs coefs(nBands);
-    for (Index k = 0; k < nBands; k++) {
-        Index sz = g[k].size();
+    for (uword k = 0; k < nBands; k++) {
+        uword sz = g[k].size();
         assert(sz % 2 == 0);
         coefs[k].resize(sz/2);
-        coefs[k].setZero();
+        coefs[k].zeros();
     }
     return coefs;
 }

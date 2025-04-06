@@ -22,11 +22,11 @@ namespace jsa {
 class RealTimeChecker {
 public:
     RealTimeChecker() {
-        ENTERING_REAL_TIME_CRITICAL_CODE
+//        ENTERING_REAL_TIME_CRITICAL_CODE
     }
     
     ~RealTimeChecker() {
-        EXITING_REAL_TIME_CRITICAL_CODE
+//        EXITING_REAL_TIME_CRITICAL_CODE
     }
 };
 

@@ -11,34 +11,35 @@
 #include "Benchtools.h"
 
 using namespace jsa;
+using namespace arma;
 
-void Slicer::setSize(Eigen::Index newBlockSize, Eigen::Index newHopSize) {
+void Slicer::setSize(uword newBlockSize, uword newHopSize) {
     blockSize = newBlockSize;
     hopSize = newHopSize;
     overlapSize = blockSize - hopSize;
     bufferSize = nextPow2(blockSize + 1);
     buffer.resize(2 * bufferSize);
-    buffer.setZero();
+    buffer.zeros();
     wp = 0;
     rp = constrain(bufferSize - overlapSize, bufferSize);
 }
 
 void Slicer::pushSample(double sample) {
-    RealTimeChecker rt;
+//    RealTimeChecker rt;
     wp = constrain(wp, bufferSize);
     buffer(wp) = buffer(wp + bufferSize) = sample;
     wp++;
 }
 
 bool Slicer::hasBlock() {
-    RealTimeChecker rt;
+//    RealTimeChecker rt;
     return (wp % hopSize) == 0;
 }
 
-Eigen::Map<const Eigen::ArrayXd> Slicer::getBlock() {
-    RealTimeChecker rt;
+const vec Slicer::getBlock() {
+//    RealTimeChecker rt;
     rp = constrain(rp, bufferSize);
-    auto segment = buffer.segment(rp, blockSize);
+    vec segment(buffer.memptr() + rp, blockSize, false, false);
     rp += hopSize;
-    return Eigen::Map<const Eigen::ArrayXd>(segment.data(), segment.size());
+    return segment;
 }

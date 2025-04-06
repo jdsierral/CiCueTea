@@ -9,30 +9,29 @@
 
 #include "FFT.hpp"
 
-#include <Eigen/Core>
-#include <Eigen/Dense>
+#include <armadillo>
 #include "VectorOps.h"
 
 namespace jsa {
 
 class NsgfCqtCommon {
 public:
-    virtual void init(double sampleRate, Eigen::Index nSamps, double ppo, double minFrequency,
+    virtual void init(double sampleRate, arma::uword nSamps, double ppo, double minFrequency,
               double maxFrequency, double refFrequency);
     
     double fs = -1;
-    Eigen::Index nSamps;
-    Eigen::Index nFreqs;
-    Eigen::Index nBands;
+    arma::uword nSamps;
+    arma::uword nFreqs;
+    arma::uword nBands;
     double ppo;
     double fMin;
     double fMax;
     double fRef;
     
-    Eigen::ArrayXd bax;
-    Eigen::ArrayXd fax;
-    Eigen::ArrayXd d;
-    Eigen::ArrayXcd Xdft;
+    arma::vec bax;
+    arma::vec fax;
+    arma::vec d;
+    arma::cx_vec Xdft;
         
     DFT dft;
 };
@@ -40,71 +39,72 @@ public:
 template <typename T>
 class NsgfCqtBase : public NsgfCqtCommon {
 public:
-    virtual void forward(const Eigen::ArrayXd& x, T& Xcq) = 0;
-    virtual void inverse(const T& Xcq, Eigen::ArrayXd& x) = 0;
+    virtual void forward(const arma::vec& x, T& Xcq) = 0;
+    virtual void inverse(const T& Xcq, arma::vec& x) = 0;
 };
 
-class NsgfCqtFull : public NsgfCqtBase<Eigen::ArrayXXcd> {
+class NsgfCqtFull : public NsgfCqtBase<arma::cx_mat> {
 public:
-    void init(double sampleRate, Eigen::Index numSamples, double ppo, double minFrequency,
+    void init(double sampleRate, arma::uword numSamples, double ppo, double minFrequency,
               double maxFrequency, double refFrequency) override;
-    void forward(const  Eigen::ArrayXd &  x , Eigen::ArrayXXcd& Xcq) override;
-    void inverse(const Eigen::ArrayXXcd& Xcq, Eigen::ArrayXd& x ) override;
+    void forward(const  arma::vec &  x , arma::cx_mat& Xcq) override;
+    void inverse(const arma::cx_mat& Xcq, arma::vec& x ) override;
     
-    Eigen::ArrayXXd g;
-    Eigen::ArrayXXd gDual;
-    Eigen::ArrayXXcd Xmat;
+    arma::mat g;
+    arma::mat gDual;
+    arma::cx_mat Xmat;
 };
 
 struct CqtCoefs {
 public:
-    CqtCoefs(const Eigen::ArrayXi& sz) :
+    CqtCoefs(const arma::ivec& sz) :
         sizes(sz),
         nBands(sz.size())
     {
         data.resize(nBands);
         offsets.resize(nBands);
         offsets = cumsum(sizes) - sizes(0);
+        
     }
     
-    Eigen::Map<const Eigen::ArrayXcd> operator()(Eigen::Index n) {
-        return Eigen::Map<const Eigen::ArrayXcd> ( data.data() + offsets(n), sizes(n));
+    arma::cx_vec operator()(arma::uword n) {
+        return arma::cx_vec(data.memptr() + offsets(n), sizes(n));
     }
     
 private:
-    Eigen::ArrayXcd data;
-    Eigen::ArrayXi offsets;
-    Eigen::ArrayXi sizes;
-    Eigen::Index nBands;
+    arma::cx_vec data;
+    arma::ivec offsets;
+    arma::ivec sizes;
+    arma::uword nBands;
 };
 
 
-class NsgfCqtSparse : public NsgfCqtBase<std::vector<Eigen::ArrayXcd>> {
+class NsgfCqtSparse : public NsgfCqtBase<std::vector<arma::cx_vec>> {
 public:
     struct Idx {
-        Eigen::Index i0 = 0;
-        Eigen::Index len = 0;
+        arma::uword i0 = 0;
+        arma::uword len = 0;
     };
-    using Coefs = std::vector<Eigen::ArrayXcd>;
-    using Frame = std::vector<Eigen::ArrayXd>;
+    using Coefs = std::vector<arma::cx_vec>;
+    using Frame = std::vector<arma::vec>;
     using SpanList = std::vector<Idx>;
     
-    void init(double sampleRate, Eigen::Index nSamps, double ppo, double minFrequency,
+    void init(double sampleRate, arma::uword nSamps, double ppo, double minFrequency,
               double maxFrequency, double refFrequency) override;
-    void forward(const Eigen::ArrayXd&  x, Coefs& Xcq) override;
-    void inverse(const Coefs& Xcq, Eigen::ArrayXd& x ) override;
+    void forward(const arma::vec&  x, Coefs& Xcq) override;
+    void inverse(const Coefs& Xcq, arma::vec& x ) override;
     
     Frame getFrame() const;
     Coefs getCoefs() const;
     Coefs getValidCoefs() const;
     
-    Idx getIdx(const Eigen::ArrayXd& ii);
+    Idx getIdx(const arma::vec& ii);
     
     SpanList idx;
     Frame g;
     Frame gDual;
     Coefs phase;
-    Eigen::ArrayXd scale;
+    arma::vec scale;
 
     Coefs Xcoefs;
     std::vector<DFT> dfts;

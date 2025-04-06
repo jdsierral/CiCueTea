@@ -11,22 +11,22 @@
 #include "Benchtools.h"
 
 using namespace jsa;
-using namespace Eigen;
+using namespace arma;
 
-void Splicer::setSize(Index newBlockSize, Index newHopSize) {
+void Splicer::setSize(uword newBlockSize, uword newHopSize) {
     blockSize = newBlockSize;
     hopSize = newHopSize;
     overlapSize = blockSize - hopSize;
     bufferSize = nextPow2(blockSize + 1);
     buffer.resize(bufferSize);
-    buffer.setZero();
+    buffer.zeros();
     wp = 0;
     rp = constrain(bufferSize-hopSize, bufferSize);
 }
 
-void Splicer::pushBlock(const ArrayXd& block) {
+void Splicer::pushBlock(const vec& block) {
     RealTimeChecker rt;
-    for (Index n = 0, m = wp; n < block.size(); n++, m++) {
+    for (uword n = 0, m = wp; n < block.size(); n++, m++) {
         m = constrain(m, bufferSize);
         buffer(m) = (n < overlapSize) * buffer(m) + block(n);
     }

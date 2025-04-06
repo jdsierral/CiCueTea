@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <Eigen/Core>
+#include <armadillo>
 
 #include "Splicer.hpp"
 #include "Slicer.hpp"
@@ -22,15 +22,15 @@ class cqtFullProcessor {
 public:
     void init(double fs, double blockSize, double ppo, double fMin, double fMax, double fRef);
     double processSample(double sample);
-    virtual void processBlock(Eigen::ArrayXXcd& block) = 0;
+    virtual void processBlock(arma::cx_mat& block) = 0;
     
 protected:
     std::shared_ptr<NsgfCqtFull> cqt;
     
 private:
-    Eigen::ArrayXd xi;
-    Eigen::ArrayXd win;
-    Eigen::ArrayXXcd Xcq;
+    arma::vec xi;
+    arma::vec win;
+    arma::cx_mat Xcq;
     Slicer slicer;
     Splicer splicer;
     double fs = -1;
@@ -42,17 +42,17 @@ class slidingCQTFullProcessor {
 public:
     void init(double fs, double blockSize, double ppo, double fMin, double fMax, double fRef);
     double processSample(double sample);
-    virtual void processBlock(Eigen::ArrayXXcd& block) = 0;
+    virtual void processBlock(arma::cx_mat& block) = 0;
     
 protected:
     std::shared_ptr<NsgfCqtFull> cqt;
     
 private:
-    Eigen::ArrayXd xi;
-    DoubleBuffer<Eigen::ArrayXXcd> Xcq;
-    DoubleBuffer<Eigen::ArrayXXcd> Zcq;
-    Eigen::ArrayXXcd Ycq;
-    Eigen::ArrayXd win;
+    arma::vec xi;
+    DoubleBuffer<arma::cx_mat> Xcq;
+    DoubleBuffer<arma::cx_mat> Zcq;
+    arma::cx_mat Ycq;
+    arma::vec win;
     Slicer slicer;
     Splicer splicer;
     double fs = -1;
@@ -70,8 +70,8 @@ protected:
     std::shared_ptr<NsgfCqtSparse> cqt;
     
 private:
-    Eigen::ArrayXd xi;
-    Eigen::ArrayXd win;
+    arma::vec xi;
+    arma::vec win;
     NsgfCqtSparse::Coefs Xcq;
     Slicer slicer;
     Splicer splicer;
@@ -90,11 +90,11 @@ protected:
     std::shared_ptr<NsgfCqtSparse> cqt;
     
 private:
-    Eigen::ArrayXd xi;
+    arma::vec xi;
     DoubleBuffer<NsgfCqtSparse::Coefs> Xcq;
     DoubleBuffer<NsgfCqtSparse::Coefs> Zcq;
     NsgfCqtSparse::Coefs Ycq;
-    Eigen::ArrayXd win;
+    arma::vec win;
     NsgfCqtSparse::Frame Win;
     Slicer slicer;
     Splicer splicer;

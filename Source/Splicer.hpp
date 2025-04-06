@@ -7,27 +7,27 @@
 
 #pragma once
 
-#include <Eigen/Core>
+#include <armadillo>
 
 namespace jsa {
 
 class Splicer {
 public:
-    void setSize(Eigen::Index newBlockSize, Eigen::Index newHopSize);
-    void pushBlock(const Eigen::ArrayXd& block);
+    void setSize(arma::uword newBlockSize, arma::uword newHopSize);
+    void pushBlock(const arma::vec& block);
     double getSample();
     
-    Eigen::Index getBlockSize() const { return blockSize; }
-    Eigen::Index getOverlapSize() const { return overlapSize; }
-    Eigen::Index getHopSize() const { return hopSize; }
-    Eigen::Index getBufferSize() const { return bufferSize; }
+    arma::uword getBlockSize() const { return blockSize; }
+    arma::uword getOverlapSize() const { return overlapSize; }
+    arma::uword getHopSize() const { return hopSize; }
+    arma::uword getBufferSize() const { return bufferSize; }
 
 private:
-    Eigen::ArrayXd buffer;
-    Eigen::Index bufferSize;
-    Eigen::Index blockSize;
-    Eigen::Index overlapSize;
-    Eigen::Index hopSize;
+    arma::vec buffer;
+    arma::uword bufferSize;
+    arma::uword blockSize;
+    arma::uword overlapSize;
+    arma::uword hopSize;
     size_t wp = 0;
     size_t rp = 0;
 };

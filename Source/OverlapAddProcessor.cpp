@@ -9,7 +9,7 @@
 
 #include "Benchtools.h"
 
-using namespace Eigen;
+using namespace arma;
 using namespace jsa;
 
 void cqtFullProcessor::init(double fs, double blockSize, double ppo, double fMin, double fMax, double fRef)
@@ -17,22 +17,22 @@ void cqtFullProcessor::init(double fs, double blockSize, double ppo, double fMin
     auto newCqt = std::make_shared<NsgfCqtFull>();
     newCqt->init(fs, blockSize, ppo, fMin, fMax, fRef);
     std::atomic_store(&cqt, newCqt);
-    Index nBands = cqt->nBands;
+    uword nBands = cqt->nBands;
     win.resize(blockSize);
-    win = hann(blockSize).sqrt();
+    win = sqrt(hann(blockSize));
     slicer.setSize(blockSize, blockSize/2);
     splicer.setSize(blockSize, blockSize/2);
     xi.resize(blockSize);
     Xcq.resize(blockSize, nBands);
-    xi.setZero();
-    Xcq.setZero();
+    xi.zeros();
+    Xcq.zeros();
     this->fs = fs;
     assert(blockSize == cqt->nSamps);
     assert(blockSize == win.size());
     assert(blockSize == slicer.getBlockSize());
     assert(blockSize == splicer.getBlockSize());
     assert(blockSize == xi.size());
-    assert(blockSize == Xcq.rows());
+    assert(blockSize == Xcq.n_rows);
 }
 
 double cqtFullProcessor::processSample(double sample) {
@@ -46,7 +46,7 @@ double cqtFullProcessor::processSample(double sample) {
         assert(xi.size() == xi.size());
         assert(xi.size() == win.size());
         assert(xi.size() == cqt->nSamps);
-        assert(xi.size() == Xcq.rows());
+        assert(xi.size() == Xcq.n_rows);
         xi *= win;
         auto curCqt = std::atomic_load(&cqt);
         if (curCqt) {
@@ -69,13 +69,13 @@ void slidingCQTFullProcessor::init(double fs, double blockSize, double ppo, doub
     auto newCqt = std::make_shared<NsgfCqtFull>();
     newCqt->init(fs, blockSize, ppo, fMin, fMax, fRef);
     std::atomic_store(&cqt, newCqt);
-    Index nBands = cqt->nBands;
-    win = hann(blockSize).sqrt();
+    uword nBands = cqt->nBands;
+    win = sqrt(hann(blockSize));
     slicer.setSize(blockSize, blockSize/2);
     splicer.setSize(blockSize, blockSize/2);
     xi.resize(blockSize);
-    ArrayXXcd coefs = ArrayXXcd::Zero(blockSize, nBands);
-    ArrayXXcd validCoefs = ArrayXXcd::Zero(blockSize/2, nBands);
+    cx_mat coefs = zeros<cx_mat>(blockSize, nBands);
+    cx_mat validCoefs = zeros<cx_mat>(blockSize/2, nBands);
     Xcq.fill(coefs);
     Zcq.fill(validCoefs);
     Ycq = coefs;
@@ -86,11 +86,11 @@ void slidingCQTFullProcessor::init(double fs, double blockSize, double ppo, doub
     assert(blockSize == slicer.getBlockSize());
     assert(blockSize == splicer.getBlockSize());
     assert(blockSize == xi.size());
-    assert(blockSize == Xcq.current().rows());
-    assert(blockSize == Xcq.last().rows());
-    assert(blockSize == Zcq.current().rows() * 2);
-    assert(blockSize == Zcq.last().rows() * 2);
-    assert(blockSize == Ycq.rows());
+    assert(blockSize == Xcq.current().n_rows);
+    assert(blockSize == Xcq.last().n_rows);
+    assert(blockSize == Zcq.current().n_rows * 2);
+    assert(blockSize == Zcq.last().n_rows * 2);
+    assert(blockSize == Ycq.n_rows);
 }
 
 double slidingCQTFullProcessor::processSample(double sample)
@@ -102,28 +102,29 @@ double slidingCQTFullProcessor::processSample(double sample)
     sample = splicer.getSample();
     if (slicer.hasBlock()) {
         xi = slicer.getBlock();
-        const Index sz = xi.size();
+        const uword sz = xi.size();
         assert(sz == xi.size());
         assert(sz == win.size());
         assert(sz == cqt->nSamps);
         xi *= win;
         auto curCqt = std::atomic_load(&cqt);
         if (curCqt) {
-            Eigen::ArrayXXcd& Xi = Xcq.next();
-            assert(sz == Xi.rows());
+            cx_mat& Xi = Xcq.next();
+            assert(sz == Xi.n_rows);
             curCqt->forward(xi, Xi);
-            Xi.colwise() *= win;
-            Eigen::ArrayXXcd& Zi = Zcq.next();
-            assert(sz == 2 * Zi.rows());
-            Zi = Xi.topRows(sz/2) + Xcq.last().bottomRows(sz/2);
+            Xi.each_col([&](cx_vec& col) { col = col % win; });
+//            Xi = Xi.each_col() % win;
+            cx_mat& Zi = Zcq.next();
+            assert(sz == 2 * Zi.n_rows);
+            Zi = Xi.head_rows(sz/2) + Xcq.last().tail_rows(sz/2);
             
             processBlock(Zi);
             
-            assert(sz == 2 * Zi.rows());
-            Ycq.topRows(sz/2) = Zcq.last();
-            Ycq.bottomRows(sz/2) = Zi;
-            assert(sz == Ycq.rows());
-            Ycq.colwise() *= win;
+            assert(sz == 2 * Zi.n_rows);
+            Ycq.head_rows(sz/2) = Zcq.last();
+            Ycq.tail_rows(sz/2) = Zi;
+            assert(sz == Ycq.n_rows);
+            Ycq.each_col([&](cx_vec& col) { col = col % win; });
             assert(sz == xi.size());
             curCqt->inverse(Ycq, xi);
         }
@@ -142,11 +143,11 @@ void cqtSparseProcessor::init(double fs, double blockSize, double ppo, double fM
     newCqt->init(fs, blockSize, ppo, fMin, fMax, fRef);
     std::atomic_store(&cqt, newCqt);
     win.resize(blockSize);
-    win = hann(blockSize).sqrt();
+    win = sqrt(hann(blockSize));
     slicer.setSize(blockSize, blockSize/2);
     splicer.setSize(blockSize, blockSize/2);
     xi.resize(blockSize);
-    xi.setZero();
+    xi.zeros();
     Xcq = cqt->getCoefs();
     this->fs = fs;
     assert(blockSize == cqt->nSamps);
@@ -189,15 +190,15 @@ void slidingCqtSparseProcessor::init(double fs, double blockSize, double ppo, do
     auto newCqt = std::make_shared<NsgfCqtSparse>();
     newCqt->init(fs, blockSize, ppo, fMin, fMax, fRef);
     std::atomic_store(&cqt, newCqt);
-    win = hann(blockSize).sqrt();
+    win = sqrt(hann(blockSize));
     slicer.setSize(blockSize, blockSize/2);
     splicer.setSize(blockSize, blockSize/2);
     xi.resize(blockSize);
     Win = cqt->getFrame();
     
-    for (Index n = 0; n < cqt->nBands; n++) {
-        Index sz = Win[n].size();
-        Win[n] = hann(sz).sqrt();
+    for (uword n = 0; n < cqt->nBands; n++) {
+        uword sz = Win[n].size();
+        Win[n] = sqrt(hann(sz));
     }
     
     auto coefs = cqt->getCoefs();
@@ -212,11 +213,11 @@ void slidingCqtSparseProcessor::init(double fs, double blockSize, double ppo, do
     assert(blockSize == slicer.getBlockSize());
     assert(blockSize == splicer.getBlockSize());
     assert(blockSize == xi.size());
-//    assert(blockSize == Xcq.current().rows());
-//    assert(blockSize == Xcq.last().rows());
-//    assert(blockSize == Zcq.current().rows() * 2);
-//    assert(blockSize == Zcq.last().rows() * 2);
-//    assert(blockSize == Ycq.rows());
+//    assert(blockSize == Xcq.current().n_rows);
+//    assert(blockSize == Xcq.last().n_rows);
+//    assert(blockSize == Zcq.current().n_rows * 2);
+//    assert(blockSize == Zcq.last().n_rows * 2);
+//    assert(blockSize == Ycq.n_rows);
 }
 
 double slidingCqtSparseProcessor::processSample(double sample)
@@ -236,34 +237,33 @@ double slidingCqtSparseProcessor::processSample(double sample)
         if (curCqt) {
             NsgfCqtSparse::Coefs& Xi = Xcq.next();
             curCqt->forward(xi, Xi);
-            Index nBands = curCqt->nBands;
+            uword nBands = curCqt->nBands;
             
-            for (Index n = 0; n < nBands; n++) {
+            for (uword n = 0; n < nBands; n++) {
                 assert(Xi[n].size() == Win[n].size());
-                Xi[n] *= Win[n];
+                Xi[n] = Xi[n] % Win[n];
             }
             
             NsgfCqtSparse::Coefs& Zi = Zcq.next();
             
-            for (Index n = 0; n < nBands; n++) {
-                Index ol = Xi[n].size()/2;
+            for (uword n = 0; n < nBands; n++) {
+                uword ol = Xi[n].size()/2;
                 Zi[n] = Xi[n].head(ol) + Xcq.last()[n].tail(ol);
             }
             
             processBlock(Zi);
             
-            for (Index n = 0; n < nBands; n++) {
-                Index ol = Ycq[n].size()/2;
+            for (uword n = 0; n < nBands; n++) {
+                uword ol = Ycq[n].size()/2;
                 Ycq[n].head(ol) = Zcq.last()[n];
                 Ycq[n].tail(ol) = Zi[n];
             }
             
-            for (Index n = 0; n < nBands; n++) {
+            for (uword n = 0; n < nBands; n++) {
                 assert(Ycq[n].size() == Win[n].size());
-                Ycq[n] *= Win[n];
+                Ycq[n] = Ycq[n] % Win[n];
             }
             
-            assert(sz == xi.size());
             curCqt->inverse(Ycq, xi);
         }
         xi *= win;

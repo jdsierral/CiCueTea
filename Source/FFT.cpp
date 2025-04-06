@@ -9,7 +9,7 @@
 
 #include <fftw3.h>
 
-using namespace Eigen;
+using namespace arma;
 
 namespace jsa {
 class DFTImpl {
@@ -28,29 +28,31 @@ public:
         ic2cPlan =fftw_plan_dft_1d(int(fftSize), nullptr, nullptr, FFTW_BACKWARD, flags);
     }
     
-    void dft(const dcomplex* inPtr, dcomplex* outPtr) {
-        fftw_complex* inPtr_ = reinterpret_cast<fftw_complex*>(const_cast<dcomplex*>(inPtr));
+    void dft(const cx_double* inPtr, cx_double* outPtr) {
+        fftw_complex* inPtr_ = reinterpret_cast<fftw_complex*>(const_cast<cx_double*>(inPtr));
         fftw_complex* outPtr_ = reinterpret_cast<fftw_complex*>(outPtr);
         fftw_execute_dft(c2cPlan, inPtr_, outPtr_);
     }
     
-    void idft(const dcomplex* inPtr, dcomplex* outPtr) {
-        fftw_complex* inPtr_ = reinterpret_cast<fftw_complex*>(const_cast<dcomplex*>(inPtr));
+    void idft(const cx_double* inPtr, cx_double* outPtr) {
+        fftw_complex* inPtr_ = reinterpret_cast<fftw_complex*>(const_cast<cx_double*>(inPtr));
         fftw_complex* outPtr_ = reinterpret_cast<fftw_complex*>(outPtr);
         fftw_execute_dft(ic2cPlan, inPtr_, outPtr_);
-        Map<ArrayXcd>(outPtr, fftSize) *= (1.0 / fftSize);
+        cx_vec v(outPtr, fftSize, false, false);
+        v *= (1.0 / fftSize);
     }
     
-    void rdft(const double* inPtr, dcomplex* outPtr) {
+    void rdft(const double* inPtr, cx_double* outPtr) {
         double* inPtr_ = const_cast<double*>(inPtr);
         fftw_complex* outPtr_ = reinterpret_cast<fftw_complex*>(outPtr);
         fftw_execute_dft_r2c(r2cPlan, inPtr_, outPtr_);
     }
     
-    void irdft(const dcomplex* inPtr, double* outPtr) {
-        fftw_complex* inPtr_ = reinterpret_cast<fftw_complex*>(const_cast<dcomplex*>(inPtr));
+    void irdft(const cx_double* inPtr, double* outPtr) {
+        fftw_complex* inPtr_ = reinterpret_cast<fftw_complex*>(const_cast<cx_double*>(inPtr));
         fftw_execute_dft_c2r(c2rPlan, inPtr_, outPtr);
-        Map<ArrayXd>(outPtr, fftSize) *= (1.0 / fftSize);
+        vec v(outPtr, fftSize, false, false);
+        v *= (1.0 / fftSize);
     }
     
 private:
@@ -70,7 +72,7 @@ private:
 }
 
 using namespace jsa;
-using namespace Eigen;
+using namespace arma;
 
 
 DFT::DFT() :
@@ -82,53 +84,53 @@ void DFT::init(size_t fftSize) {
     pImpl->init(fftSize);
 }
 
-void DFT::dft(const ArrayXcd& X, ArrayXcd& Y)
+void DFT::dft(const cx_vec& X, cx_vec& Y)
 {
-    pImpl->dft(X.data(), Y.data());
+    pImpl->dft(X.memptr(), Y.memptr());
 }
 
-void DFT::idft(const ArrayXcd& X, ArrayXcd& Y)
+void DFT::idft(const cx_vec& X, cx_vec& Y)
 {
-    pImpl->idft(X.data(), Y.data());
+    pImpl->idft(X.memptr(), Y.memptr());
 }
 
-void DFT::rdft(const ArrayXd& x, ArrayXcd& X)
+void DFT::rdft(const vec& x, cx_vec& X)
 {
-    pImpl->rdft(x.data(), X.data());
+    pImpl->rdft(x.memptr(), X.memptr());
 }
 
-void DFT::irdft(const ArrayXcd& X, ArrayXd& x)
+void DFT::irdft(const cx_vec& X, vec& x)
 {
-    pImpl->irdft(X.data(), x.data());
+    pImpl->irdft(X.memptr(), x.memptr());
 }
 
 //==========================================================================
 
-void DFT::dft(const ArrayXXcd& X, ArrayXXcd& Y)
+void DFT::dft(const cx_mat& X, cx_mat& Y)
 {
-    for (Index k = 0; k < X.cols(); k++) {
-        pImpl->dft(X.col(k).data(), Y.col(k).data());
+    for (uword k = 0; k < X.n_cols; k++) {
+        pImpl->dft(X.colptr(k), Y.colptr(k));
     }
 }
 
-void DFT::idft(const ArrayXXcd& X, ArrayXXcd& Y)
+void DFT::idft(const cx_mat& X, cx_mat& Y)
 {
-    for (Index k = 0; k < X.cols(); k++) {
-        pImpl->idft(X.col(k).data(), Y.col(k).data());
+    for (uword k = 0; k < X.n_cols; k++) {
+        pImpl->idft(X.colptr(k), Y.colptr(k));
     }
 }
 
-void DFT::rdft(const ArrayXXd& x, ArrayXXcd& X)
+void DFT::rdft(const mat& x, cx_mat& X)
 {
-    for (Index k = 0; k < x.cols(); k++) {
-        pImpl->rdft(x.col(k).data(), X.col(k).data());
+    for (uword k = 0; k < x.n_cols; k++) {
+        pImpl->rdft(x.colptr(k), X.colptr(k));
     }
 }
 
-void DFT::irdft(const ArrayXXcd& X, ArrayXXd& x)
+void DFT::irdft(const cx_mat& X, mat& x)
 {
-    for (Index k = 0; k < X.cols(); k++) {
-        pImpl->irdft(X.col(k).data(), x.col(k).data());
+    for (uword k = 0; k < X.n_cols; k++) {
+        pImpl->irdft(X.colptr(k), x.colptr(k));
     }
 }
 

@@ -4,9 +4,6 @@ set(TARGET_NAME ${PROJECT_NAME}_UnitTest)
 
 set(SourceFiles
     Source/main.cpp
-    Source/CQT_UnitTests.cpp
-    Source/Slicing_UnitTests.cpp
-    Source/SlidingCQT_UnitTests.cpp
     Source/Perf_UnitTests.cpp
 )
 
@@ -17,6 +14,7 @@ target_sources(${TARGET_NAME} PRIVATE ${SourceFiles})
 target_compile_features(${TARGET_NAME} PRIVATE cxx_std_20)
 
 target_compile_definitions(${TARGET_NAME}
+    PRIVATE ${ARMADILLO_CONFIG}
     PRIVATE EIGEN_RUNTIME_NO_MALLOC
     PRIVATE EIGEN_USE_BLAS
     PRIVATE EIGEN_USE_LAPACKE
@@ -36,7 +34,6 @@ target_include_directories(${TARGET_NAME}
 
 target_link_libraries(${TARGET_NAME}
     PRIVATE "-framework Accelerate"
-    PRIVATE Eigen3::Eigen
     PRIVATE Matplot++::matplot
     PRIVATE ${PROJECT_NAME}
     PRIVATE Boost::log_setup Boost::log
