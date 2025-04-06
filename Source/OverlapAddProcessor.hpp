@@ -20,7 +20,7 @@ namespace jsa {
 
 class cqtFullProcessor {
 public:
-    void init(double fs, double blockSize, double ppo, double fMax, double fMin, double fRef);
+    void init(double fs, double blockSize, double ppo, double fMin, double fMax, double fRef);
     double processSample(double sample);
     virtual void processBlock(Eigen::ArrayXXcd& block) = 0;
     
@@ -40,7 +40,7 @@ private:
 
 class slidingCQTFullProcessor {
 public:
-    void init(double fs, double blockSize, double ppo, double fMax, double fMin, double fRef);
+    void init(double fs, double blockSize, double ppo, double fMin, double fMax, double fRef);
     double processSample(double sample);
     virtual void processBlock(Eigen::ArrayXXcd& block) = 0;
     
@@ -62,7 +62,7 @@ private:
 
 class cqtSparseProcessor {
 public:
-    void init(double fs, double blockSize, double ppo, double fMax, double fMin, double fRef);
+    void init(double fs, double blockSize, double ppo, double fMin, double fMax, double fRef);
     double processSample(double sample);
     virtual void processBlock(NsgfCqtSparse::Coefs& block) = 0;
     
@@ -82,7 +82,7 @@ private:
 
 class slidingCqtSparseProcessor {
 public:
-    void init(double fs, double blockSize, double ppo, double fMax, double fMin, double fRef);
+    void init(double fs, double blockSize, double ppo, double fMin, double fMax, double fRef);
     double processSample(double sample);
     virtual void processBlock(NsgfCqtSparse::Coefs& block) = 0;
     

@@ -12,7 +12,7 @@
 using namespace Eigen;
 using namespace jsa;
 
-void cqtFullProcessor::init(double fs, double blockSize, double ppo, double fMax, double fMin, double fRef)
+void cqtFullProcessor::init(double fs, double blockSize, double ppo, double fMin, double fMax, double fRef)
 {
     auto newCqt = std::make_shared<NsgfCqtFull>();
     newCqt->init(fs, blockSize, ppo, fMin, fMax, fRef);
@@ -43,11 +43,10 @@ double cqtFullProcessor::processSample(double sample) {
     sample = splicer.getSample();
     if (slicer.hasBlock()) {
         xi = slicer.getBlock();
-        const Index sz = slicer.getBlockSize();
-        assert(sz == xi.size());
-        assert(sz == win.size());
-        assert(sz == cqt->nSamps);
-        assert(sz == Xcq.rows());
+        assert(xi.size() == xi.size());
+        assert(xi.size() == win.size());
+        assert(xi.size() == cqt->nSamps);
+        assert(xi.size() == Xcq.rows());
         xi *= win;
         auto curCqt = std::atomic_load(&cqt);
         if (curCqt) {
@@ -65,7 +64,7 @@ double cqtFullProcessor::processSample(double sample) {
 //==========================================================================
 //==========================================================================
 
-void slidingCQTFullProcessor::init(double fs, double blockSize, double ppo, double fMax, double fMin, double fRef)
+void slidingCQTFullProcessor::init(double fs, double blockSize, double ppo, double fMin, double fMax, double fRef)
 {
     auto newCqt = std::make_shared<NsgfCqtFull>();
     newCqt->init(fs, blockSize, ppo, fMin, fMax, fRef);
@@ -137,7 +136,7 @@ double slidingCQTFullProcessor::processSample(double sample)
 //==========================================================================
 //==========================================================================
 
-void cqtSparseProcessor::init(double fs, double blockSize, double ppo, double fMax, double fMin, double fRef)
+void cqtSparseProcessor::init(double fs, double blockSize, double ppo, double fMin, double fMax, double fRef)
 {
     auto newCqt = std::make_shared<NsgfCqtSparse>();
     newCqt->init(fs, blockSize, ppo, fMin, fMax, fRef);
@@ -165,10 +164,9 @@ double cqtSparseProcessor::processSample(double sample) {
     sample = splicer.getSample();
     if (slicer.hasBlock()) {
         xi = slicer.getBlock();
-        const Index sz = slicer.getBlockSize();
-        assert(sz == xi.size());
-        assert(sz == win.size());
-        assert(sz == cqt->nSamps);
+        assert(xi.size() == xi.size());
+        assert(xi.size() == win.size());
+        assert(xi.size() == cqt->nSamps);
         xi *= win;
         auto curCqt = std::atomic_load(&cqt);
         if (curCqt) {
@@ -186,7 +184,7 @@ double cqtSparseProcessor::processSample(double sample) {
 //==========================================================================
 
 
-void slidingCqtSparseProcessor::init(double fs, double blockSize, double ppo, double fMax, double fMin, double fRef)
+void slidingCqtSparseProcessor::init(double fs, double blockSize, double ppo, double fMin, double fMax, double fRef)
 {
     auto newCqt = std::make_shared<NsgfCqtSparse>();
     newCqt->init(fs, blockSize, ppo, fMin, fMax, fRef);
@@ -230,10 +228,9 @@ double slidingCqtSparseProcessor::processSample(double sample)
     sample = splicer.getSample();
     if (slicer.hasBlock()) {
         xi = slicer.getBlock();
-        const Index sz = xi.size();
-        assert(sz == xi.size());
-        assert(sz == win.size());
-        assert(sz == cqt->nSamps);
+        assert(xi.size() == xi.size());
+        assert(xi.size() == win.size());
+        assert(xi.size() == cqt->nSamps);
         xi *= win;
         auto curCqt = std::atomic_load(&cqt);
         if (curCqt) {

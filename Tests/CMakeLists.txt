@@ -7,6 +7,7 @@ set(SourceFiles
     Source/CQT_UnitTests.cpp
     Source/Slicing_UnitTests.cpp
     Source/SlidingCQT_UnitTests.cpp
+    Source/Perf_UnitTests.cpp
 )
 
 source_group("Source Files\\Source" FILES ${SourceFiles})

@@ -30,4 +30,22 @@ public:
     }
 };
 
+class Timer {
+public:
+    Timer() : startTime(std::chrono::high_resolution_clock::now()) {}
+    ~Timer() {
+        double t = get();
+        std::cout << "Timer Result: " << t << " ms" << std::endl;
+    }
+    
+    double get() {
+        auto curTime = std::chrono::high_resolution_clock::now();
+        double duration = std::chrono::duration_cast<std::chrono::milliseconds>(curTime - startTime).count();
+        return duration;
+    }
+    
+private:
+    std::chrono::high_resolution_clock::time_point startTime;
+};
+
 }
