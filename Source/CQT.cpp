@@ -141,6 +141,9 @@ void NsgfCqtSparse::init(double sampleRate, uword numSamples, double ppo,
         if (fax(k) <  bax(0) ) g_(k,  0 ) = 1;
         if (fax(k) > bax(end)) g_(k, end) = 1;
     }
+    
+    g_.elem(find(g_ < th)).zeros();
+    
     g_ = sqrt(g_);
     d = sum(arma::square(g_), 1);
     mat gDual_ = g_.each_col() / d;

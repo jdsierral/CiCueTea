@@ -189,7 +189,9 @@ BOOST_AUTO_TEST_CASE(CQTTestSparse1) {
         plt::figure(1);
         plt::subplot(3, 1, 0);
         for (int k = 0; k < cqt.nBands; k++) {
-            vec xi = cqt.fax.subvec(cqt.idx[k].i0, cqt.idx[k].i0 + cqt.idx[k].len - 1);
+            uword i0 = cqt.idx[k].i0;
+            uword i1 = i0 + cqt.idx[k].len - 1;
+            vec xi = cqt.fax.subvec(i0, i1);
             vec yi = cqt.g[k];
             plt::semilogx(xi, yi);
             plt::ylim({0, 1.5});

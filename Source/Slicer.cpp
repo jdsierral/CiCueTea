@@ -25,19 +25,19 @@ void Slicer::setSize(uword newBlockSize, uword newHopSize) {
 }
 
 void Slicer::pushSample(double sample) {
-//    RealTimeChecker rt;
+    RealTimeChecker rt;
     wp = constrain(wp, bufferSize);
     buffer(wp) = buffer(wp + bufferSize) = sample;
     wp++;
 }
 
 bool Slicer::hasBlock() {
-//    RealTimeChecker rt;
+    RealTimeChecker rt;
     return (wp % hopSize) == 0;
 }
 
 const vec Slicer::getBlock() {
-//    RealTimeChecker rt;
+    RealTimeChecker rt;
     rp = constrain(rp, bufferSize);
     vec segment(buffer.memptr() + rp, blockSize, false, false);
     rp += hopSize;
