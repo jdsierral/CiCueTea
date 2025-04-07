@@ -19,8 +19,9 @@
 #include <OverlapAddProcessor.hpp>
 #include <VectorOps.h>
 
-#define NUM_SAMPLES 1<<16
-#define BLOCK_SIZE 1<<12
+#define NUM_SAMPLES 1<<20
+#define BLOCK_SIZE 1<<16
+#define LIB_NAME "ARMADILLO"
 #define SAMPLE_RATE 48000
 #define POINTS_PER_OCTAVE 12
 #define MIN_FREQUENCY 1e2
@@ -71,7 +72,7 @@ BOOST_AUTO_TEST_CASE(perf1) {
     cqtFull ola;
     ola.init(fs, blockSize, ppo, fMin, fMax, fRef);
     
-    cout << "PERF 1" << endl;
+    cout << LIB_NAME << " PERF 1" << endl;
     {
         Timer t;
         for (uword n = 0; n < N; n++) {
@@ -100,7 +101,7 @@ BOOST_AUTO_TEST_CASE(perf2) {
     sliCQTFull ola;
     ola.init(fs, blockSize, ppo, fMin, fMax, fRef);
     
-    cout << "PERF 2" << endl;
+    cout << LIB_NAME << " PERF 2" << endl;
     {
         Timer t;
         for (uword n = 0; n < N; n++) {
@@ -112,7 +113,6 @@ BOOST_AUTO_TEST_CASE(perf2) {
     y = y.tail(N-blockSize-blockSize/2);
     
     vec d = x - y;
-    cout << rms(d) << endl;
     BOOST_CHECK(rms(d) < 1e-3);
 }
 
@@ -132,7 +132,7 @@ BOOST_AUTO_TEST_CASE(perf3) {
     cqtSparse ola;
     ola.init(fs, blockSize, ppo, fMin, fMax, fRef);
     
-    cout << "PERF 3" << endl;
+    cout << LIB_NAME << " PERF 3" << endl;
     {
         Timer t;
         for (uword n = 0; n < N; n++) {
@@ -160,7 +160,7 @@ BOOST_AUTO_TEST_CASE(perf4) {
     sliCQTSparse ola;
     ola.init(fs, blockSize, ppo, fMin, fMax, fRef);
     
-    cout << "PERF 4" << endl;
+    cout << LIB_NAME << " PERF 1" << endl;
     {
         Timer t;
         for (uword n = 0; n < N; n++) {
@@ -172,6 +172,5 @@ BOOST_AUTO_TEST_CASE(perf4) {
     y = y.tail(N-blockSize-blockSize/2);
     
     vec d = x - y;
-    cout << rms(d) << endl;
     BOOST_CHECK(rms(d) < 1e-3);
 }
