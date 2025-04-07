@@ -47,14 +47,14 @@ double cqtFullProcessor::processSample(double sample) {
         assert(xi.size() == win.size());
         assert(xi.size() == cqt->nSamps);
         assert(xi.size() == Xcq.n_rows);
-        xi *= win;
+        xi %= win;
         auto curCqt = std::atomic_load(&cqt);
         if (curCqt) {
             curCqt->forward(xi, Xcq);
             processBlock(Xcq);
             curCqt->inverse(Xcq, xi);
         }
-        xi *= win;
+        xi %= win;
         splicer.pushBlock(xi);
     }
     return sample;
@@ -106,14 +106,13 @@ double slidingCQTFullProcessor::processSample(double sample)
         assert(sz == xi.size());
         assert(sz == win.size());
         assert(sz == cqt->nSamps);
-        xi *= win;
+        xi %= win;
         auto curCqt = std::atomic_load(&cqt);
         if (curCqt) {
             cx_mat& Xi = Xcq.next();
             assert(sz == Xi.n_rows);
             curCqt->forward(xi, Xi);
             Xi.each_col([&](cx_vec& col) { col = col % win; });
-//            Xi = Xi.each_col() % win;
             cx_mat& Zi = Zcq.next();
             assert(sz == 2 * Zi.n_rows);
             Zi = Xi.head_rows(sz/2) + Xcq.last().tail_rows(sz/2);
@@ -128,7 +127,7 @@ double slidingCQTFullProcessor::processSample(double sample)
             assert(sz == xi.size());
             curCqt->inverse(Ycq, xi);
         }
-        xi *= win;
+        xi %= win;
         splicer.pushBlock(xi);
     }
     return sample;
@@ -168,14 +167,14 @@ double cqtSparseProcessor::processSample(double sample) {
         assert(xi.size() == xi.size());
         assert(xi.size() == win.size());
         assert(xi.size() == cqt->nSamps);
-        xi *= win;
+        xi %= win;
         auto curCqt = std::atomic_load(&cqt);
         if (curCqt) {
             curCqt->forward(xi, Xcq);
             processBlock(Xcq);
             curCqt->inverse(Xcq, xi);
         }
-        xi *= win;
+        xi %= win;
         splicer.pushBlock(xi);
     }
     return sample;
@@ -232,7 +231,7 @@ double slidingCqtSparseProcessor::processSample(double sample)
         assert(xi.size() == xi.size());
         assert(xi.size() == win.size());
         assert(xi.size() == cqt->nSamps);
-        xi *= win;
+        xi %= win;
         auto curCqt = std::atomic_load(&cqt);
         if (curCqt) {
             NsgfCqtSparse::Coefs& Xi = Xcq.next();
@@ -266,7 +265,7 @@ double slidingCqtSparseProcessor::processSample(double sample)
             
             curCqt->inverse(Ycq, xi);
         }
-        xi *= win;
+        xi %= win;
         splicer.pushBlock(xi);
     }
     return sample;

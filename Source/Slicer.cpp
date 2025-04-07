@@ -40,6 +40,7 @@ const vec Slicer::getBlock() {
     RealTimeChecker rt;
     rp = constrain(rp, bufferSize);
     vec segment(buffer.memptr() + rp, blockSize, false, false);
+    
     rp += hopSize;
     return segment;
 }

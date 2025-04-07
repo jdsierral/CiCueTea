@@ -42,31 +42,30 @@ BOOST_AUTO_TEST_CASE(Slicing2) {
     Slicer slicer;
     Splicer splicer;
     
+    uword N = 1<<16;
     uword blockSize = 1<<10;
     uword hopSize = blockSize/2;
     
     slicer.setSize(blockSize, hopSize);
     splicer.setSize(blockSize, hopSize);
     
-    uword N = (1<<16);
-    vec x = randn(N);
+    vec x = ones (N);
     vec y = zeros(N);
     
     vec window = sqrt(hann(blockSize));
+    vec block(blockSize);
     
     for (uword n = 0; n < N; n++) {
         double sample = x(n);
         slicer.pushSample(sample);
-        sample = splicer.getSample();
+        y(n) = splicer.getSample();
         
         if (slicer.hasBlock()) {
-            vec block = slicer.getBlock();
-            block *= window;
-            block *= window;
+            block = slicer.getBlock();
+            block %= window;
+            block %= window;
             splicer.pushBlock(block);
         }
-        
-        y(n) = sample;
     }
     
     vec d = x.head(N - blockSize) - y.tail(N - blockSize);
@@ -112,7 +111,7 @@ BOOST_AUTO_TEST_CASE(CQTSlicing1) {
         
         if (slicer.hasBlock()) {
             xi = slicer.getBlock();
-            xi *= w;
+            xi %= w;
             cqt.forward(xi, Xcq);
             Ycq = Xcq;
             cqt.inverse(Ycq, yi);
@@ -143,7 +142,6 @@ BOOST_AUTO_TEST_CASE(CQTSlicing2) {
     
     uword N = (1<<20);
     vec t = regspace(0, N-1) / fs;
-//    ArrayXd x = ArrayXd::Random(N);
     vec x = logChirp(t, fMin, fMax);
     vec y = zeros(N);
     vec w = hann(blockSize);
@@ -177,7 +175,7 @@ BOOST_AUTO_TEST_CASE(CQTSlicing2) {
         
         if (slicer.hasBlock()) {
             xi = slicer.getBlock();
-            xi *= w;
+            xi %= w;
             Xm1 = X_i;
             cqt.forward(xi, X_i);
             Zm1 = Z_i;
@@ -187,7 +185,7 @@ BOOST_AUTO_TEST_CASE(CQTSlicing2) {
             Y_i.tail_rows(overlapSize) = Z_i;
             
             cqt.inverse(Y_i, yi);
-            yi *= w;
+            yi %= w;
             composer.pushBlock(yi);
         }
     }

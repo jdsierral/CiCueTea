@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE(CQTTestFull1) {
     }
     
     vec ggDual = sum(cqt.g % cqt.gDual, 1);
-    ggDual = ggDual.head_rows(cqt.nFreqs/2+1);
+    ggDual = ggDual.head_rows(cqt.nFreqs/2-1);
     
     BOOST_CHECK( rms(ggDual - 1) < 1e-10 );
 }
@@ -180,7 +180,7 @@ BOOST_AUTO_TEST_CASE(CQTTestSparse1) {
     
     cqt.init(fs, nSamps, ppo, fMin, fMax, fRef);
     
-    if (true) {
+    if (false) {
         cout << "nBands: " << cqt.nBands << endl;
         cout << "nFreqs: " << cqt.nFreqs << endl;
         cout << "nSamps: " << cqt.nSamps << endl;
@@ -220,6 +220,7 @@ BOOST_AUTO_TEST_CASE(CQTTestSparse1) {
         buf.subvec(i0, i1) += (cqt.g[k] % cqt.gDual[k]);
     }
     buf = buf.head(cqt.nFreqs/2+1);
+    buf.save(csv_name("buf.csv"));
     double s = sum(buf - 1);
     BOOST_CHECK( abs(s) < 1e-10 );
 }

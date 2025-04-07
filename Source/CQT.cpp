@@ -95,7 +95,6 @@ void NsgfCqtFull::inverse(const cx_mat& Xcq, vec& x) {
     dft.irdft(Xdft, x);
 }
 
-
 //==========================================================================
 //==========================================================================
 //==========================================================================
@@ -114,6 +113,7 @@ NsgfCqtSparse::Idx findIdx(const vec& x, double th) {
         len++;
         if (x(i) < th) { break; }
     }
+    
     return {i0, len};
 }
 
@@ -157,11 +157,12 @@ void NsgfCqtSparse::init(double sampleRate, uword numSamples, double ppo,
         idx[k] = getIdx(g_.col(k));
         uword i0 = idx[k].i0;
         uword nCoefs = idx[k].len;
+        uword i1 = i0 + nCoefs - 1;
         scale(k) = double(nCoefs);
         vec n = regspace(0, nCoefs-1);
         phase[k] = exp(1i * datum::tau * double(i0) * n / double(nCoefs));
-        g[k] = vec(g_.colptr(k) + i0, nCoefs);
-        gDual[k] = vec(g_.colptr(k) + i0, nCoefs);
+        g[k] = g_.col(k).subvec(i0, i1);
+        gDual[k] = gDual_.col(k).subvec(i0, i1);
         dfts[k].init(nCoefs);
     }
     
