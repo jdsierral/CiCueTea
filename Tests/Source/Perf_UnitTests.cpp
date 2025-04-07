@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(perf1) {
     cqtFull ola;
     ola.init(fs, blockSize, ppo, fMin, fMax, fRef);
     
-    cout << "PERF 1" << endl;
+    cout << LIB_NAME << " PERF 1" << endl;
     {
         Timer t;
         for (Index n = 0; n < N; n++) {
@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE(perf2) {
     sliCQTFull ola;
     ola.init(fs, blockSize, ppo, fMin, fMax, fRef);
     
-    cout << "PERF 2" << endl;
+    cout << LIB_NAME << " PERF 2" << endl;
     {
         Timer t;
         for (Index n = 0; n < N; n++) {
@@ -113,7 +113,6 @@ BOOST_AUTO_TEST_CASE(perf2) {
     y = y.tail(N-blockSize-blockSize/2);
     
     ArrayXd d = x - y;
-    cout << rms(d) << endl;
     BOOST_CHECK(rms(d) < 1e-3);
 }
 
@@ -133,7 +132,7 @@ BOOST_AUTO_TEST_CASE(perf3) {
     cqtSparse ola;
     ola.init(fs, blockSize, ppo, fMin, fMax, fRef);
     
-    cout << "PERF 3" << endl;
+    cout << LIB_NAME << " PERF 3" << endl;
     {
         Timer t;
         for (Index n = 0; n < N; n++) {
@@ -161,7 +160,7 @@ BOOST_AUTO_TEST_CASE(perf4) {
     sliCQTSparse ola;
     ola.init(fs, blockSize, ppo, fMin, fMax, fRef);
     
-    cout << "PERF 4" << endl;
+    cout << LIB_NAME << " PERF 4" << endl;
     {
         Timer t;
         for (Index n = 0; n < N; n++) {

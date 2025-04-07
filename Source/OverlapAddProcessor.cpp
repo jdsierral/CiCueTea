@@ -263,7 +263,6 @@ double slidingCqtSparseProcessor::processSample(double sample)
                 Ycq[n] *= Win[n];
             }
             
-            assert(sz == xi.size());
             curCqt->inverse(Ycq, xi);
         }
         xi *= win;
