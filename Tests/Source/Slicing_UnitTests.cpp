@@ -11,10 +11,11 @@
 #include <matplot/matplot.h>
 
 #include <CQT.hpp>
-#include <OverlapAddProcessor.hpp>
+#include <CQTProcessor.hpp>
 #include <Splicer.hpp>
 #include <Slicer.hpp>
 #include <VectorOps.h>
+#include <SignalUtils.h>
 
 using namespace Eigen;
 using namespace std;
@@ -74,12 +75,11 @@ BOOST_AUTO_TEST_CASE(Slicing2) {
 }
 
 BOOST_AUTO_TEST_CASE(CQTSlicing1) {
-    NsgfCqtFull cqt;
     Slicer slicer;
     Splicer composer;
     
     double fs = 48000;
-    double ppo = 1;
+    double frac = 1;
     double fMin = 100;
     double fMax = 10000;
     double fRef = 1500;
@@ -92,11 +92,11 @@ BOOST_AUTO_TEST_CASE(CQTSlicing1) {
     ArrayXd y = ArrayXd::Zero(N);
     ArrayXd w = hann(blockSize);
     
-    cqt.init(fs, blockSize, ppo, fMin, fMax, fRef);
+    NsgfCqtFull cqt(fs, blockSize, frac, fMin, fMax, fRef);
     slicer.setSize(blockSize, hopSize);
     composer.setSize(blockSize, hopSize);
     
-    Index nBands = cqt.nBands;
+    Index nBands = cqt.getNumBands();
     ArrayXXcd Xcq(blockSize, nBands);
     ArrayXXcd Ycq(blockSize, nBands);
     Xcq.setZero();
@@ -127,12 +127,11 @@ BOOST_AUTO_TEST_CASE(CQTSlicing1) {
 
 BOOST_AUTO_TEST_CASE(CQTSlicing2) {
     return;
-    NsgfCqtFull cqt;
     Slicer slicer;
     Splicer composer;
     
     double fs = 48000;
-    double ppo = 1;
+    double frac = 1;
     double fMin = 100;
     double fMax = 10000;
     double fRef = 1500;
@@ -150,11 +149,11 @@ BOOST_AUTO_TEST_CASE(CQTSlicing2) {
     x.head(blockSize).setZero();
     x.tail(blockSize).setZero();
     
-    cqt.init(fs, blockSize, ppo, fMin, fMax, fRef);
+    NsgfCqtFull cqt(fs, blockSize, frac, fMin, fMax, fRef);
     slicer.setSize(blockSize, hopSize);
     composer.setSize(blockSize, hopSize);
     
-    Index nBands = cqt.nBands;
+    Index nBands = cqt.getNumBands();
     ArrayXXcd Xm1(blockSize, nBands);
     ArrayXXcd X_i(blockSize, nBands);
     ArrayXXcd Y_i(blockSize, nBands);

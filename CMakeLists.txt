@@ -36,6 +36,7 @@ target_compile_definitions(${TARGET_NAME}
 
 target_include_directories(${TARGET_NAME}
     PRIVATE Include/
+    SYSTEM PRIVATE /usr/local/include
     SYSTEM PRIVATE ${CMAKE_INCLUDE_PATH} 
     SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
     SYSTEM PRIVATE ${ARMADILLO_INCLUDE_DIRS}
@@ -48,6 +49,7 @@ set_target_properties(${TARGET_NAME}
 
 target_link_libraries(${TARGET_NAME} 
     PRIVATE Eigen3::Eigen
+    PRIVATE /usr/local/lib/libpffft.a
 )
 
 add_subdirectory(Tests)

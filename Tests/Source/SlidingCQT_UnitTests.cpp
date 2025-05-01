@@ -11,10 +11,10 @@
 #include <matplot/matplot.h>
 
 #include <CQT.hpp>
-#include <OverlapAddProcessor.hpp>
+#include <CQTProcessor.hpp>
 #include <Splicer.hpp>
 #include <Slicer.hpp>
-#include <OverlapAddProcessor.hpp>
+#include <CQTProcessor.hpp>
 #include <VectorOps.h>
 
 using namespace Eigen;
@@ -22,29 +22,7 @@ using namespace arma;
 using namespace std;
 using namespace jsa;
 
-class cqtFull : public jsa::cqtFullProcessor
-{
-public:
-    void processBlock(Eigen::ArrayXXcd& block) override {}
-};
-
-class sliCQTFull : public jsa::slidingCQTFullProcessor
-{
-public:
-    void processBlock(Eigen::ArrayXXcd& block) override {};
-};
-
-class cqtSparse : public jsa::cqtSparseProcessor
-{
-public:
-    void processBlock(jsa::NsgfCqtSparse::Coefs& block) override {}
-};
-
-class sliCQTSparse : public jsa::slidingCqtSparseProcessor
-{
-public:
-    void processBlock(jsa::NsgfCqtSparse::Coefs& block) override {};
-};
+#include "EmptyCQTProc.h"
 
 BOOST_AUTO_TEST_CASE(OlaProc1) {
     double fs = 48000;
@@ -55,8 +33,7 @@ BOOST_AUTO_TEST_CASE(OlaProc1) {
     ArrayXd x = ArrayXd::Random(N);
     ArrayXd y = ArrayXd::Zero(N);
     
-    cqtFull ola;
-    ola.init(fs, blockSize, 1, 1e2, 1e4, 1e3);
+    cqtFull ola(fs, blockSize, 1, 1e2, 1e4, 1e3);
     
     for (Index n = 0; n < N; n++) {
         y(n) = ola.processSample(x(n));
@@ -74,8 +51,7 @@ BOOST_AUTO_TEST_CASE(OlaProc2) {
     ArrayXd x = ArrayXd::Random(N);
     ArrayXd y = ArrayXd::Zero(N);
     
-    sliCQTFull ola;
-    ola.init(fs, blockSize, 1, 1e2, 1e4, 1e3);
+    sliCQTFull ola(fs, blockSize, 1, 1e2, 1e4, 1e3);
     
     for (Index n = 0; n < N; n++) {
         y(n) = ola.processSample(x(n));
@@ -100,8 +76,7 @@ BOOST_AUTO_TEST_CASE(OlaProc3) {
     ArrayXd x = ArrayXd::Random(N);
     ArrayXd y = ArrayXd::Zero(N);
     
-    cqtSparse ola;
-    ola.init(fs, blockSize, 1, 1e2, 1e4, 1e3);
+    cqtSparse ola(fs, blockSize, 1, 1e2, 1e4, 1e3);
     
     for (Index n = 0; n < N; n++) {
         y(n) = ola.processSample(x(n));
@@ -115,7 +90,7 @@ BOOST_AUTO_TEST_CASE(OlaProc4) {
     double fs = 48000;
     Index N = 1<<18;
     Index blockSize = 1<<16;
-    double ppo = 3;
+    double frac = 1.0/3.0;
     double fMax = 1e4;
     double fMin = 1e2;
     double fRef = 1e3;
@@ -123,8 +98,7 @@ BOOST_AUTO_TEST_CASE(OlaProc4) {
     ArrayXd x = ArrayXd::Random(N);
     ArrayXd y = ArrayXd::Zero(N);
     
-    sliCQTSparse ola;
-    ola.init(fs, blockSize, ppo, fMin, fMax, fRef);
+    sliCQTSparse ola(fs, blockSize, frac, fMin, fMax, fRef);
     
     for (Index n = 0; n < N; n++) {
         y(n) = ola.processSample(x(n));

@@ -16,8 +16,7 @@ class DFTImpl;
 
 class DFT {
 public:
-    DFT();
-    void init(size_t fftSize);
+    DFT(size_t fftSize);
     
     void dft(const Eigen::ArrayXcd& X, Eigen::ArrayXcd& Y);
     void idft(const Eigen::ArrayXcd& X, Eigen::ArrayXcd& Y);

@@ -12,23 +12,6 @@
 
 namespace jsa {
 
-inline double square(double x) { return x * x; }
-
-inline constexpr uint32_t nextPow2(uint32_t x) {
-    if (x == 0) return 1;
-    x--;
-    x |= x >> 1;
-    x |= x >> 2;
-    x |= x >> 4;
-    x |= x >> 8;
-    x |= x >> 16;
-    return x + 1;
-}
-
-inline size_t constrain(size_t idx, size_t size) {
-    return idx % size;
-}
-
 template <typename T> inline T nextPow2(T n) { return exp2(ceil(log2(n))); }
 
 inline arma::vec eig2armaVec(Eigen::ArrayXd x) {
@@ -49,21 +32,6 @@ inline arma::cx_mat eig2armaMat(Eigen::ArrayXXcd x) {
 
 inline double rms(const Eigen::ArrayXd& x) {
     return std::sqrt(x.square().mean());
-}
-
-inline Eigen::ArrayXd regspace(Eigen::Index num) {
-    return Eigen::ArrayXd::LinSpaced(num, 0, num-1);
-}
-
-inline Eigen::ArrayXd regspace(Eigen::Index low, Eigen::Index high) {
-    return Eigen::ArrayXd::LinSpaced(high-low+1, low, high);
-}
-
-inline Eigen::ArrayXd hann(Eigen::Index N) {
-    assert(N > 0);
-    Eigen::ArrayXd n = regspace(N);
-    Eigen::ArrayXd win = (M_PI * n / N).sin().square();
-    return win;
 }
 
 inline Eigen::ArrayXd logChirp(const Eigen::ArrayXd& t, double f0, double f1) {

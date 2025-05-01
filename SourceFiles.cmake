@@ -1,21 +1,26 @@
 set(IncludeFiles
+    Include/RingBuffer.hpp
+    Include/Slicer.hpp
+    Include/Splicer.hpp
+    Include/FFT.hpp
+    Include/CQT.hpp
+    Include/CQTProcessor.hpp
+    Include/MathUtils.h
+    Include/SignalUtils.h
 )
 
 set(SourceFiles
-    Source/CQT.cpp
-    Source/CQT.hpp
-    Source/FFT.cpp
-    Source/FFT.hpp
-    Source/Slicer.cpp
-    Source/Slicer.hpp
-    Source/Splicer.cpp
-    Source/Splicer.hpp
-    Source/RingBuffer.cpp
-    Source/RingBuffer.hpp
-    Source/OverlapAddProcessor.cpp
-    Source/OverlapAddProcessor.hpp
+    Source/FFT_FFTW.h
+    Source/FFT_vDSP.h
+    Source/FFT_PFFFT.h
     Source/VectorOps.h
     Source/Benchtools.h
+    Source/RingBuffer.cpp
+    Source/Splicer.cpp
+    Source/Slicer.cpp
+    Source/FFT.cpp
+    Source/CQT.cpp
+    Source/CQTProcessor.cpp
 )
 
 set(SourceFiles

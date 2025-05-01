@@ -4,6 +4,7 @@ set(TARGET_NAME ${PROJECT_NAME}_UnitTest)
 
 set(SourceFiles
     Source/main.cpp
+    Source/DFT_UnitTests.cpp
     Source/CQT_UnitTests.cpp
     Source/Slicing_UnitTests.cpp
     Source/SlidingCQT_UnitTests.cpp
@@ -28,10 +29,12 @@ target_compile_options(${TARGET_NAME}
 )
 
 target_include_directories(${TARGET_NAME}
-    PRIVATE ${ARMADILLO_INCLUDE_DIRS}
-    PRIVATE ${Boost_INCLUDE_DIRS}
-    PRIVATE ${CMAKE_INCLUDE_PATH}
-    PRIVATE ../Source
+    SYSTEM PRIVATE /usr/local/include
+    SYSTEM PRIVATE ${ARMADILLO_INCLUDE_DIRS}
+    SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
+    SYSTEM PRIVATE ${CMAKE_INCLUDE_PATH}
+    SYSTEM PRIVATE ../Source
+    PRIVATE ../Include
 )
 
 target_link_libraries(${TARGET_NAME}

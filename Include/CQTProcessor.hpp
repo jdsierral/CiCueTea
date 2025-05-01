@@ -12,20 +12,21 @@
 #include "Splicer.hpp"
 #include "Slicer.hpp"
 #include "RingBuffer.hpp"
+
 #include "CQT.hpp"
-#include "Benchtools.h"
-#include "VectorOps.h"
 
 namespace jsa {
 
-class cqtFullProcessor {
+class CqtFullProcessor {
 public:
-    void init(double fs, double blockSize, double ppo, double fMin, double fMax, double fRef);
+    CqtFullProcessor(double sampleRate, double numSamples, double fraction,
+                     double minFrequency, double maxFrequency, double refFrequency);
+    
     double processSample(double sample);
     virtual void processBlock(Eigen::ArrayXXcd& block) = 0;
     
 protected:
-    std::shared_ptr<NsgfCqtFull> cqt;
+    NsgfCqtFull cqt;
     
 private:
     Eigen::ArrayXd xi;
@@ -38,14 +39,15 @@ private:
 
 //==========================================================================
 
-class slidingCQTFullProcessor {
+class SlidingCQTFullProcessor {
 public:
-    void init(double fs, double blockSize, double ppo, double fMin, double fMax, double fRef);
+    SlidingCQTFullProcessor(double sampleRate, double numSamples, double fraction,
+                            double minFrequency, double maxFrequency, double refFrequency);
     double processSample(double sample);
     virtual void processBlock(Eigen::ArrayXXcd& block) = 0;
     
 protected:
-    std::shared_ptr<NsgfCqtFull> cqt;
+    NsgfCqtFull cqt;
     
 private:
     Eigen::ArrayXd xi;
@@ -60,14 +62,15 @@ private:
 
 //==========================================================================
 
-class cqtSparseProcessor {
+class CqtSparseProcessor {
 public:
-    void init(double fs, double blockSize, double ppo, double fMin, double fMax, double fRef);
+    CqtSparseProcessor(double sampleRate, double numSamples, double fraction,
+                       double minFrequency, double maxFrequency, double refFrequency);
     double processSample(double sample);
     virtual void processBlock(NsgfCqtSparse::Coefs& block) = 0;
     
 protected:
-    std::shared_ptr<NsgfCqtSparse> cqt;
+    NsgfCqtSparse cqt;
     
 private:
     Eigen::ArrayXd xi;
@@ -80,14 +83,16 @@ private:
 
 //==========================================================================
 
-class slidingCqtSparseProcessor {
+class SlidingCqtSparseProcessor {
 public:
-    void init(double fs, double blockSize, double ppo, double fMin, double fMax, double fRef);
+    SlidingCqtSparseProcessor(double sampleRate, double numSamples,
+                              double fraction, double minFrequency,
+                              double maxFrequency, double refFrequency);
     double processSample(double sample);
     virtual void processBlock(NsgfCqtSparse::Coefs& block) = 0;
     
 protected:
-    std::shared_ptr<NsgfCqtSparse> cqt;
+    NsgfCqtSparse cqt;
     
 private:
     Eigen::ArrayXd xi;

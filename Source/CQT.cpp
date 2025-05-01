@@ -7,34 +7,32 @@
 
 #include "CQT.hpp"
 
-#include <iostream>
-
+#include "MathUtils.h"
 #include "Benchtools.h"
 
 using namespace jsa;
 using namespace Eigen;
 
-void NsgfCqtCommon::init(double sampleRate, Index numSamples, double pointsPerOctave,
-                         double minFrequency, double maxFrequency, double refFrequency)
+NsgfCqtCommon::NsgfCqtCommon(double sampleRate, Eigen::Index blockSize,
+                             double fraction, double minFrequency,
+                             double maxFrequency, double refFrequency) :
+    fs(sampleRate),
+    nSamps(blockSize),
+    frac(fraction),
+    fMin(minFrequency),
+    fMax(maxFrequency),
+    fRef(refFrequency),
+    bandInfo(computeBandInfo(frac, fMin, fMax, fRef)),
+    nBands(bandInfo.nBands),
+    nFreqs(nSamps),
+    bax(nBands),
+    fax(nFreqs),
+    d(nFreqs),
+    Xdft(nSamps),
+    dft(nSamps)
 {
-    fs = sampleRate;
-    nSamps = numSamples;
-    ppo = pointsPerOctave;
-    fMin = minFrequency;
-    fMax = maxFrequency;
-    fRef = refFrequency;
-    
-    // Initialize Stuff
-    Xdft.resize(nSamps);
-    dft.init(nSamps);
     Xdft.setZero();
-    
-    Index nBandsUp = Index(ceil(ppo * log2(fMax / fRef)));
-    Index nBandsDown = Index(ceil(ppo * log2(fRef / fMin)));
-    nBands = nBandsDown + nBandsUp + 1;
-    bax = fRef * (log(2) * regspace(-nBandsDown, nBandsUp) / ppo).exp();
-    
-    nFreqs = nSamps;
+    bax = fRef * (frac * log(2) * regspace(-bandInfo.nBandsDown, bandInfo.nBandsUp)).exp();
     fax = ArrayXd::LinSpaced(nFreqs, 0, nFreqs-1) * fs / double(nFreqs);
 }
 
@@ -42,16 +40,14 @@ void NsgfCqtCommon::init(double sampleRate, Index numSamples, double pointsPerOc
 //==========================================================================
 //==========================================================================
 
-void NsgfCqtFull::init(double sampleRate, Index numSamples, double ppo,
-                       double minFrequency, double maxFrequency, double refFrequency)
+NsgfCqtFull::NsgfCqtFull(double sampleRate, Index numSamples, double fraction,
+                         double minFrequency, double maxFrequency,
+                         double refFrequency) :
+    NsgfCqtCommon(sampleRate, numSamples, fraction,
+                  minFrequency, maxFrequency, refFrequency),
+    Xmat(nSamps, nBands)
 {
-    NsgfCqtCommon::init(sampleRate, numSamples, ppo,
-                        minFrequency, maxFrequency, refFrequency);
-    
-
-    Xmat.resize(nSamps, nBands);
-    
-    double c = log(16) / (square(1.0 / ppo));
+    double c = log(16) / (square(frac));
     ArrayXXd outerRatio = fax.rowwise().replicate(bax.size()) / bax.transpose().colwise().replicate(fax.size());
     g = (-c * (outerRatio).log2().square()).exp();
     
@@ -71,7 +67,7 @@ void NsgfCqtFull::init(double sampleRate, Index numSamples, double ppo,
 void NsgfCqtFull::forward(const ArrayXd& x, ArrayXXcd& Xcq) {
     RealTimeChecker ck;
     
-    if (fs < 0) return;
+    assert(x.size() == nSamps);
     assert(Xcq.cols() == Index(nBands));
     assert(Xcq.rows() == Index(nSamps));
     dft.rdft(x, Xdft);
@@ -84,7 +80,9 @@ void NsgfCqtFull::forward(const ArrayXd& x, ArrayXXcd& Xcq) {
 void NsgfCqtFull::inverse(const ArrayXXcd& Xcq, ArrayXd& x) {
     RealTimeChecker ck;
     
-    if (fs < 0) return;
+    assert(x.size() == nSamps);
+    assert(Xcq.cols() == Index(nBands));
+    assert(Xcq.rows() == Index(nSamps));
     dft.dft(Xcq, Xmat);
     Xdft = (Xmat * gDual).rowwise().sum() / 2;
     dft.irdft(Xdft, x);
@@ -95,7 +93,7 @@ void NsgfCqtFull::inverse(const ArrayXXcd& Xcq, ArrayXd& x) {
 //==========================================================================
 //==========================================================================
 
-NsgfCqtSparse::Idx findIdx(const ArrayXd& x, double th) {
+NsgfCqtSparse::Span findIdx(const ArrayXd& x, double th) {
     Index i0 = 0;
     Index len = 0;
     for (Index i = 0; i < x.size(); i++) {
@@ -112,13 +110,17 @@ NsgfCqtSparse::Idx findIdx(const ArrayXd& x, double th) {
     return {i0, len};
 }
 
-void NsgfCqtSparse::init(double sampleRate, Index numSamples, double ppo,
-                         double minFrequency, double maxFrequency, double refFrequency)
+NsgfCqtSparse::NsgfCqtSparse(double sampleRate, Index numSamples, double fraction,
+                             double minFrequency, double maxFrequency,
+                             double refFrequency) :
+    NsgfCqtCommon(sampleRate, numSamples, fraction,
+                  minFrequency, maxFrequency, refFrequency),
+    idx(nBands),
+    g(nBands),
+    gDual(nBands),
+    phase(nBands),
+    scale(nBands)
 {
-    NsgfCqtCommon::init(sampleRate, numSamples, ppo,
-                        minFrequency, maxFrequency, refFrequency);
-    
-    // Initialize Stuff
     idx.resize(nBands);
     g.resize(nBands);
     gDual.resize(nBands);
@@ -127,7 +129,7 @@ void NsgfCqtSparse::init(double sampleRate, Index numSamples, double ppo,
     Xdft.resize(nSamps);
     dfts.resize(nBands);
     
-    double c = log(16) / (square(1.0 / ppo));
+    double c = log(16) / (square(frac));
     ArrayXXd outerRatio = fax.rowwise().replicate(bax.size()) / bax.transpose().colwise().replicate(fax.size());
     ArrayXXd g_ = (-c * (outerRatio).log2().square()).exp();
     
@@ -157,12 +159,10 @@ void NsgfCqtSparse::init(double sampleRate, Index numSamples, double ppo,
         phase[k] = exp(1i * 2.0 * M_PI * double(i0) * n / double(nCoefs));
         g[k] = g_.col(k).segment(i0, nCoefs).eval();
         gDual[k] = gDual_.col(k).segment(i0, nCoefs).eval();
-        dfts[k].init(nCoefs);
+        dfts[k].reset(new DFT(nCoefs));
     }
     
     Xcoefs = getCoefs();
-    
-    dft.init(nSamps);
 }
 
 void NsgfCqtSparse::forward(const ArrayXd& x, Coefs& Xcq) {
@@ -174,7 +174,7 @@ void NsgfCqtSparse::forward(const ArrayXd& x, Coefs& Xcq) {
     dft.rdft(x, Xdft);
     for (Index k = 0; k < nBands; k++) {
         Xcoefs[k] = 2.0 * g[k] * phase[k] * Xdft.segment(idx[k].i0, idx[k].len);
-        dfts[k].idft(Xcoefs[k], Xcq[k]);
+        dfts[k]->idft(Xcoefs[k], Xcq[k]);
     }
 }
 
@@ -185,13 +185,13 @@ void NsgfCqtSparse::inverse(const Coefs& Xcq, ArrayXd& x) {
     assert(Index(Xcq.size()) == nBands);
     Xdft.fill(0);
     for (Index k = 0; k < nBands; k++) {
-        dfts[k].dft(Xcq[k], Xcoefs[k]);
+        dfts[k]->dft(Xcq[k], Xcoefs[k]);
         Xdft.segment(idx[k].i0, idx[k].len) += 0.5 * gDual[k] * phase[k].conjugate() * Xcoefs[k];
     }
     dft.irdft(Xdft, x);
 }
 
-NsgfCqtSparse::Idx NsgfCqtSparse::getIdx(const ArrayXd& x) {
+NsgfCqtSparse::Span NsgfCqtSparse::getIdx(const ArrayXd& x) {
     Index i0 = 0;
     Index i1 = x.size();
     for (Index i = 0; i < x.size(); i++) {
@@ -212,7 +212,7 @@ NsgfCqtSparse::Idx NsgfCqtSparse::getIdx(const ArrayXd& x) {
     return {i0, len};
 }
 
-NsgfCqtSparse::Frame NsgfCqtSparse::getFrame() const {
+NsgfCqtSparse::Frame NsgfCqtSparse::getRealCoefs() const {
     assert(fs > 0);
     assert(bax.size() > 0);
     Frame frame(nBands);

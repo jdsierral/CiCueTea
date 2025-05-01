@@ -7,8 +7,8 @@
 
 #include "Splicer.hpp"
 
-#include "VectorOps.h"
 #include "Benchtools.h"
+#include "MathUtils.h"
 
 using namespace jsa;
 using namespace Eigen;

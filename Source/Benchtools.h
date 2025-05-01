@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <iostream>
+
 #define REALTIME_CHECKS
 
 #ifdef REALTIME_CHECKS

@@ -9,6 +9,7 @@
 
 #include "VectorOps.h"
 #include "Benchtools.h"
+#include "MathUtils.h"
 
 using namespace jsa;
 
