@@ -1,5 +1,10 @@
 {
     "files.associations": {
-        "armadillo": "cpp"
+        "armadillo": "cpp",
+        "core": "cpp",
+        "dense": "cpp",
+        "numbers": "cpp",
+        "complex": "cpp",
+        "__locale": "cpp"
     }
 }
