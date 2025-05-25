@@ -60,7 +60,7 @@ public:
      */
     const NsgfCqtFull& getCqt() const;
 
-protected:
+//protected:
     NsgfCqtFull cqt; ///< The CQT object used for processing.
 
 private:
@@ -118,7 +118,7 @@ public:
      */
     const NsgfCqtFull& getCqt() const;
 
-protected:
+//protected:
     NsgfCqtFull cqt; ///< The CQT object used for processing.
 
 private:
@@ -178,7 +178,7 @@ public:
      */
     const NsgfCqtSparse& getCqt() const;
 
-protected:
+//protected:
     NsgfCqtSparse cqt; ///< The CQT object used for processing.
 
 private:
@@ -252,7 +252,7 @@ public:
      */
     const NsgfCqtSparse& getCqt() const;
 
-protected:
+//protected:
     NsgfCqtSparse cqt; ///< The CQT object used for processing.
 
 private:

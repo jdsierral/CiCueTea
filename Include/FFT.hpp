@@ -12,6 +12,24 @@
 
 #pragma once
 
+#include <Eigen/Core>
+
+namespace jsa {
+
+class DFTImpl;
+
+class DFT {
+public:
+    
+    DFT(size_t fftSize);
+    
+    /**
+     * @brief Computes the Discrete Fourier Transform (DFT) on 1D data.
+     * @param X Input array of complex values.
+     * @param Y Output array of transformed complex values.
+     */
+    void dft(const Eigen::ArrayXcd& X, Eigen::ArrayXcd& Y);
+
     /**
      * @brief Computes the inverse Discrete Fourier Transform (IDFT) on 1D data.
      * @param X Input array of complex values.

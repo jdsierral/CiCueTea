@@ -14,6 +14,8 @@
  * The `jsa` namespace contains classes and functions for audio processing and manipulation.
  */
 
+namespace jsa {
+
 /**
  * @class Splicer
  * @brief A class for managing and processing audio blocks with overlap and hop sizes.

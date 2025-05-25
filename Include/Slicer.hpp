@@ -14,6 +14,8 @@
  * @brief Namespace containing the Slicer class and related functionality.
  */
 
+namespace jsa {
+
 /**
  * @class Slicer
  * @brief A class for slicing audio or signal data into overlapping blocks.
