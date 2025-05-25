@@ -3,3 +3,6 @@
 GIT_COMMIT
 .DS_Store
 **/Plots/**
+
+**/latex/**
+**/html/**
