@@ -15,58 +15,70 @@ using namespace Eigen;
 namespace jsa {
 class DFTImpl {
 public:
-    DFTImpl(){}
-    
-    ~DFTImpl(){ cleanup(); }
-    
-    void init(size_t fftSize) {
-        cleanup();
-        this->fftSize = fftSize;
-        
-        r2cSetup = vDSP_DFT_Interleaved_CreateSetupD(r2cSetup, fftSize/2, vDSP_DFT_FORWARD, vDSP_DFT_Interleaved_RealtoComplex);
-        c2rSetup = vDSP_DFT_Interleaved_CreateSetupD(c2rSetup, fftSize/2, vDSP_DFT_INVERSE, vDSP_DFT_Interleaved_RealtoComplex);
-        c2cSetup = vDSP_DFT_Interleaved_CreateSetupD(c2cSetup, fftSize, vDSP_DFT_FORWARD, vDSP_DFT_Interleaved_ComplextoComplex);
-        ic2cSetup = vDSP_DFT_Interleaved_CreateSetupD(ic2cSetup, fftSize, vDSP_DFT_INVERSE, vDSP_DFT_Interleaved_ComplextoComplex);
-    }
-    
-    void dft(const dcomplex* inPtr, dcomplex* outPtr) {
-        DSPDoubleComplex* inPtr_ = reinterpret_cast<DSPDoubleComplex*>(const_cast<dcomplex*>(inPtr));
-        DSPDoubleComplex* outPtr_ = reinterpret_cast<DSPDoubleComplex*>(outPtr);
-        vDSP_DFT_Interleaved_ExecuteD(c2cSetup, inPtr_, outPtr_);
-    }
-    
-    void idft(const dcomplex* inPtr, dcomplex* outPtr) {
-        DSPDoubleComplex* inPtr_ = reinterpret_cast<DSPDoubleComplex*>(const_cast<dcomplex*>(inPtr));
-        DSPDoubleComplex* outPtr_ = reinterpret_cast<DSPDoubleComplex*>(outPtr);
-        vDSP_DFT_Interleaved_ExecuteD(ic2cSetup, inPtr_, outPtr_);
-        Map<ArrayXcd>(outPtr, fftSize) *= (1.0 / fftSize);
-    }
-    
-    void rdft(const double* inPtr, dcomplex* outPtr) {
-        DSPDoubleComplex* inPtr_ = reinterpret_cast<DSPDoubleComplex*>(const_cast<double*>(inPtr));
-        DSPDoubleComplex* outPtr_ = reinterpret_cast<DSPDoubleComplex*>(outPtr);
-        vDSP_DFT_Interleaved_ExecuteD(r2cSetup, inPtr_, outPtr_);
-        Map<ArrayXcd>(outPtr, fftSize) *= (0.5);
-    }
-    
-    void irdft(const dcomplex* inPtr, double* outPtr) {
-        DSPDoubleComplex* inPtr_ = reinterpret_cast<DSPDoubleComplex*>(const_cast<dcomplex*>(inPtr));
-        DSPDoubleComplex* outPtr_ = reinterpret_cast<DSPDoubleComplex*>(outPtr);
-        vDSP_DFT_Interleaved_ExecuteD(c2rSetup, inPtr_, outPtr_);
-    }
-    
+  DFTImpl() {}
+
+  ~DFTImpl() { cleanup(); }
+
+  void init(size_t fftSize) {
+    cleanup();
+    this->fftSize = fftSize;
+
+    r2cSetup = vDSP_DFT_Interleaved_CreateSetupD(
+        r2cSetup, fftSize / 2, vDSP_DFT_FORWARD,
+        vDSP_DFT_Interleaved_RealtoComplex);
+    c2rSetup = vDSP_DFT_Interleaved_CreateSetupD(
+        c2rSetup, fftSize / 2, vDSP_DFT_INVERSE,
+        vDSP_DFT_Interleaved_RealtoComplex);
+    c2cSetup = vDSP_DFT_Interleaved_CreateSetupD(
+        c2cSetup, fftSize, vDSP_DFT_FORWARD,
+        vDSP_DFT_Interleaved_ComplextoComplex);
+    ic2cSetup = vDSP_DFT_Interleaved_CreateSetupD(
+        ic2cSetup, fftSize, vDSP_DFT_INVERSE,
+        vDSP_DFT_Interleaved_ComplextoComplex);
+  }
+
+  void dft(const dcomplex *inPtr, dcomplex *outPtr) {
+    DSPDoubleComplex *inPtr_ =
+        reinterpret_cast<DSPDoubleComplex *>(const_cast<dcomplex *>(inPtr));
+    DSPDoubleComplex *outPtr_ = reinterpret_cast<DSPDoubleComplex *>(outPtr);
+    vDSP_DFT_Interleaved_ExecuteD(c2cSetup, inPtr_, outPtr_);
+  }
+
+  void idft(const dcomplex *inPtr, dcomplex *outPtr) {
+    DSPDoubleComplex *inPtr_ =
+        reinterpret_cast<DSPDoubleComplex *>(const_cast<dcomplex *>(inPtr));
+    DSPDoubleComplex *outPtr_ = reinterpret_cast<DSPDoubleComplex *>(outPtr);
+    vDSP_DFT_Interleaved_ExecuteD(ic2cSetup, inPtr_, outPtr_);
+    Map<ArrayXcd>(outPtr, fftSize) *= (1.0 / fftSize);
+  }
+
+  void rdft(const double *inPtr, dcomplex *outPtr) {
+    DSPDoubleComplex *inPtr_ =
+        reinterpret_cast<DSPDoubleComplex *>(const_cast<double *>(inPtr));
+    DSPDoubleComplex *outPtr_ = reinterpret_cast<DSPDoubleComplex *>(outPtr);
+    vDSP_DFT_Interleaved_ExecuteD(r2cSetup, inPtr_, outPtr_);
+    Map<ArrayXcd>(outPtr, fftSize) *= (0.5);
+  }
+
+  void irdft(const dcomplex *inPtr, double *outPtr) {
+    DSPDoubleComplex *inPtr_ =
+        reinterpret_cast<DSPDoubleComplex *>(const_cast<dcomplex *>(inPtr));
+    DSPDoubleComplex *outPtr_ = reinterpret_cast<DSPDoubleComplex *>(outPtr);
+    vDSP_DFT_Interleaved_ExecuteD(c2rSetup, inPtr_, outPtr_);
+  }
+
 private:
-    void cleanup() {
-        vDSP_DFT_Interleaved_DestroySetupD(r2cSetup);
-        vDSP_DFT_Interleaved_DestroySetupD(c2rSetup);
-        vDSP_DFT_Interleaved_DestroySetupD(c2cSetup);
-        vDSP_DFT_Interleaved_DestroySetupD(ic2cSetup);
-    }
-    
-    size_t fftSize;
-    vDSP_DFT_Interleaved_SetupD r2cSetup = nullptr;
-    vDSP_DFT_Interleaved_SetupD c2rSetup = nullptr;
-    vDSP_DFT_Interleaved_SetupD c2cSetup = nullptr;
-    vDSP_DFT_Interleaved_SetupD ic2cSetup = nullptr;
+  void cleanup() {
+    vDSP_DFT_Interleaved_DestroySetupD(r2cSetup);
+    vDSP_DFT_Interleaved_DestroySetupD(c2rSetup);
+    vDSP_DFT_Interleaved_DestroySetupD(c2cSetup);
+    vDSP_DFT_Interleaved_DestroySetupD(ic2cSetup);
+  }
+
+  size_t fftSize;
+  vDSP_DFT_Interleaved_SetupD r2cSetup = nullptr;
+  vDSP_DFT_Interleaved_SetupD c2rSetup = nullptr;
+  vDSP_DFT_Interleaved_SetupD c2cSetup = nullptr;
+  vDSP_DFT_Interleaved_SetupD ic2cSetup = nullptr;
 };
-}
+} // namespace jsa

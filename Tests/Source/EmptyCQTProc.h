@@ -7,30 +7,26 @@
 
 #pragma once
 
-class cqtFull : public jsa::CqtFullProcessor
-{
+class cqtFull : public jsa::CqtFullProcessor {
 public:
-    using jsa::CqtFullProcessor::CqtFullProcessor;
-    void processBlock(Eigen::ArrayXXcd& block) override {}
+  using jsa::CqtFullProcessor::CqtFullProcessor;
+  void processBlock(Eigen::ArrayXXcd &block) override {}
 };
 
-class sliCQTFull : public jsa::SlidingCQTFullProcessor
-{
+class sliCQTFull : public jsa::SlidingCQTFullProcessor {
 public:
-    using jsa::SlidingCQTFullProcessor::SlidingCQTFullProcessor;
-    void processBlock(Eigen::ArrayXXcd& block) override {};
+  using jsa::SlidingCQTFullProcessor::SlidingCQTFullProcessor;
+  void processBlock(Eigen::ArrayXXcd &block) override {};
 };
 
-class cqtSparse : public jsa::CqtSparseProcessor
-{
+class cqtSparse : public jsa::CqtSparseProcessor {
 public:
-    using jsa::CqtSparseProcessor::CqtSparseProcessor;
-    void processBlock(jsa::NsgfCqtSparse::Coefs& block) override {}
+  using jsa::CqtSparseProcessor::CqtSparseProcessor;
+  void processBlock(jsa::NsgfCqtSparse::Coefs &block) override {}
 };
 
-class sliCQTSparse : public jsa::SlidingCqtSparseProcessor
-{
+class sliCQTSparse : public jsa::SlidingCqtSparseProcessor {
 public:
-    using jsa::SlidingCqtSparseProcessor::SlidingCqtSparseProcessor;
-    void processBlock(jsa::NsgfCqtSparse::Coefs& block) override {};
+  using jsa::SlidingCqtSparseProcessor::SlidingCqtSparseProcessor;
+  void processBlock(jsa::NsgfCqtSparse::Coefs &block) override {};
 };

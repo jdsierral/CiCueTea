@@ -4,13 +4,13 @@ set(TARGET_NAME ${PROJECT_NAME}_UnitTest)
 
 set(SourceFiles
     Source/main.cpp
-    # Source/DFT_UnitTests.cpp
+    Source/DFT_UnitTests.cpp
     # Source/CQT_UnitTests.cpp
     # Source/Slicing_UnitTests.cpp
     # Source/SlidingCQT_UnitTests.cpp
     # Source/Perf_UnitTests.cpp
-    Source/SlidingExtended_UnitTests.cpp
-    Source/EmptyCQTProc.h
+    # Source/SlidingExtended_UnitTests.cpp
+    # Source/EmptyCQTProc.h
 )
 
 source_group("Source Files\\Source" FILES ${SourceFiles})
