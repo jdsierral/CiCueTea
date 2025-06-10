@@ -37,33 +37,33 @@ public:
         vDSP_DFT_Interleaved_ComplextoComplex);
   }
 
-  void dft(const dcomplex *inPtr, dcomplex *outPtr) {
-    DSPDoubleComplex *inPtr_ =
-        reinterpret_cast<DSPDoubleComplex *>(const_cast<dcomplex *>(inPtr));
-    DSPDoubleComplex *outPtr_ = reinterpret_cast<DSPDoubleComplex *>(outPtr);
+  void dft(const dcomplex* inPtr, dcomplex* outPtr) {
+    DSPDoubleComplex* inPtr_ =
+        reinterpret_cast<DSPDoubleComplex*>(const_cast<dcomplex*>(inPtr));
+    DSPDoubleComplex* outPtr_ = reinterpret_cast<DSPDoubleComplex*>(outPtr);
     vDSP_DFT_Interleaved_ExecuteD(c2cSetup, inPtr_, outPtr_);
   }
 
   void idft(const dcomplex *inPtr, dcomplex *outPtr) {
-    DSPDoubleComplex *inPtr_ =
-        reinterpret_cast<DSPDoubleComplex *>(const_cast<dcomplex *>(inPtr));
-    DSPDoubleComplex *outPtr_ = reinterpret_cast<DSPDoubleComplex *>(outPtr);
+    DSPDoubleComplex* inPtr_ =
+        reinterpret_cast<DSPDoubleComplex*>(const_cast<dcomplex*>(inPtr));
+    DSPDoubleComplex* outPtr_ = reinterpret_cast<DSPDoubleComplex*>(outPtr);
     vDSP_DFT_Interleaved_ExecuteD(ic2cSetup, inPtr_, outPtr_);
     Map<ArrayXcd>(outPtr, fftSize) *= (1.0 / fftSize);
   }
 
-  void rdft(const double *inPtr, dcomplex *outPtr) {
-    DSPDoubleComplex *inPtr_ =
-        reinterpret_cast<DSPDoubleComplex *>(const_cast<double *>(inPtr));
-    DSPDoubleComplex *outPtr_ = reinterpret_cast<DSPDoubleComplex *>(outPtr);
+  void rdft(const double* inPtr, dcomplex* outPtr) {
+    DSPDoubleComplex* inPtr_ =
+        reinterpret_cast<DSPDoubleComplex*>(const_cast<double*>(inPtr));
+    DSPDoubleComplex* outPtr_ = reinterpret_cast<DSPDoubleComplex*>(outPtr);
     vDSP_DFT_Interleaved_ExecuteD(r2cSetup, inPtr_, outPtr_);
     Map<ArrayXcd>(outPtr, fftSize) *= (0.5);
   }
 
-  void irdft(const dcomplex *inPtr, double *outPtr) {
-    DSPDoubleComplex *inPtr_ =
-        reinterpret_cast<DSPDoubleComplex *>(const_cast<dcomplex *>(inPtr));
-    DSPDoubleComplex *outPtr_ = reinterpret_cast<DSPDoubleComplex *>(outPtr);
+  void irdft(const dcomplex* inPtr, double* outPtr) {
+    DSPDoubleComplex* inPtr_ =
+        reinterpret_cast<DSPDoubleComplex*>(const_cast<dcomplex*>(inPtr));
+    DSPDoubleComplex* outPtr_ = reinterpret_cast<DSPDoubleComplex*>(outPtr);
     vDSP_DFT_Interleaved_ExecuteD(c2rSetup, inPtr_, outPtr_);
   }
 
