@@ -35,12 +35,14 @@ target_include_directories(${TARGET_NAME}
     SYSTEM PRIVATE ${ARMADILLO_INCLUDE_DIRS}
     SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
     SYSTEM PRIVATE ${CMAKE_INCLUDE_PATH}
+    SYSTEM PRIVATE ${FFT_INCLUDE_DIR}
     SYSTEM PRIVATE ../Source
     PRIVATE ../Include
 )
 
 target_link_libraries(${TARGET_NAME}
     PRIVATE "-framework Accelerate"
+    PRIVATE ${FFT_LINK_CMD}
     PRIVATE Eigen3::Eigen
     PRIVATE Matplot++::matplot
     PRIVATE ${PROJECT_NAME}
