@@ -8,9 +8,7 @@ project("CQTDSP" VERSION ${CURRENT_VERSION})
 
 set(TARGET_NAME ${PROJECT_NAME})
 
-set(CHOC_INCLUDE_DIRS /Users/juans/Developer/DevTools/choc)
-set(CMAKE_INCLUDE_PATH /usr/local/include)
-
+set(SEP "//==================//")
 find_package(Eigen3 3.3 REQUIRED)
 cmake_policy(SET CMP0167 NEW)
 find_package(Boost 1.82 REQUIRED)
@@ -19,6 +17,7 @@ find_package(JUCE REQUIRED)
 find_package(Matplot++)
 
 include(SourceFiles.cmake)
+include(FFTSelection.cmake)
 
 add_library(${TARGET_NAME} STATIC ${SourceFiles})
 target_compile_features(${TARGET_NAME} PRIVATE cxx_std_20)
@@ -31,7 +30,9 @@ target_compile_options(${TARGET_NAME}
 )
 
 target_compile_definitions(${TARGET_NAME}
-    PRIVATE EIGEN_RUNTIME_NO_MALLOC
+    PRIVATE 
+        EIGEN_RUNTIME_NO_MALLOC
+        ${FFT_NAME}
 )
 
 target_include_directories(${TARGET_NAME}
@@ -39,7 +40,7 @@ target_include_directories(${TARGET_NAME}
     SYSTEM PRIVATE /usr/local/include
     SYSTEM PRIVATE ${CMAKE_INCLUDE_PATH} 
     SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
-    SYSTEM PRIVATE ${ARMADILLO_INCLUDE_DIRS}
+    SYSTEM PRIVATE ${FFT_INCLUDE_DIR}
 )
 
 set_target_properties(${TARGET_NAME} 
@@ -49,7 +50,7 @@ set_target_properties(${TARGET_NAME}
 
 target_link_libraries(${TARGET_NAME} 
     PRIVATE Eigen3::Eigen
-    PRIVATE /usr/local/lib/libpffft.a
+    PRIVATE ${FFT_LINK_CMD}
 )
 
 add_subdirectory(Tests)
