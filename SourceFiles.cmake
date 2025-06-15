@@ -13,6 +13,7 @@ set(SourceFiles
     Source/FFT_FFTW.h
     Source/FFT_vDSP.h
     Source/FFT_PFFFT.h
+    Source/FFT_MKL.h
     Source/VectorOps.h
     Source/Benchtools.h
     Source/RingBuffer.cpp

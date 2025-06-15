@@ -32,34 +32,34 @@ public:
         Eigen::Index nBandsDown; ///< Number of bands below the reference frequency.
         Eigen::Index nBandsUp;   ///< Number of bands above the reference frequency.
     };
-
+    
     /**
      * @brief Constructor for NsgfCqtCommon.
-     * 
+     *
      * @param sampleRate Sampling rate of the signal (Hz).
-     * @param blockSize Number of samples in a block.
+     * @param numSamples Number of samples in a block.
      * @param fraction Fractional bandwidth of the filterbank.
      * @param minFrequency Minimum frequency of the filterbank (Hz).
      * @param maxFrequency Maximum frequency of the filterbank (Hz).
      * @param refFrequency Reference frequency for the filterbank (Hz).
      */
-    NsgfCqtCommon(double sampleRate, Eigen::Index blockSize, double fraction,
+    NsgfCqtCommon(double sampleRate, Eigen::Index numSamples, double fraction,
                   double minFrequency, double maxFrequency, double refFrequency);
-
+    
     // Accessor methods for various parameters and computed data.
-    double getSampleRate() const;
-    Eigen::Index getBlockSize() const;
-    Eigen::Index getNumSamps() const;
-    double getFraction() const;
-    double getPpo() const;
-    double getMinFreq() const;
-    double getMaxFreq() const;
-    double getRefFreq() const;
-    Eigen::Index getNumFreqs() const;
-    Eigen::Index getNumBands() const;
-    const Eigen::ArrayXd& getFrequencyAxis() const;
-    const Eigen::ArrayXd& getBandAxis() const;
-    const Eigen::ArrayXd& getDiagonalization() const;
+    double getSampleRate() const { return fs; }
+    Eigen::Index getBlockSize() const { return nSamps; }
+    Eigen::Index getNumSamps() const { return nSamps; }
+    double getFraction() const { return frac; }
+    double getPpo() const { return 1.0/frac; }
+    double getMinFreq() const { return fMin; }
+    double getMaxFreq() const { return fMax; }
+    double getRefFreq() const { return fRef; }
+    Eigen::Index getNumFreqs() const { return nFreqs; }
+    Eigen::Index getNumBands() const { return nBands; }
+    const Eigen::ArrayXd& getFrequencyAxis() const { return fax; }
+    const Eigen::ArrayXd& getBandAxis() const { return bax; }
+    const Eigen::ArrayXd& getDiagonalization() const { return d; }
 
 protected:
     /**
@@ -72,7 +72,13 @@ protected:
      * @return BandInfo Struct containing band information.
      */
     inline constexpr BandInfo computeBandInfo(double frac, double fMin,
-                                              double fMax, double fRef);
+                                              double fMax, double fRef)
+    {
+        Eigen::Index nBandsUp = Eigen::Index(ceil(1.0/frac * log2(fMax / fRef)));
+        Eigen::Index nBandsDown = Eigen::Index(ceil(1.0/frac * log2(fRef / fMin)));
+        Eigen::Index nBands = nBandsDown + nBandsUp + 1;
+        return { nBands, nBandsDown, nBandsUp };
+    }
 
     // Member variables for filterbank parameters and computed data.
     const double fs;              ///< Sampling rate (Hz).
@@ -130,8 +136,8 @@ public:
     void inverse(const Eigen::ArrayXXcd& Xcq, Eigen::ArrayXd& x);
 
     // Accessor methods for frame and dual frame.
-    const Eigen::ArrayXXd& getFrame() const;
-    const Eigen::ArrayXXd& getDualFrame() const;
+    const Eigen::ArrayXXd& getFrame() const { return g; }
+    const Eigen::ArrayXXd& getDualFrame() const { return gDual; }
 
 private:
     Eigen::ArrayXXd g;       ///< Frame matrix.
@@ -191,12 +197,12 @@ public:
     void inverse(const Coefs& Xcq, Eigen::ArrayXd& x);
 
     // Accessor methods for frame, dual frame, and band spans.
-    const Frame& getFrame() const;
-    const Eigen::ArrayXd& getAtom(Eigen::Index k) const;
-    const Frame& getDualFrame() const;
-    const Eigen::ArrayXd& getDualAtom(Eigen::Index k) const;
-    const Span getBandSpan(Eigen::Index k) const;
-    Eigen::ArrayXd getFrequencyAxis(Eigen::Index k) const;
+    const Frame& getFrame() const { return g; }
+    const Eigen::ArrayXd& getAtom(Eigen::Index k) const { return g[k]; }
+    const Frame& getDualFrame() const { return gDual; }
+    const Eigen::ArrayXd& getDualAtom(Eigen::Index k) const { return gDual[k]; }
+    const Span getBandSpan(Eigen::Index k) const { return idx[k]; }
+    Eigen::ArrayXd getFrequencyAxis(Eigen::Index k) const { return fax.segment(idx[k].i0, idx[k].len); }
 
     // Methods for retrieving coefficients.
     Frame getRealCoefs() const;

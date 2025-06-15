@@ -5,7 +5,7 @@ set(TARGET_NAME ${PROJECT_NAME}_UnitTest)
 set(SourceFiles
     Source/main.cpp
     Source/DFT_UnitTests.cpp
-    # Source/CQT_UnitTests.cpp
+    Source/CQT_UnitTests.cpp
     # Source/Slicing_UnitTests.cpp
     # Source/SlidingCQT_UnitTests.cpp
     # Source/Perf_UnitTests.cpp

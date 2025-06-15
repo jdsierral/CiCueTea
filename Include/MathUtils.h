@@ -25,15 +25,15 @@
  * integer.
  */
 inline constexpr uint32_t nextPow2(uint32_t x) {
-  if (x == 0)
-    return 1;
-  x--;
-  x |= x >> 1;
-  x |= x >> 2;
-  x |= x >> 4;
-  x |= x >> 8;
-  x |= x >> 16;
-  return x + 1;
+    if (x == 0)
+        return 1;
+    x--;
+    x |= x >> 1;
+    x |= x >> 2;
+    x |= x >> 4;
+    x |= x >> 8;
+    x |= x >> 16;
+    return x + 1;
 }
 
 /**
@@ -70,7 +70,7 @@ inline double square(double x) { return x * x; }
  * num-1.
  */
 inline Eigen::ArrayXd regspace(Eigen::Index num) {
-  return Eigen::ArrayXd::LinSpaced(num, 0, num - 1);
+    return Eigen::ArrayXd::LinSpaced(num, 0, num - 1);
 }
 
 /**
@@ -87,7 +87,7 @@ inline Eigen::ArrayXd regspace(Eigen::Index num) {
  * `high`.
  */
 inline Eigen::ArrayXd regspace(Eigen::Index low, Eigen::Index high) {
-  return Eigen::ArrayXd::LinSpaced(high - low + 1, low, high);
+    return Eigen::ArrayXd::LinSpaced(high - low + 1, low, high);
 }
 
 /**
@@ -106,5 +106,5 @@ inline Eigen::ArrayXd regspace(Eigen::Index low, Eigen::Index high) {
  *       logarithm of non-positive numbers is undefined.
  */
 inline Eigen::ArrayXd logspace(double start, double end, Eigen::Index num) {
-  return Eigen::ArrayXd::LinSpaced(num, log(start), log(end)).exp();
+    return Eigen::ArrayXd::LinSpaced(num, log(start), log(end)).exp();
 }

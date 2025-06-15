@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include <iostream>
 #include <Eigen/Core>
+#include <iostream>
 
 #define REALTIME_CHECKS
 
