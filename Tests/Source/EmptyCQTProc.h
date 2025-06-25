@@ -7,25 +7,25 @@
 
 #pragma once
 
-class cqtFull : public jsa::CqtFullProcessor {
+class CqtFull : public jsa::CqtFullProcessor {
 public:
   using jsa::CqtFullProcessor::CqtFullProcessor;
   void processBlock(Eigen::ArrayXXcd &block) override {}
 };
 
-class sliCQTFull : public jsa::SlidingCQTFullProcessor {
+class SliCQTFull : public jsa::SlidingCQTFullProcessor {
 public:
   using jsa::SlidingCQTFullProcessor::SlidingCQTFullProcessor;
   void processBlock(Eigen::ArrayXXcd &block) override {};
 };
 
-class cqtSparse : public jsa::CqtSparseProcessor {
+class CqtSparse : public jsa::CqtSparseProcessor {
 public:
   using jsa::CqtSparseProcessor::CqtSparseProcessor;
   void processBlock(jsa::NsgfCqtSparse::Coefs &block) override {}
 };
 
-class sliCQTSparse : public jsa::SlidingCqtSparseProcessor {
+class SliCQTSparse : public jsa::SlidingCqtSparseProcessor {
 public:
   using jsa::SlidingCqtSparseProcessor::SlidingCqtSparseProcessor;
   void processBlock(jsa::NsgfCqtSparse::Coefs &block) override {};

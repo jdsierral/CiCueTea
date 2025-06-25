@@ -13,7 +13,8 @@
 #include <CQT.hpp>
 #include <MathUtils.h>
 #include <SignalUtils.h>
-#include <VectorOps.h>
+
+#include "VectorOps.h"
 
 using namespace Eigen;
 using namespace arma;

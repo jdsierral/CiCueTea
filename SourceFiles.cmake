@@ -1,10 +1,10 @@
 set(IncludeFiles
-    Include/RingBuffer.hpp
     Include/Slicer.hpp
     Include/Splicer.hpp
     Include/FFT.hpp
     Include/CQT.hpp
     Include/CQTProcessor.hpp
+    Include/DoubleBuffer.h
     Include/MathUtils.h
     Include/SignalUtils.h
 )
@@ -14,9 +14,6 @@ set(SourceFiles
     Source/FFT_vDSP.h
     Source/FFT_PFFFT.h
     Source/FFT_MKL.h
-    Source/VectorOps.h
-    Source/Benchtools.h
-    Source/RingBuffer.cpp
     Source/Splicer.cpp
     Source/Slicer.cpp
     Source/FFT.cpp

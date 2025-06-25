@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include <Accelerate/Accelerate.h>
 #include <Eigen/Core>
+#include <Accelerate/Accelerate.h>
 
 using namespace Eigen;
 

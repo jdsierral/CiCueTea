@@ -15,7 +15,8 @@
 #include <SignalUtils.h>
 #include <Slicer.hpp>
 #include <Splicer.hpp>
-#include <VectorOps.h>
+
+#include "VectorOps.h"
 
 using namespace Eigen;
 using namespace std;

@@ -63,28 +63,28 @@ public:
      * 
      * @return The block size in samples.
      */
-    Eigen::Index getBlockSize() const;
+    Eigen::Index getBlockSize() const { return blockSize; }
 
     /**
      * @brief Gets the current overlap size.
      * 
      * @return The overlap size in samples.
      */
-    Eigen::Index getOverlapSize() const;
+    Eigen::Index getOverlapSize() const { return overlapSize; }
 
     /**
      * @brief Gets the current hop size.
      * 
      * @return The hop size in samples.
      */
-    Eigen::Index getHopSize() const;
+    Eigen::Index getHopSize() const { return hopSize; }
 
     /**
      * @brief Gets the size of the internal buffer.
      * 
      * @return The buffer size in samples.
      */
-    Eigen::Index getBufferSize() const;
+    Eigen::Index getBufferSize() const { return bufferSize; }
 
 private:
     Eigen::ArrayXd buffer; ///< Internal buffer for storing samples.

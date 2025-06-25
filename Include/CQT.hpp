@@ -10,7 +10,6 @@
 #include "FFT.hpp"
 
 #include <Eigen/Core>
-#include <Eigen/Dense>
 
 namespace jsa {
 

@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <Eigen/Core>
 #include <fftw3.h>
 
 using namespace Eigen;

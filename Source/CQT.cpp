@@ -7,7 +7,7 @@
 
 #include "CQT.hpp"
 
-#include "Benchtools.h"
+#include "RTChecker.h"
 #include "MathUtils.h"
 
 using namespace jsa;

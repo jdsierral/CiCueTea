@@ -52,28 +52,28 @@ public:
      *
      * @return The size of the audio block.
      */
-    Eigen::Index getBlockSize() const;
+    Eigen::Index getBlockSize() const { return blockSize; }
     
     /**
      * @brief Gets the current overlap size.
      *
      * @return The size of the overlap between consecutive blocks.
      */
-    Eigen::Index getOverlapSize() const;
+    Eigen::Index getOverlapSize() const { return overlapSize; }
     
     /**
      * @brief Gets the current hop size.
      *
      * @return The hop size (step size) between consecutive blocks.
      */
-    Eigen::Index getHopSize() const;
+    Eigen::Index getHopSize() const { return hopSize; }
     
     /**
      * @brief Gets the current buffer size.
      *
      * @return The size of the internal buffer.
      */
-    Eigen::Index getBufferSize() const;
+    Eigen::Index getBufferSize() const { return bufferSize; }
     
 private:
     Eigen::ArrayXd buffer; ///< The internal buffer for storing audio data.

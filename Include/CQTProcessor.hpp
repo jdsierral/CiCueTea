@@ -11,8 +11,8 @@
 
 #include "Splicer.hpp"
 #include "Slicer.hpp"
-#include "RingBuffer.hpp"
 #include "CQT.hpp"
+#include "DoubleBuffer.h"
 
 namespace jsa {
 
@@ -58,9 +58,9 @@ public:
      * 
      * @return A constant reference to the CQT object.
      */
-    const NsgfCqtFull& getCqt() const;
+    const NsgfCqtFull& getCqt() const { return cqt; }
 
-//protected:
+protected:
     NsgfCqtFull cqt; ///< The CQT object used for processing.
 
 private:
@@ -110,15 +110,22 @@ public:
      * @param block The block of data to process.
      */
     virtual void processBlock(Eigen::ArrayXXcd& block) = 0;
+    
+    /**
+     * @brief Gets the windowing function.
+     *
+     * @return A constant reference to the windowing function.
+     */
+    const Eigen::ArrayXd& getWindow() const { return win; }
 
     /**
      * @brief Gets the CQT object.
      * 
      * @return A constant reference to the CQT object.
      */
-    const NsgfCqtFull& getCqt() const;
+    const NsgfCqtFull& getCqt() const { return cqt; }
 
-//protected:
+protected:
     NsgfCqtFull cqt; ///< The CQT object used for processing.
 
 private:
@@ -176,9 +183,9 @@ public:
      * 
      * @return A constant reference to the CQT object.
      */
-    const NsgfCqtSparse& getCqt() const;
+    const NsgfCqtSparse& getCqt() const { return cqt; }
 
-//protected:
+protected:
     NsgfCqtSparse cqt; ///< The CQT object used for processing.
 
 private:
@@ -235,7 +242,7 @@ public:
      * 
      * @return A constant reference to the windowing function.
      */
-    const Eigen::ArrayXd& getWindow() const;
+    const Eigen::ArrayXd& getWindow() const { return win; }
 
     /**
      * @brief Gets the CQT window for a specific index.
@@ -243,16 +250,16 @@ public:
      * @param k The index of the CQT window.
      * @return A constant reference to the CQT window.
      */
-    const Eigen::ArrayXd& getCqtWindow(Eigen::Index k) const;
+    const Eigen::ArrayXd& getCqtWindow(Eigen::Index k) const { return Win[k]; }
 
     /**
      * @brief Gets the CQT object.
      * 
      * @return A constant reference to the CQT object.
      */
-    const NsgfCqtSparse& getCqt() const;
+    const NsgfCqtSparse& getCqt() const { return cqt; }
 
-//protected:
+protected:
     NsgfCqtSparse cqt; ///< The CQT object used for processing.
 
 private:

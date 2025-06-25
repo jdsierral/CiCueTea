@@ -7,9 +7,8 @@
 
 #include "Slicer.hpp"
 
-#include "Benchtools.h"
+#include "RTChecker.h"
 #include "MathUtils.h"
-#include "VectorOps.h"
 
 using namespace jsa;
 

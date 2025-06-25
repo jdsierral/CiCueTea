@@ -9,6 +9,8 @@
 
 #include <Eigen/Core>
 
+namespace jsa {
+
 /**
  * @brief Computes the next power of 2 greater than or equal to the given
  * number.
@@ -25,8 +27,7 @@
  * integer.
  */
 inline constexpr uint32_t nextPow2(uint32_t x) {
-    if (x == 0)
-        return 1;
+    if (x == 0) return 1;
     x--;
     x |= x >> 1;
     x |= x >> 2;
@@ -107,4 +108,6 @@ inline Eigen::ArrayXd regspace(Eigen::Index low, Eigen::Index high) {
  */
 inline Eigen::ArrayXd logspace(double start, double end, Eigen::Index num) {
     return Eigen::ArrayXd::LinSpaced(num, log(start), log(end)).exp();
+}
+
 }
