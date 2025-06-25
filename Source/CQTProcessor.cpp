@@ -225,6 +225,7 @@ double SlidingCqtSparseProcessor::processSample(double sample)
         assert(xi.size() == cqt.getBlockSize());
         assert(xi.size() == cqt.getBlockSize());
         xi *= win;
+        
         NsgfCqtSparse::Coefs &Xi = Xcq.next();
         cqt.forward(xi, Xi);
         Index nBands = cqt.getNumBands();
@@ -233,7 +234,7 @@ double SlidingCqtSparseProcessor::processSample(double sample)
             assert(Xi[n].size() == Win[n].size());
             Xi[n] *= Win[n];
         }
-        
+
         NsgfCqtSparse::Coefs &Zi = Zcq.next();
         
         for (Index n = 0; n < nBands; n++) {
@@ -248,7 +249,7 @@ double SlidingCqtSparseProcessor::processSample(double sample)
             Ycq[n].head(ol) = Zcq.last()[n];
             Ycq[n].tail(ol) = Zi[n];
         }
-        
+
         for (Index n = 0; n < nBands; n++) {
             assert(Ycq[n].size() == Win[n].size());
             Ycq[n] *= Win[n];

@@ -16,11 +16,11 @@ using namespace Eigen;
 NsgfCqtCommon::NsgfCqtCommon(double sampleRate, Index numSamples,
                              double fraction, double minFrequency,
                              double maxFrequency, double refFrequency) :
-fs(sampleRate), nSamps(numSamples), frac(fraction), fMin(minFrequency),
-fMax(maxFrequency), fRef(refFrequency),
-bandInfo(computeBandInfo(frac, fMin, fMax, fRef)),
-nBands(bandInfo.nBands), nFreqs(nSamps), bax(nBands), fax(nFreqs),
-d(nFreqs), Xdft(nSamps), dft(nSamps)
+    fs(sampleRate), nSamps(numSamples), frac(fraction), fMin(minFrequency),
+    fMax(maxFrequency), fRef(refFrequency),
+    bandInfo(computeBandInfo(frac, fMin, fMax, fRef)),
+    nBands(bandInfo.nBands), nFreqs(nSamps), bax(nBands), fax(nFreqs),
+    d(nFreqs), Xdft(nSamps), dft(nSamps)
 {
     Xdft.setZero();
     bax = fRef * (frac * log(2) * regspace(-bandInfo.nBandsDown, bandInfo.nBandsUp)).exp();
@@ -34,18 +34,18 @@ d(nFreqs), Xdft(nSamps), dft(nSamps)
 NsgfCqtFull::NsgfCqtFull(double sampleRate, Index numSamples,
                          double fraction, double minFrequency,
                          double maxFrequency, double refFrequency) :
-NsgfCqtCommon(sampleRate, numSamples, fraction, minFrequency, maxFrequency, refFrequency),
-Xmat(nSamps, nBands)
+    NsgfCqtCommon(sampleRate, numSamples, fraction, minFrequency, maxFrequency,
+                  refFrequency),
+    Xmat(nSamps, nBands)
 {
-    double c = log(16) / (square(frac));
-    ArrayXXd outerRatio = fax.rowwise().replicate(bax.size()) /
-    bax.transpose().colwise().replicate(fax.size());
-    g = (-c * (outerRatio).log2().square()).exp();
+    double c = log(4) / (square(frac));
+    ArrayXXd outerDif = fax.log2().rowwise().replicate(bax.size()) -
+        bax.log2().transpose().colwise().replicate(fax.size());
+    g = (-c * outerDif.square()).exp();
     
     Index end = nBands - 1;
     g.col(0) = (fax < bax(0)).select(1, g.col(0));
     g.col(end) = (fax > bax(end)).select(1, g.col(end));
-    g = g.sqrt();
     d = g.square().rowwise().sum();
     gDual = g.colwise() / d;
     
@@ -105,33 +105,23 @@ NsgfCqtSparse::Span findIdx(const ArrayXd &x, double th) {
 NsgfCqtSparse::NsgfCqtSparse(double sampleRate, Index numSamples,
                              double fraction, double minFrequency,
                              double maxFrequency, double refFrequency) :
-NsgfCqtCommon(sampleRate, numSamples, fraction, minFrequency, maxFrequency, refFrequency),
-idx(nBands), g(nBands), gDual(nBands), phase(nBands), scale(nBands)
+    NsgfCqtCommon(sampleRate, numSamples, fraction, minFrequency, maxFrequency,
+                  refFrequency),
+    idx(nBands), g(nBands), gDual(nBands), phase(nBands), scale(nBands),
+    dfts(nBands)
 {
-    idx.resize(nBands);
-    g.resize(nBands);
-    gDual.resize(nBands);
-    phase.resize(nBands);
-    scale.resize(nBands);
-    Xdft.resize(nSamps);
-    dfts.resize(nBands);
-    
-    double c = log(16) / (square(frac));
-    ArrayXXd outerRatio = fax.rowwise().replicate(bax.size()) /
-    bax.transpose().colwise().replicate(fax.size());
-    ArrayXXd g_ = (-c * (outerRatio).log2().square()).exp();
+    double c = log(4) / (square(frac));
+    ArrayXXd outerDif = fax.log2().rowwise().replicate(bax.size()) -
+        bax.log2().transpose().colwise().replicate(fax.size());
+    ArrayXXd g_ = (-c * outerDif.square()).exp();
     
     Index end = nBands - 1;
     g_.col(0) = (fax < bax(0)).select(1, g_.col(0));
     g_.col(end) = (fax > bax(end)).select(1, g_.col(end));
+    g_ = (g_ <= th).select(0.0, g_);
     
-    g_ = (g_ < th).select(0.0, g_);
-    
-    g_ = g_.sqrt();
     d = g_.square().rowwise().sum();
     ArrayXXd gDual_ = g_.colwise() / d;
-    
-    gDual_ = (gDual_ < th).select(0.0, gDual_);
     
     g_.bottomRows(nFreqs / 2 - 1).fill(0);
     gDual_.bottomRows(nFreqs / 2 - 1).fill(0);
@@ -141,13 +131,13 @@ idx(nBands), g(nBands), gDual(nBands), phase(nBands), scale(nBands)
     for (Index k = 0; k < nBands; k++) {
         idx[k] = getIdx(g_.col(k));
         Index i0 = idx[k].i0;
-        Index nCoefs = idx[k].len;
-        scale(k) = double(nCoefs);
-        ArrayXd n = ArrayXd::LinSpaced(nCoefs, 0, nCoefs - 1);
-        phase[k] = exp(1i * 2.0 * M_PI * double(i0) * n / double(nCoefs));
-        g[k] = g_.col(k).segment(i0, nCoefs).eval();
-        gDual[k] = gDual_.col(k).segment(i0, nCoefs).eval();
-        dfts[k].reset(new DFT(nCoefs));
+        Index len = idx[k].len;
+        scale(k) = double(len);
+        ArrayXd n = regspace(len);
+        phase[k] = exp(1i * 2.0 * M_PI * double(i0) * n / double(len));
+        g[k] = g_.col(k).segment(i0, len);
+        gDual[k] = gDual_.col(k).segment(i0, len);
+        dfts[k].reset(new DFT(len));
     }
     
     Xcoefs = getCoefs();

@@ -52,6 +52,13 @@ public:
      * @param block The block of data to process.
      */
     virtual void processBlock(Eigen::ArrayXXcd& block) = 0;
+    
+    /**
+     * @brief Gets the windowing function.
+     *
+     * @return A constant reference to the windowing function.
+     */
+    const Eigen::ArrayXd& getWindow() const { return win; }
 
     /**
      * @brief Gets the CQT object.
@@ -59,6 +66,13 @@ public:
      * @return A constant reference to the CQT object.
      */
     const NsgfCqtFull& getCqt() const { return cqt; }
+    
+    /**
+     * @brief Gets the latency produced by the processor.
+     *
+     * @return Integer number of samples of delay between input and output.
+     */
+    Eigen::Index getLatency() const { return cqt.getBlockSize(); }
 
 protected:
     NsgfCqtFull cqt; ///< The CQT object used for processing.
@@ -124,6 +138,13 @@ public:
      * @return A constant reference to the CQT object.
      */
     const NsgfCqtFull& getCqt() const { return cqt; }
+    
+    /**
+     * @brief Gets the latency produced by the processor.
+     *
+     * @return Integer number of samples of delay between input and output.
+     */
+    Eigen::Index getLatency() const { return 1.5 * cqt.getBlockSize(); }
 
 protected:
     NsgfCqtFull cqt; ///< The CQT object used for processing.
@@ -177,6 +198,13 @@ public:
      * @param block The block of data to process.
      */
     virtual void processBlock(NsgfCqtSparse::Coefs& block) = 0;
+    
+    /**
+     * @brief Gets the windowing function.
+     *
+     * @return A constant reference to the windowing function.
+     */
+    const Eigen::ArrayXd& getWindow() const { return win; }
 
     /**
      * @brief Gets the CQT object.
@@ -184,6 +212,13 @@ public:
      * @return A constant reference to the CQT object.
      */
     const NsgfCqtSparse& getCqt() const { return cqt; }
+    
+    /**
+     * @brief Gets the latency produced by the processor.
+     *
+     * @return Integer number of samples of delay between input and output.
+     */
+    Eigen::Index getLatency() const { return cqt.getBlockSize(); }
 
 protected:
     NsgfCqtSparse cqt; ///< The CQT object used for processing.
@@ -258,6 +293,13 @@ public:
      * @return A constant reference to the CQT object.
      */
     const NsgfCqtSparse& getCqt() const { return cqt; }
+    
+    /**
+     * @brief Gets the latency produced by the processor.
+     *
+     * @return Integer number of samples of delay between input and output.
+     */
+    Eigen::Index getLatency() const { return 1.5 * cqt.getBlockSize(); }
 
 protected:
     NsgfCqtSparse cqt; ///< The CQT object used for processing.
