@@ -10,34 +10,28 @@
 #include "RTChecker.h"
 #include "SignalUtils.h"
 
-#include "../Tests/Source/VectorOps.h"
-
 using namespace Eigen;
 using namespace jsa;
 
-CqtFullProcessor::CqtFullProcessor(double sampleRate, double numSamples,
+CqtFullProcessor::CqtFullProcessor(double sampleRate, Index numSamples,
                                    double fraction, double minFrequency,
                                    double maxFrequency, double refFrequency) :
-    cqt(sampleRate, numSamples, fraction, minFrequency, maxFrequency, refFrequency)
+    cqt(sampleRate, numSamples, fraction, minFrequency, maxFrequency, refFrequency),
+    xi(cqt.getBlockSize()),
+    win(cqt.getBlockSize()),
+    Xcq(cqt.getBlockSize(), cqt.getNumBands()),
+    slicer(cqt.getBlockSize(), cqt.getBlockSize()/2),
+    splicer(cqt.getBlockSize(), cqt.getBlockSize()/2)
 {
-    Index nBands = cqt.getNumBands();
-    Index blockSize = cqt.getBlockSize();
-    Index overlapSize = blockSize/2;
-    win.resize(blockSize);
-    win = hann(blockSize).sqrt();
-    slicer.setSize(blockSize, overlapSize);
-    splicer.setSize(blockSize, overlapSize);
-    xi.resize(blockSize);
-    Xcq.resize(blockSize, nBands);
+    win = hann(cqt.getBlockSize()).sqrt();
     xi.setZero();
     Xcq.setZero();
     fs = cqt.getSampleRate();
-    assert(blockSize == cqt.getNumSamps());
-    assert(blockSize == win.size());
-    assert(blockSize == slicer.getBlockSize());
-    assert(blockSize == splicer.getBlockSize());
-    assert(blockSize == xi.size());
-    assert(blockSize == Xcq.rows());
+    assert(cqt.getBlockSize() == win.size());
+    assert(cqt.getBlockSize() == slicer.getBlockSize());
+    assert(cqt.getBlockSize() == splicer.getBlockSize());
+    assert(cqt.getBlockSize() == xi.size());
+    assert(cqt.getBlockSize() == Xcq.rows());
 }
 
 double CqtFullProcessor::processSample(double sample)
@@ -65,27 +59,23 @@ double CqtFullProcessor::processSample(double sample)
 //==========================================================================
 //==========================================================================
 
-CqtSparseProcessor::CqtSparseProcessor(double sampleRate, double numSamples,
+CqtSparseProcessor::CqtSparseProcessor(double sampleRate, Index numSamples,
                                        double fraction, double minFrequency,
                                        double maxFrequency, double refFrequency) :
-    cqt(sampleRate, numSamples, fraction, minFrequency, maxFrequency, refFrequency)
+    cqt(sampleRate, numSamples, fraction, minFrequency, maxFrequency, refFrequency),
+    xi(cqt.getBlockSize()),
+    win(cqt.getBlockSize()),
+    Xcq(cqt.getCoefs()),
+    slicer(cqt.getBlockSize(), cqt.getBlockSize()/2),
+    splicer(cqt.getBlockSize(), cqt.getBlockSize()/2)
 {
-    Index nBands = cqt.getNumBands();
-    Index blockSize = cqt.getBlockSize();
-    Index overlapSize = blockSize / 2;
-    
-    win.resize(blockSize);
-    win = hann(blockSize).sqrt();
-    slicer.setSize(blockSize, overlapSize);
-    splicer.setSize(blockSize, overlapSize);
-    xi.resize(blockSize);
-    Xcq = cqt.getCoefs();
+    win = hann(cqt.getBlockSize()).sqrt();
+    xi.setZero();
     fs = cqt.getSampleRate();
-    assert(blockSize == cqt.getNumSamps());
-    assert(blockSize == win.size());
-    assert(blockSize == slicer.getBlockSize());
-    assert(blockSize == splicer.getBlockSize());
-    assert(blockSize == xi.size());
+    assert(cqt.getBlockSize() == win.size());
+    assert(cqt.getBlockSize() == slicer.getBlockSize());
+    assert(cqt.getBlockSize() == splicer.getBlockSize());
+    assert(cqt.getBlockSize() == xi.size());
 }
 
 double CqtSparseProcessor::processSample(double sample)
@@ -113,18 +103,19 @@ double CqtSparseProcessor::processSample(double sample)
 //==========================================================================
 //==========================================================================
 
-SlidingCQTFullProcessor::SlidingCQTFullProcessor(double sampleRate, double numSamples,
+SlidingCQTFullProcessor::SlidingCQTFullProcessor(double sampleRate, Index numSamples,
                                                  double fraction, double minFrequency,
                                                  double maxFrequency, double refFrequency) :
-    cqt(sampleRate, numSamples, fraction, minFrequency, maxFrequency, refFrequency)
+    cqt(sampleRate, numSamples, fraction, minFrequency, maxFrequency, refFrequency),
+    xi(cqt.getBlockSize()),
+    win(cqt.getBlockSize()),
+    slicer(cqt.getBlockSize(), cqt.getBlockSize()/2),
+    splicer(cqt.getBlockSize(), cqt.getBlockSize()/2)
+
 {
     Index nBands = cqt.getNumBands();
     Index blockSize = cqt.getBlockSize();
-    Index overlapSize = blockSize / 2;
     win = hann(blockSize).sqrt();
-    slicer.setSize(blockSize, overlapSize);
-    splicer.setSize(blockSize, overlapSize);
-    xi.resize(blockSize);
     ArrayXXcd coefs = ArrayXXcd::Zero(blockSize, nBands);
     ArrayXXcd validCoefs = ArrayXXcd::Zero(blockSize / 2, nBands);
     Xcq.fill(coefs);
@@ -196,17 +187,19 @@ double SlidingCQTFullProcessor::processSample(double sample)
 
 
 
-SlidingCqtSparseProcessor::SlidingCqtSparseProcessor(double sampleRate, double numSamples,
+SlidingCqtSparseProcessor::SlidingCqtSparseProcessor(double sampleRate, Index numSamples,
                                                      double fraction, double minFrequency,
                                                      double maxFrequency, double refFrequency) :
-    cqt(sampleRate, numSamples, fraction, minFrequency, maxFrequency, refFrequency)
+    cqt(sampleRate, numSamples, fraction, minFrequency, maxFrequency, refFrequency),
+    xi(cqt.getBlockSize()),
+    win(cqt.getBlockSize()),
+    slicer(cqt.getBlockSize(), cqt.getBlockSize()/2),
+    splicer(cqt.getBlockSize(), cqt.getBlockSize()/2)
 {
     Index nBands = cqt.getNumBands();
     Index blockSize = cqt.getBlockSize();
+    xi.setZero();
     win = hann(blockSize).sqrt();
-    slicer.setSize(blockSize, blockSize / 2);
-    splicer.setSize(blockSize, blockSize / 2);
-    xi.resize(blockSize);
     Win = cqt.getFrame();
     
     for (Index n = 0; n < nBands; n++) {
@@ -244,6 +237,7 @@ double SlidingCqtSparseProcessor::processSample(double sample)
         Index nBands = cqt.getNumBands();
         assert(xi.size() == cqt.getBlockSize());
         xi = slicer.getBlock();
+        
         xi *= win;
         
         cqt.forward(xi, Xi);
@@ -256,7 +250,9 @@ double SlidingCqtSparseProcessor::processSample(double sample)
             Index ol = cqt.getLength(k)/2;
             Zi[k] = Xim1[k].tail(ol) + Xi[k].head(ol);
         }
+        
         processBlock(Zi);
+        
         for (Index k = 0; k < nBands; k++) {
             Index ol = cqt.getLength(k)/2;
             Yi[k].head(ol) = Zim1[k];

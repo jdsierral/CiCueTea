@@ -7,8 +7,9 @@
 
 #pragma once
 
-#include "MathUtils.h"
 #include <Eigen/Core>
+
+#include "MathUtils.h"
 
 namespace jsa {
 

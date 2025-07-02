@@ -13,11 +13,11 @@
 using namespace jsa;
 using namespace Eigen;
 
-void Splicer::setSize(Index newBlockSize, Index newHopSize) {
+Splicer::Splicer(Index newBlockSize, Index newHopSize) {
     blockSize = newBlockSize;
     hopSize = newHopSize;
     overlapSize = blockSize - hopSize;
-    bufferSize = nextPow2(blockSize + 1);
+    bufferSize = nextPow2(uint(blockSize + 1));
     buffer.resize(bufferSize);
     buffer.setZero();
     wp = 0;

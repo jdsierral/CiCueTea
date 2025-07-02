@@ -35,7 +35,7 @@ public:
      * @param maxFrequency The maximum frequency of the CQT.
      * @param refFrequency The reference frequency for the CQT.
      */
-    CqtFullProcessor(double sampleRate, double numSamples, double fraction,
+    CqtFullProcessor(double sampleRate, Eigen::Index numSamples, double fraction,
                      double minFrequency, double maxFrequency, double refFrequency);
     
     /**
@@ -107,7 +107,7 @@ public:
      * @param maxFrequency The maximum frequency of the CQT.
      * @param refFrequency The reference frequency for the CQT.
      */
-    CqtSparseProcessor(double sampleRate, double numSamples, double fraction,
+    CqtSparseProcessor(double sampleRate, Eigen::Index numSamples, double fraction,
                        double minFrequency, double maxFrequency, double refFrequency);
 
     /**
@@ -179,7 +179,7 @@ public:
      * @param maxFrequency The maximum frequency of the CQT.
      * @param refFrequency The reference frequency for the CQT.
      */
-    SlidingCQTFullProcessor(double sampleRate, double numSamples, double fraction,
+    SlidingCQTFullProcessor(double sampleRate, Eigen::Index numSamples, double fraction,
                             double minFrequency, double maxFrequency, double refFrequency);
 
     /**
@@ -255,7 +255,7 @@ public:
      * @param maxFrequency The maximum frequency of the CQT.
      * @param refFrequency The reference frequency for the CQT.
      */
-    SlidingCqtSparseProcessor(double sampleRate, double numSamples,
+    SlidingCqtSparseProcessor(double sampleRate, Eigen::Index numSamples,
                               double fraction, double minFrequency,
                               double maxFrequency, double refFrequency);
 

@@ -26,12 +26,12 @@ namespace jsa {
 class Splicer {
 public:
     /**
-     * @brief Sets the block size and hop size for the splicer.
+     * @brief Constructor sets the block size and hop size for the splicer.
      *
      * @param newBlockSize The size of the audio block.
      * @param newHopSize The hop size (step size) between consecutive blocks.
      */
-    void setSize(Eigen::Index newBlockSize, Eigen::Index newHopSize);
+    Splicer(Eigen::Index newBlockSize, Eigen::Index newHopSize);
     
     /**
      * @brief Pushes a new audio block into the buffer.

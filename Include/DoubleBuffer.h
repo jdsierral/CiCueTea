@@ -8,7 +8,6 @@
 #pragma once
 
 #include <Eigen/Core>
-#include <iostream>
 
 /**
  * @namespace jsa
@@ -81,12 +80,6 @@ public:
      * @return A reference to the current buffer value.
      */
     T& current() { return buffer[state]; }
-    
-    void print() const {
-        std::cout << "BUFFER STATUS" << std::endl;
-        std::cout << buffer[0] << std::endl;
-        std::cout << buffer[1] << std::endl;
-    }
     
 private:
     std::array<T, 2> buffer; ///< The double buffer storage.

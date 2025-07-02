@@ -10,8 +10,6 @@
 #include "RTChecker.h"
 #include "MathUtils.h"
 
-#include "../Tests/Source/VectorOps.h"
-
 using namespace jsa;
 using namespace Eigen;
 

@@ -28,12 +28,12 @@ namespace jsa {
 class Slicer {
 public:
     /**
-     * @brief Sets the block size and hop size for slicing.
-     * 
+     * @brief Slicer constructor that sets the block size and hop size for slicing.
+     *
      * @param newBlockSize The size of each block in samples.
      * @param newHopSize The hop size (step size) between consecutive blocks in samples.
      */
-    void setSize(Eigen::Index newBlockSize, Eigen::Index newHopSize);
+    Slicer(Eigen::Index newBlockSize, Eigen::Index newHopSize);
 
     /**
      * @brief Pushes a single sample into the internal buffer.

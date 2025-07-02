@@ -7,9 +7,9 @@
 
 #pragma once
 
-#include "FFT.hpp"
-
 #include <Eigen/Core>
+
+#include "FFT.hpp"
 
 namespace jsa {
 

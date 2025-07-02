@@ -46,6 +46,7 @@ target_include_directories(${TARGET_NAME}
 set_target_properties(${TARGET_NAME} 
     PROPERTIES 
         XCODE_GENERATE_SCHEME ON
+        XCODE_SCHEME_LAUNCH_CONFIGURATION "Release"
 )
 
 target_link_libraries(${TARGET_NAME} 
