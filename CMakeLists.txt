@@ -13,7 +13,6 @@ find_package(Eigen3 3.3 REQUIRED)
 cmake_policy(SET CMP0167 NEW)
 find_package(Boost 1.82 REQUIRED)
 find_package(Boost COMPONENTS program_options log log_setup REQUIRED)
-find_package(JUCE REQUIRED)
 find_package(Matplot++)
 
 include(SourceFiles.cmake)
