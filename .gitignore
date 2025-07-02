@@ -1,8 +1,105 @@
-**/Build*/**
-
+# Own Temp Files #
 GIT_COMMIT
-.DS_Store
-**/Plots/**
+GIT_BRANCH
+GIT_COMMIT_DATE
+GIT_COMMIT_MESSAGE
+GIT_COMMIT_TIME
+GIT_TAG
 
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# CMake Files
+#####################
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+# Prerequisites
+###############
+*.d
+
+# Compiled Object files
+###############
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+###############
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+###############
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+###############
+*.mod
+*.smod
+
+# Compiled Static libraries
+###############
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+###############
+*.exe
+*.out
+*.app
+
+# VSCode
+################
+.vscode/*
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+# Build folders
+###############
+**/build/**
+**/*Build/**
+
+
+# Doxygen Related
+###############
 **/latex/**
 **/html/**
+
+# Autosave files
+###############
+*.asv
+*.m~
+*.autosave
+*.slx.r*
+*.mdl.r*
+
+# Matlab Plots
+**.fig
+**.png
+**.jpeg

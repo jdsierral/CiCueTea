@@ -1,19 +1,16 @@
-cmake_minimum_required(VERSION 3.25)
-
-execute_process(COMMAND sh -c "git rev-parse --short HEAD > ${CMAKE_CURRENT_SOURCE_DIR}/GIT_COMMIT")
-file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/VERSION CURRENT_VERSION)
-file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/GIT_COMMIT CURRENT_GIT_COMMIT)
-
-project("CQTDSP" VERSION ${CURRENT_VERSION})
+cmake_minimum_required(VERSION 4.0)
+include(GitData.cmake)
+project("CiCueTea" VERSION ${CURRENT_VERSION})
+message(STATUS ${SEP} ${PROJECT_NAME} ${SEP})
 
 set(TARGET_NAME ${PROJECT_NAME})
 
-set(SEP "//==================//")
 find_package(Eigen3 3.3 REQUIRED)
 cmake_policy(SET CMP0167 NEW)
 find_package(Boost 1.82 REQUIRED)
 find_package(Boost COMPONENTS program_options log log_setup REQUIRED)
 find_package(Matplot++)
+option(BUILD_TESTS "Build all the unit tests" OFF)
 
 include(SourceFiles.cmake)
 include(FFTSelection.cmake)
@@ -53,4 +50,6 @@ target_link_libraries(${TARGET_NAME}
     PRIVATE ${FFT_LINK_CMD}
 )
 
-add_subdirectory(Tests)
+if (BULD_TESTS)
+    add_subdirectory(Tests)
+endif()
