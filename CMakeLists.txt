@@ -8,16 +8,31 @@ project("CQTDSP" VERSION ${CURRENT_VERSION})
 
 set(TARGET_NAME ${PROJECT_NAME})
 
-set(SEP "//==================//")
-find_package(Eigen3 3.3 REQUIRED)
+set(CHOC_INCLUDE_DIRS /Users/juans/Developer/DevTools/choc)
+set(CMAKE_INCLUDE_PATH /usr/local/include)
+
+find_package(Armadillo REQUIRED)
 cmake_policy(SET CMP0167 NEW)
 find_package(Boost 1.82 REQUIRED)
 find_package(Boost COMPONENTS program_options log log_setup REQUIRED)
 find_package(JUCE REQUIRED)
 find_package(Matplot++)
 
+set(ARMADILLO_CONFIG
+    # ARMA_NO_DEBUG
+    ARMA_BLAS_LONG
+    ARMA_DONT_USE_STD_MUTEX
+    # ARMA_DONT_PRINT_EXCEPTIONS
+    ARMA_MAT_PREALLOC=32
+    # ARMA_DONT_ZERO_INIT
+    ACCELERATE_NEW_LAPACK
+    ACCELERATE_LAPACK_ILP64
+    ARMA_DONT_USE_WRAPPER
+    ARMA_BLAS_CAPITALS
+)
+
+
 include(SourceFiles.cmake)
-include(FFTSelection.cmake)
 
 add_library(${TARGET_NAME} STATIC ${SourceFiles})
 target_compile_features(${TARGET_NAME} PRIVATE cxx_std_20)
@@ -29,28 +44,20 @@ target_compile_options(${TARGET_NAME}
         # -Weverything
 )
 
-target_compile_definitions(${TARGET_NAME}
-    PRIVATE 
-        EIGEN_RUNTIME_NO_MALLOC
-        ${FFT_NAME}
+target_compile_definitions(${PROJECT_NAME}
+    PRIVATE ${ARMADILLO_CONFIG}
 )
 
 target_include_directories(${TARGET_NAME}
     PRIVATE Include/
-    SYSTEM PRIVATE /usr/local/include
     SYSTEM PRIVATE ${CMAKE_INCLUDE_PATH} 
     SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
-    SYSTEM PRIVATE ${FFT_INCLUDE_DIR}
+    SYSTEM PRIVATE ${ARMADILLO_INCLUDE_DIRS}
 )
 
 set_target_properties(${TARGET_NAME} 
     PROPERTIES 
         XCODE_GENERATE_SCHEME ON
-)
-
-target_link_libraries(${TARGET_NAME} 
-    PRIVATE Eigen3::Eigen
-    PRIVATE ${FFT_LINK_CMD}
 )
 
 add_subdirectory(Tests)

@@ -7,225 +7,188 @@
 
 #include "CQT.hpp"
 
-#include "RTChecker.h"
-#include "MathUtils.h"
-
-#include "../Tests/Source/VectorOps.h"
+#include <cassert>
 
 using namespace jsa;
-using namespace Eigen;
+using namespace arma;
 
-NsgfCqtCommon::NsgfCqtCommon(double sampleRate, Index numSamples,
-                             double fraction, double minFrequency,
-                             double maxFrequency, double refFrequency) :
-    fs(sampleRate), nSamps(numSamples), frac(fraction), fMin(minFrequency),
-    fMax(maxFrequency), fRef(refFrequency),
-    bandInfo(computeBandInfo(frac, fMin, fMax, fRef)),
-    nBands(bandInfo.nBands), nFreqs(nSamps), bax(nBands), fax(nFreqs),
-    d(nFreqs), Xdft(nSamps), dft(nSamps)
+inline double square(double x) { return x * x; }
+
+void NsgfCqtCommon::init(double sampleRate, size_t numSamples, double pointsPerOctave,
+                         double minFrequency, double maxFrequency, double refFrequency)
 {
-    Xdft.setZero();
-    bax = fRef * (frac * log(2) * regspace(-bandInfo.nBandsDown, bandInfo.nBandsUp)).exp();
-    fax = ArrayXd::LinSpaced(nFreqs, 0, nFreqs - 1) * fs / double(nFreqs);
+    fs = sampleRate;
+    nSamps = numSamples;
+    ppo = pointsPerOctave;
+    fMin = minFrequency;
+    fMax = maxFrequency;
+    fRef = refFrequency;
+    
+    // Initialize Stuff
+    X.resize(nSamps);
+    Y.resize(nSamps);
+    dft.init(nSamps);
+    
+    int nBandsUp = int(ceil(ppo * log2(fMax / fRef)));
+    int nBandsDown = int(ceil(ppo * log2(fRef / fMin)));
+    bax = fRef * exp(log(2) * regspace(-nBandsDown, nBandsUp) / ppo);
+    nBands = bax.size();
+    
+    nFreqs = nSamps;
+    fax = regspace<vec>(0, nFreqs-1) * fs / double(nFreqs);
 }
 
 //==========================================================================
 //==========================================================================
 //==========================================================================
 
-NsgfCqtFull::NsgfCqtFull(double sampleRate, Index numSamples,
-                         double fraction, double minFrequency,
-                         double maxFrequency, double refFrequency) :
-    NsgfCqtCommon(sampleRate, numSamples, fraction, minFrequency, maxFrequency,
-                  refFrequency),
-    Xmat(nSamps, nBands)
+void NsgfCqtFull::init(double sampleRate, size_t numSamples, double ppo,
+                       double minFrequency, double maxFrequency, double refFrequency)
 {
-    double c = log(4) / (square(frac));
-    ArrayXXd outerDif = fax.log2().rowwise().replicate(bax.size()) -
-        bax.log2().transpose().colwise().replicate(fax.size());
-    g = (-c * outerDif.square()).exp();
     
-    Index end = nBands - 1;
-    g.col(0) = (fax < bax(0)).select(1, g.col(0));
-    g.col(end) = (fax > bax(end)).select(1, g.col(end));
-    d = g.square().rowwise().sum();
-    gDual = g.colwise() / d;
+    NsgfCqtCommon::init(sampleRate, numSamples, ppo,
+                        minFrequency, maxFrequency, refFrequency);
     
-    g.bottomRows(nFreqs / 2 - 1).setZero();
-    gDual.bottomRows(nFreqs / 2 - 1).setZero();
+    Xi.resize(nSamps, nBands);
+    Yi.resize(nSamps, nBands);
     
-    Xmat.setZero();
-}
-
-void NsgfCqtFull::forward(const ArrayXd &x, ArrayXXcd &Xcq) {
-    RealTimeChecker ck;
+    double c = log(16) / (square(1.0 / ppo));
+    mat outerRatio = fax * (1.0 / bax.t());
+    g = exp(-c * square(log2(outerRatio)));
     
-    assert(x.size() == nSamps);
-    assert(Xcq.cols() == Index(nBands));
-    assert(Xcq.rows() == Index(nSamps));
-    dft.rdft(x, Xdft);
-    for (Index k = 0; k < nBands; k++) {
-        Xmat.col(k) = 2 * g.col(k) * Xdft;
-    }
-    dft.idft(Xmat, Xcq);
-}
-
-void NsgfCqtFull::inverse(const ArrayXXcd &Xcq, ArrayXd &x) {
-    RealTimeChecker ck;
+    uword end = nBands - 1;
     
-    assert(x.size() == nSamps);
-    assert(Xcq.cols() == Index(nBands));
-    assert(Xcq.rows() == Index(nSamps));
-    dft.dft(Xcq, Xmat);
-    Xdft = (Xmat * gDual).rowwise().sum() / 2;
-    dft.irdft(Xdft, x);
-}
-
-//==========================================================================
-//==========================================================================
-//==========================================================================
-
-NsgfCqtSparse::Span findIdx(const ArrayXd &x, double th) {
-    Index i0 = 0;
-    Index len = 0;
-    for (Index i = 0; i < x.size(); i++) {
-        if (x(i) > th) {
-            i0 = i;
-            break;
+    for (uword k = 0; k < fax.size(); k++) {
+        if (fax(k) <  bax(0) ) g(k,  0 ) = 1.0; // g( 0 , find(fax < bax( 1 ))).ones(1);
+        if (fax(k) > bax(end)) g(k, end) = 1.0; // g(end, find(fax > bax(end))).ones(1);
+        if (fax(k) < fs/2) continue;
+        for (uword b = 0; b < nBands; b++) {
+            g(k,b) = 0;
         }
     }
     
-    for (Index i = i0; i < x.size(); i++) {
-        len++;
-        if (x(i) < th) {
-            break;
-        }
-    }
-    return {i0, len};
+    d = sum(arma::square(g), 1);
+    gDual = g.each_col() / d;
 }
 
-NsgfCqtSparse::NsgfCqtSparse(double sampleRate, Index numSamples,
-                             double fraction, double minFrequency,
-                             double maxFrequency, double refFrequency) :
-    NsgfCqtCommon(sampleRate, numSamples, fraction, minFrequency, maxFrequency,
-                  refFrequency),
-    idx(nBands), g(nBands), gDual(nBands), phase(nBands), scale(nBands),
-    dfts(nBands)
+void NsgfCqtFull::forward(const vec& x, cx_mat& Xcq) {
+    assert(Xcq.n_cols == nBands);
+    assert(Xcq.n_rows == nSamps);
+    dft.rdft(x, X);
+    for (uword k = 0; k < nBands; k++) {
+        Xi.col(k) = g.col(k) % X;
+    }
+    dft.idft(Xi, Xcq);
+}
+
+void NsgfCqtFull::inverse(const cx_mat& Xcq, vec& x) {
+    dft.dft(Xcq, Yi);
+    Y = sum(Yi, 1);
+    dft.irdft(Y, x);
+}
+
+
+//==========================================================================
+//==========================================================================
+//==========================================================================
+
+void NsgfCqtSparse::init(double sampleRate, size_t numSamples, double ppo,
+                         double minFrequency, double maxFrequency, double refFrequency)
 {
-    double c = log(4) / (square(frac));
-    ArrayXXd outerDif = fax.log2().rowwise().replicate(bax.size()) -
-        bax.log2().transpose().colwise().replicate(fax.size());
-    ArrayXXd g_ = (-c * outerDif.square()).exp();
+    NsgfCqtCommon::init(sampleRate, numSamples, ppo,
+                        minFrequency, maxFrequency, refFrequency);
     
-    Index end = nBands - 1;
-    g_.col(0) = (fax < bax(0)).select(1, g_.col(0));
-    g_.col(end) = (fax > bax(end)).select(1, g_.col(end));
-    g_ = (g_ <= th).select(0.0, g_);
+    // Initialize Stuff
+//    idx.resize(nBands);
+//    g.resize(nBands);
+//    gDual.resize(nBands);
+//    phase.resize(nBands);
+//    scale.resize(nBands);
+//    dfts.resize(nBands);
+//    X.resize(nSamps);
+//    Y.resize(nSamps);
     
-    d = g_.square().rowwise().sum();
-    ArrayXXd gDual_ = g_.colwise() / d;
-    
-    g_.bottomRows(nFreqs / 2 - 1).fill(0);
-    gDual_.bottomRows(nFreqs / 2 - 1).fill(0);
-    
-    using namespace std::complex_literals;
-    
-    for (Index k = 0; k < nBands; k++) {
-        idx[k] = getIdx(g_.col(k));
-        Index i0 = idx[k].i0;
-        Index len = idx[k].len;
-        scale(k) = double(len);
-        ArrayXd n = regspace(len);
-        phase[k] = exp(1i * 2.0 * M_PI * double(i0) * n / double(len));
-        g[k] = g_.col(k).segment(i0, len);
-        gDual[k] = gDual_.col(k).segment(i0, len);
-        dfts[k].reset(new DFT(len));
-    }
-    
-    Xcoefs = getCoefs();
+//    VectorXd logBax = bax.log2();
+//    VectorXd logFax = fax.log2();
+//    
+//    double c = log(16) / (square(1.0 / ppo));
+//    MatrixXd logDiff = logFax.rowwise() - logFax.transpose();
+//    MatrixXd g_ = (-c * logDiff.square()).exp();
+//    
+//    //    int end = nBands - 1;
+//    //    g.col(0)   = (g.col( 0 ) < bax( 0 )).select(1, bax( 0 ));
+//    //    g.col(end) = (g.col(end) < bax(end)).select(1, bax(end));
+////    g_.for_each([](double& val){ if (val < th) val = 0; });
+//    
+//    d = g_.square().rowwise().sum();
+//    MatrixXd gDual_ = g_.colwise() / d;
+//    
+//    using namespace std::complex_literals;
+//    
+////    for (size_t k = 0; k < nBands; k++) {
+////        VectorXi ii = g_.col(k) != 0;
+////        ii = padIdxs(ii);
+////        assert(ii.size() >= 4);
+////        
+////        uword offset = ii(0);
+////        uword nCoefs = ii.size();
+////        scale(k) = double(nCoefs);
+////        phase(k) = exp(1i * datum::tau * double(offset) * regspace<VectorXd>(0, nCoefs-1)/double(nCoefs));
+////        idx(k) = span(ii(0), ii(ii.n_elem-1));
+////        g(k) = g_(idx(k), k);
+////        gDual(k) = gDual_(idx(k), k);
+////        dfts(k).init(nCoefs);
+////    }
+//    
+//    Xi = getCoefs();
+//    Yi = getCoefs();
+//    
+//    dft.init(nSamps);
 }
 
-void NsgfCqtSparse::forward(const ArrayXd &x, Coefs &Xcq) {
-    RealTimeChecker ck;
-    
-    if (fs < 0) return;
-    assert(Index(Xcq.size()) == nBands);
-    Xdft.fill(0);
-    dft.rdft(x, Xdft);
-    Xdft /= nSamps;
-    for (Index k = 0; k < nBands; k++) {
-        Xcoefs[k] = g[k] * Xdft.segment(idx[k].i0, idx[k].len);
-        dfts[k]->idft(Xcoefs[k], Xcoefs[k]);
-        Xcq[k] = 2.0 * idx[k].len * phase[k] * Xcoefs[k];
-    }
+void NsgfCqtSparse::forward(const vec& x, CqtCoefs& Xcq) {
+    assert(Xcq.size() == nBands);
+//    X.fill(0);
+//    dft.rdft(x, X);
+//    X /= double(nSamps);
+//    for (size_t k = 0; k < nBands; k++) {
+//        Xi[k] = X(idx[k].first, idx[k].second) * g[k];
+//        dfts[k].idft(Xi[k], Xcq[k]);
+//        Xcq[k] *= scale(k);
+//        Xcq[k] *= phase[k];
+//    }
 }
 
-void NsgfCqtSparse::inverse(const Coefs &Xcq, ArrayXd &x) {
-    RealTimeChecker ck;
-    
-    if (fs < 0) return;
-    assert(Index(Xcq.size()) == nBands);
-    Xdft.fill(0);
-    for (Index k = 0; k < nBands; k++) {
-        Xcoefs[k] = 1.0 / (2.0 * idx[k].len) * phase[k].conjugate() * Xcq[k];
-        dfts[k]->dft(Xcoefs[k], Xcoefs[k]);
-        Xdft.segment(idx[k].i0, idx[k].len) += gDual[k] * Xcoefs[k];
-    }
-    dft.irdft(Xdft, x);
-    x *= nSamps;
+void NsgfCqtSparse::inverse(const CqtCoefs& Xcq, vec& x) {
+    assert(Xcq.size() == nBands);
+//    Y.fill(0);
+//    for (size_t k = 0; k < nBands; k++) {
+//        Yi[k] = Xcq[k];
+//        Yi[k] *= phase[k].conjugate();
+//        Yi[k] /= scale(k);
+//        dfts[k].dft(Yi[k], Yi[k]);
+//        Yi[k] = Yi[k] * g[k];
+////        Y(idx[k].first, idx[k].second) = Y(idx[k].first, idx[k].second) + Yi[k];
+//    }
+//    dft.irdft(Y, x);
+//    x *= nSamps;
 }
 
-NsgfCqtSparse::Span NsgfCqtSparse::getIdx(const ArrayXd &x) {
-    Index i0 = 0;
-    Index i1 = x.size();
-    for (Index i = 0; i < x.size(); i++) {
-        if (x(i) < th) continue;
-        i0 = i; break;
-    }
-    
-    for (Index i = x.size() - 1; i >= 0; i--) {
-        if (x(i) < th) continue;
-        i1 = i; break;
-    }
-    
-    Index len = i1 - i0 + 1;
-    if (len < 4) len = 4;
-    len = Index(nextPow2((unsigned int)(len)));
-    return {i0, len};
+uvec NsgfCqtSparse::padIdxs(uvec ii) {
+//    int i0 = ii(0);
+//    int nIdx = ii.size();
+//    if (nIdx < 4) nIdx = 4;
+////    nIdx = nextPow2(nIdx);
+//    ii = VectorXi::LinSpaced(i0, i0 + nIdx-1);
+    return ii;
 }
 
-NsgfCqtSparse::Frame NsgfCqtSparse::getRealCoefs() const {
+CqtCoefs NsgfCqtSparse::getCoefs() const {
     assert(fs > 0);
     assert(bax.size() > 0);
-    Frame frame(nBands);
-    for (Index k = 0; k < nBands; k++) {
-        Index sz = g[k].size();
-        frame[k].resize(sz);
-    }
-    return frame;
-}
-
-NsgfCqtSparse::Coefs NsgfCqtSparse::getCoefs() const {
-    assert(fs > 0);
-    assert(bax.size() > 0);
-    Coefs coefs(nBands);
-    for (Index k = 0; k < nBands; k++) {
-        Index sz = g[k].size();
-        coefs[k].resize(sz);
-        coefs[k].setZero();
-    }
-    return coefs;
-}
-
-NsgfCqtSparse::Coefs NsgfCqtSparse::getValidCoefs() const {
-    assert(fs > 0);
-    assert(bax.size() > 0);
-    Coefs coefs(nBands);
-    for (Index k = 0; k < nBands; k++) {
-        Index sz = g[k].size();
-        assert(sz % 2 == 0);
-        coefs[k].resize(sz / 2);
-        coefs[k].setZero();
+    CqtCoefs coefs(nBands);
+    for (size_t k = 0; k < nBands; k++) {
+        coefs[k].resize(g[k].size());
     }
     return coefs;
 }
