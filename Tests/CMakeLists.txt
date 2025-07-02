@@ -1,44 +1,58 @@
 enable_testing()
 
 set(TARGET_NAME ${PROJECT_NAME}_UnitTest)
+message(STATUS ${SEP} ${TARGET_NAME} ${SEP})
+
+find_package(Matplot++ REQUIRED)
+find_package(Armadillo REQUIRED)
+
+set(ARMADILLO_CONFIG
+    ARMA_NO_DEBUG
+    ARMA_BLAS_LONG
+    ARMA_DONT_USE_STD_MUTEX
+    ARMA_DONT_PRINT_EXCEPTIONS
+    ARMA_MAT_PREALLOC=32
+    ARMA_DONT_ZERO_INIT
+    ARMA_USE_ARPACK=OFF
+    ACCELERATE_NEW_LAPACK
+    ACCELERATE_LAPACK_ILP64
+)
 
 set(SourceFiles
     Source/main.cpp
-    # Source/DFT_UnitTests.cpp
-    # Source/CQT_UnitTests.cpp
-    # Source/Slicing_UnitTests.cpp
-    # Source/SlidingCQT_UnitTests.cpp
-    # Source/Perf_UnitTests.cpp
+    Source/DFT_UnitTests.cpp
+    Source/CQT_UnitTests.cpp
+    Source/Slicing_UnitTests.cpp
+    Source/SlidingCQT_UnitTests.cpp
+    Source/Perf_UnitTests.cpp
     Source/SlidingExtended_UnitTests.cpp
-    # Source/SliCQTTest_UnitTests.cpp
+    Source/SliCQTTest_UnitTests.cpp
     Source/VectorOps.h
     Source/EmptyCQTProc.h
 )
 
 source_group("Source Files\\Source" FILES ${SourceFiles})
 
-add_executable(${TARGET_NAME})
-target_sources(${TARGET_NAME} PRIVATE ${SourceFiles})
+add_executable(${TARGET_NAME} ${SourceFiles})
 target_compile_features(${TARGET_NAME} PRIVATE cxx_std_20)
-
 target_compile_definitions(${TARGET_NAME}
-    PRIVATE EIGEN_RUNTIME_NO_MALLOC
-    PRIVATE EIGEN_USE_BLAS
-    PRIVATE EIGEN_USE_LAPACKE
+    PRIVATE ${ARMADILLO_CONFIG}
+    PRIVATE ${EIGEN_CONFIG}
 )
 
-
 target_compile_options(${TARGET_NAME}
-    PRIVATE -fcolor-diagnostics
+    PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+        -fcolor-diagnostics
 )
 
 target_include_directories(${TARGET_NAME}
-    SYSTEM PRIVATE /usr/local/include
     SYSTEM PRIVATE ${ARMADILLO_INCLUDE_DIRS}
     SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
-    SYSTEM PRIVATE ${CMAKE_INCLUDE_PATH}
     SYSTEM PRIVATE ${FFT_INCLUDE_DIR}
-    SYSTEM PRIVATE ../Source
+    PRIVATE ../Source
     PRIVATE ../Include
 )
 
@@ -46,12 +60,10 @@ target_link_libraries(${TARGET_NAME}
     PRIVATE "-framework Accelerate"
     PRIVATE ${FFT_LINK_CMD}
     PRIVATE Eigen3::Eigen
+    PRIVATE Boost::log_setup Boost::log
     PRIVATE Matplot++::matplot
     PRIVATE ${PROJECT_NAME}
-    PRIVATE Boost::log_setup Boost::log
 )
-
-# add_test(Test1 LibraryUnitTest COMMAND ${TARGET_NAME})
 
 set_target_properties(${TARGET_NAME} 
     PROPERTIES

@@ -28,6 +28,4 @@ elseif (FFT_FFTW)
     set(FFT_LINK_CMD ${FFTW_ROOT}/lib/libfftw3.a)
 endif()
 
-message(STATUS ${SEP})
-message(STATUS ${FFT_NAME})
-message(STATUS ${SEP})
+message(STATUS "FFT Selected: " ${FFT_NAME})
