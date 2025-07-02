@@ -27,7 +27,7 @@ public:
      * @brief Holds information about the number of bands in the filterbank.
      */
     struct BandInfo {
-        Eigen::Index nBands;      ///< Total number of bands.
+        Eigen::Index nBands;     ///< Total number of bands.
         Eigen::Index nBandsDown; ///< Number of bands below the reference frequency.
         Eigen::Index nBandsUp;   ///< Number of bands above the reference frequency.
     };
@@ -202,6 +202,8 @@ public:
     const Eigen::ArrayXd& getDualAtom(Eigen::Index k) const { return gDual[k]; }
     const Span getBandSpan(Eigen::Index k) const { return idx[k]; }
     Eigen::ArrayXd getFrequencyAxis(Eigen::Index k) const { return fax.segment(idx[k].i0, idx[k].len); }
+    Eigen::Index getLength(Eigen::Index k) const { return idx[k].len; };
+    const Coefs& getPhaseCoefs() const { return phase; }
 
     // Methods for retrieving coefficients.
     Frame getRealCoefs() const;
@@ -217,12 +219,12 @@ private:
      */
     Span getIdx(const Eigen::ArrayXd& ii);
 
-    SpanList idx;                     ///< List of spans for each band.
-    Frame g;                          ///< Frame representation.
-    Frame gDual;                      ///< Dual frame representation.
-    Coefs phase;                      ///< Phase coefficients.
-    Eigen::ArrayXd scale;             ///< Scale factors.
-    Coefs Xcoefs;                     ///< Sparse coefficients.
+    SpanList idx;                           ///< List of spans for each band.
+    Frame g;                                ///< Frame representation.
+    Frame gDual;                            ///< Dual frame representation.
+    Coefs phase;                            ///< Phase coefficients.
+    Eigen::ArrayXd scale;                   ///< Scale factors.
+    Coefs Xcoefs;                           ///< Sparse coefficients.
     std::vector<std::unique_ptr<DFT>> dfts; ///< DFT objects for each band.
     inline static const double th = 1e-6;   ///< Threshold for sparsity.
 };

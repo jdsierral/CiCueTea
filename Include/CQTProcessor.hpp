@@ -89,6 +89,78 @@ private:
 //==========================================================================
 
 /**
+ * @class CqtSparseProcessor
+ * @brief Processes audio samples using a sparse non-stationary Gabor transform-based CQT.
+ *
+ * This class provides methods to process individual samples and blocks of data
+ * using a sparse CQT implementation.
+ */
+class CqtSparseProcessor {
+public:
+    /**
+     * @brief Constructs a CqtSparseProcessor object.
+     *
+     * @param sampleRate The sampling rate of the audio signal.
+     * @param numSamples The number of samples to process.
+     * @param fraction The fraction of overlap between windows.
+     * @param minFrequency The minimum frequency of the CQT.
+     * @param maxFrequency The maximum frequency of the CQT.
+     * @param refFrequency The reference frequency for the CQT.
+     */
+    CqtSparseProcessor(double sampleRate, double numSamples, double fraction,
+                       double minFrequency, double maxFrequency, double refFrequency);
+
+    /**
+     * @brief Processes a single audio sample.
+     *
+     * @param sample The audio sample to process.
+     * @return The processed sample.
+     */
+    double processSample(double sample);
+
+    /**
+     * @brief Processes a block of data.
+     *
+     * @param block The block of data to process.
+     */
+    virtual void processBlock(NsgfCqtSparse::Coefs& block) = 0;
+    
+    /**
+     * @brief Gets the windowing function.
+     *
+     * @return A constant reference to the windowing function.
+     */
+    const Eigen::ArrayXd& getWindow() const { return win; }
+
+    /**
+     * @brief Gets the CQT object.
+     *
+     * @return A constant reference to the CQT object.
+     */
+    const NsgfCqtSparse& getCqt() const { return cqt; }
+    
+    /**
+     * @brief Gets the latency produced by the processor.
+     *
+     * @return Integer number of samples of delay between input and output.
+     */
+    Eigen::Index getLatency() const { return cqt.getBlockSize(); }
+
+protected:
+    NsgfCqtSparse cqt; ///< The CQT object used for processing.
+
+private:
+    Eigen::ArrayXd xi; ///< Internal processing variable.
+    Eigen::ArrayXd win; ///< Windowing function.
+    NsgfCqtSparse::Coefs Xcq; ///< Sparse CQT coefficients.
+    Slicer slicer; ///< Slicer for data segmentation.
+    Splicer splicer; ///< Splicer for data reconstruction.
+    double fs = -1; ///< Sampling rate.
+};
+
+//==========================================================================
+
+/**
  * @class SlidingCQTFullProcessor
  * @brief Processes audio samples using a sliding window full CQT.
  * 
@@ -160,77 +232,7 @@ private:
     double fs = -1; ///< Sampling rate.
 };
 
-//==========================================================================
 
-/**
- * @class CqtSparseProcessor
- * @brief Processes audio samples using a sparse non-stationary Gabor transform-based CQT.
- * 
- * This class provides methods to process individual samples and blocks of data
- * using a sparse CQT implementation.
- */
-class CqtSparseProcessor {
-public:
-    /**
-     * @brief Constructs a CqtSparseProcessor object.
-     * 
-     * @param sampleRate The sampling rate of the audio signal.
-     * @param numSamples The number of samples to process.
-     * @param fraction The fraction of overlap between windows.
-     * @param minFrequency The minimum frequency of the CQT.
-     * @param maxFrequency The maximum frequency of the CQT.
-     * @param refFrequency The reference frequency for the CQT.
-     */
-    CqtSparseProcessor(double sampleRate, double numSamples, double fraction,
-                       double minFrequency, double maxFrequency, double refFrequency);
-
-    /**
-     * @brief Processes a single audio sample.
-     * 
-     * @param sample The audio sample to process.
-     * @return The processed sample.
-     */
-    double processSample(double sample);
-
-    /**
-     * @brief Processes a block of data.
-     * 
-     * @param block The block of data to process.
-     */
-    virtual void processBlock(NsgfCqtSparse::Coefs& block) = 0;
-    
-    /**
-     * @brief Gets the windowing function.
-     *
-     * @return A constant reference to the windowing function.
-     */
-    const Eigen::ArrayXd& getWindow() const { return win; }
-
-    /**
-     * @brief Gets the CQT object.
-     * 
-     * @return A constant reference to the CQT object.
-     */
-    const NsgfCqtSparse& getCqt() const { return cqt; }
-    
-    /**
-     * @brief Gets the latency produced by the processor.
-     *
-     * @return Integer number of samples of delay between input and output.
-     */
-    Eigen::Index getLatency() const { return cqt.getBlockSize(); }
-
-protected:
-    NsgfCqtSparse cqt; ///< The CQT object used for processing.
-
-private:
-    Eigen::ArrayXd xi; ///< Internal processing variable.
-    Eigen::ArrayXd win; ///< Windowing function.
-    NsgfCqtSparse::Coefs Xcq; ///< Sparse CQT coefficients.
-    Slicer slicer; ///< Slicer for data segmentation.
-    Splicer splicer; ///< Splicer for data reconstruction.
-    double fs = -1; ///< Sampling rate.
-};
 
 //==========================================================================
 

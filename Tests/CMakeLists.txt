@@ -10,6 +10,8 @@ set(SourceFiles
     # Source/SlidingCQT_UnitTests.cpp
     # Source/Perf_UnitTests.cpp
     Source/SlidingExtended_UnitTests.cpp
+    # Source/SliCQTTest_UnitTests.cpp
+    Source/VectorOps.h
     Source/EmptyCQTProc.h
 )
 

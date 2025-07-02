@@ -10,6 +10,8 @@
 #include "RTChecker.h"
 #include "MathUtils.h"
 
+#include "../Tests/Source/VectorOps.h"
+
 using namespace jsa;
 using namespace Eigen;
 
@@ -150,9 +152,11 @@ void NsgfCqtSparse::forward(const ArrayXd &x, Coefs &Xcq) {
     assert(Index(Xcq.size()) == nBands);
     Xdft.fill(0);
     dft.rdft(x, Xdft);
+    Xdft /= nSamps;
     for (Index k = 0; k < nBands; k++) {
-        Xcoefs[k] = 2.0 * g[k] * phase[k] * Xdft.segment(idx[k].i0, idx[k].len);
-        dfts[k]->idft(Xcoefs[k], Xcq[k]);
+        Xcoefs[k] = g[k] * Xdft.segment(idx[k].i0, idx[k].len);
+        dfts[k]->idft(Xcoefs[k], Xcoefs[k]);
+        Xcq[k] = 2.0 * idx[k].len * phase[k] * Xcoefs[k];
     }
 }
 
@@ -163,33 +167,29 @@ void NsgfCqtSparse::inverse(const Coefs &Xcq, ArrayXd &x) {
     assert(Index(Xcq.size()) == nBands);
     Xdft.fill(0);
     for (Index k = 0; k < nBands; k++) {
-        dfts[k]->dft(Xcq[k], Xcoefs[k]);
-        Xdft.segment(idx[k].i0, idx[k].len) +=
-        0.5 * gDual[k] * phase[k].conjugate() * Xcoefs[k];
+        Xcoefs[k] = 1.0 / (2.0 * idx[k].len) * phase[k].conjugate() * Xcq[k];
+        dfts[k]->dft(Xcoefs[k], Xcoefs[k]);
+        Xdft.segment(idx[k].i0, idx[k].len) += gDual[k] * Xcoefs[k];
     }
     dft.irdft(Xdft, x);
+    x *= nSamps;
 }
 
 NsgfCqtSparse::Span NsgfCqtSparse::getIdx(const ArrayXd &x) {
     Index i0 = 0;
     Index i1 = x.size();
     for (Index i = 0; i < x.size(); i++) {
-        if (x(i) < th)
-            continue;
-        i0 = i;
-        break;
+        if (x(i) < th) continue;
+        i0 = i; break;
     }
     
     for (Index i = x.size() - 1; i >= 0; i--) {
-        if (x(i) < th)
-            continue;
-        i1 = i;
-        break;
+        if (x(i) < th) continue;
+        i1 = i; break;
     }
     
     Index len = i1 - i0 + 1;
-    if (len < 4)
-        len = 4;
+    if (len < 4) len = 4;
     len = Index(nextPow2((unsigned int)(len)));
     return {i0, len};
 }

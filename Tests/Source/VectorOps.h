@@ -30,6 +30,13 @@ inline arma::cx_mat eig2armaMat(Eigen::ArrayXXcd x) {
   return arma::cx_mat(x.data(), x.rows(), x.cols());
 }
 
+inline void saveCoefs(const std::vector<Eigen::ArrayXcd>& X, std::string name) {
+    for (size_t i = 0; i < X.size(); i++) {
+        std::string name_i = name + "_" + std::to_string(i+1) + ".csv";
+        eig2armaVec(X[i]).save(arma::csv_name(name_i));
+    }
+}
+
 inline double rms(const Eigen::ArrayXd &x) {
   return std::sqrt(x.square().mean());
 }

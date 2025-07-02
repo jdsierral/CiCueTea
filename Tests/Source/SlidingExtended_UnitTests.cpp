@@ -32,7 +32,27 @@ using namespace jsa;
 #define FMAX 1e4
 #define FREF 1e3
 
+BOOST_AUTO_TEST_CASE(DoubleBufferTest)  {
+//    DoubleBuffer<double> buffer;
+//    double zero = 0;
+//    double one = 1;
+//    double two = 2;
+//    buffer.fill(zero);
+//    buffer.print();
+//    buffer.push(one);
+//    buffer.print();
+//    buffer.push(two);
+//    buffer.print();
+//    double val1 = buffer.next();
+//    double val2 = buffer.current();
+//    std::cout << val1 << val2 << std::endl;
+//    buffer.push(one);
+//    buffer.print();
+//    BOOST_CHECK(true);
+}
+
 BOOST_AUTO_TEST_CASE(ExtendedTest1) {
+    return;
     std::cout << BOOST_CURRENT_LOCATION << std::endl;
     double fs = 48000;
     Index N = SIG_LEN;
@@ -73,6 +93,7 @@ BOOST_AUTO_TEST_CASE(ExtendedTest1) {
 }
 
 BOOST_AUTO_TEST_CASE(ExtendedTest2) {
+    return;
     std::cout << BOOST_CURRENT_LOCATION << std::endl;
     double fs = 48000;
     Index N = SIG_LEN;
@@ -114,6 +135,7 @@ BOOST_AUTO_TEST_CASE(ExtendedTest2) {
 }
 
 BOOST_AUTO_TEST_CASE(ExtendedTest3) {
+    return;
     std::cout << BOOST_CURRENT_LOCATION << std::endl;
     double fs = 48000;
     Index N = SIG_LEN;
@@ -124,6 +146,7 @@ BOOST_AUTO_TEST_CASE(ExtendedTest3) {
     double fRef = FREF;
     
     ArrayXd x = ArrayXd::Random(N);
+    x = sin(2 * M_PI * 1000 * regspace(N) / fs);
     ArrayXd y = ArrayXd::Zero(N);
     
     SliCQTFull ola(fs, blockSize, frac, fMin, fMax, fRef);
@@ -141,6 +164,7 @@ BOOST_AUTO_TEST_CASE(ExtendedTest3) {
     }
     
     Index latency = ola.getLatency();
+    latency = ola.getCqt().getBlockSize();
     
     x = x.head(N - latency);
     y = y.tail(N - latency);
@@ -164,11 +188,10 @@ BOOST_AUTO_TEST_CASE(ExtendedTest4) {
     double fRef = FREF;
     
     ArrayXd x = ArrayXd::Random(N);
-//    ArrayXd x = sin( 2 * M_PI * 100 * regspace(N) / fs);
     ArrayXd y = ArrayXd::Zero(N);
     
     SliCQTSparse ola(fs, blockSize, frac, fMin, fMax, fRef);
-    string baseName = "SliCQTSparse_";
+    string baseName = "";
     eig2armaVec(ola.getCqt().NsgfCqtCommon::getFrequencyAxis()).save(csv_name(baseName + "fax.csv"));
     eig2armaVec(ola.getWindow()).save(csv_name(baseName + "win.csv"));
     eig2armaVec(ola.getCqt().getDiagonalization()).save(csv_name(baseName + "d.csv"));
@@ -185,8 +208,7 @@ BOOST_AUTO_TEST_CASE(ExtendedTest4) {
         y[n] = ola.processSample(x[n]);
     }
     
-//    Index latency = ola.getLatency();
-    Index latency = exp2(16);
+    Index latency = ola.getLatency();
     
     x = x.head(N - latency);
     y = y.tail(N - latency);

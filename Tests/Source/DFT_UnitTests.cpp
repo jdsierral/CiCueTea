@@ -44,8 +44,8 @@ BOOST_AUTO_TEST_CASE(DFTMultiTest1) {
   fftw_execute(plan);
   //    fftw_execute_dft_r2c(plan, x.data(), (fftw_complex*)X.data());
 
-  eig2armaMat(x).print();
-  eig2armaMat(X).print();
+//  eig2armaMat(x).print();
+//  eig2armaMat(X).print();
 
   BOOST_TEST(true);
 }
