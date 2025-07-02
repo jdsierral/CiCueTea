@@ -5,14 +5,18 @@
 //  Created by Juan Sierra on 3/23/25.
 //
 
+/**
+ * @file Splicer.hpp
+ * @brief Provides an implementation of a Splicer of sliced data to produce 
+ * continuous data
+ * @author Juan Sierra
+ * @date 3/23/25
+ * @copyright MIT License
+ */
+
 #pragma once
 
 #include <Eigen/Core>
-
-/**
- * @namespace jsa
- * The `jsa` namespace contains classes and functions for audio processing and manipulation.
- */
 
 namespace jsa {
 

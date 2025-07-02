@@ -5,6 +5,15 @@
 //  Created by Juan Sierra on 4/8/25.
 //
 
+/**
+ * @file FFT_vDSP.h
+ * @brief Provides a pImpl based implemenation wrapping Accelerate vDSP
+ * @author Juan Sierra
+ * @date 4/8/25
+ * @copyright MIT License
+ */
+
+
 #pragma once
 
 #include <Eigen/Core>

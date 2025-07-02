@@ -5,6 +5,14 @@
 //  Created by Juan Sierra on 6/11/25.
 //
 
+/**
+ * @file FFT_MKL.h
+ * @brief Provides a pImpl based implemenation wrapping MKL
+ * @author Juan Sierra
+ * @date 6/11/25
+ * @copyright MIT License
+ */
+
 #pragma once
 
 #include <Eigen/Core>

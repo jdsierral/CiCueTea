@@ -5,6 +5,14 @@
 //  Created by Juan Sierra on 3/9/25.
 //
 
+/**
+ * @file CQT.hpp
+ * @brief Provides an implementation of CQT and its inverses.
+ * @author Juan Sierra
+ * @date 3/9/25
+ * @copyright MIT License
+ */
+
 #pragma once
 
 #include <Eigen/Core>

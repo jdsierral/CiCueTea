@@ -7,12 +7,15 @@
 
 #pragma once
 
-#include <Eigen/Core>
-
 /**
- * @namespace jsa
- * @brief Namespace containing the Slicer class and related functionality.
+ * @file Slicer.hpp
+ * @brief Provides an implementation of a Slicer of continuous data
+ * @author Juan Sierra
+ * @date 3/23/25
+ * @copyright MIT License
  */
+
+#include <Eigen/Core>
 
 namespace jsa {
 

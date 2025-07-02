@@ -5,6 +5,14 @@
 //  Created by Juan Sierra on 6/15/25.
 //
 
+/**
+ * @file RTChecker.h
+ * @brief RIAA based check over mallocs only enabled in DEBUG mode
+ * @author Juan Sierra
+ * @date 4/8/25
+ * @copyright MIT License
+ */
+
 #pragma once
 
 #include <Eigen/Core>

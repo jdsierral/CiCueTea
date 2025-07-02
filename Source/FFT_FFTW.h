@@ -5,6 +5,14 @@
 //  Created by Juan Sierra on 4/8/25.
 //
 
+/**
+ * @file FFT_FFTW.h
+ * @brief Provides a pImpl based implemenation wrapping FFTW
+ * @author Juan Sierra
+ * @date 4/8/25
+ * @copyright MIT License
+ */
+
 #pragma once
 
 #include <Eigen/Core>

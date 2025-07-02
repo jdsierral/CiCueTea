@@ -8,6 +8,9 @@
 /**
  * @file FFT.hpp
  * @brief Provides an implementation of Fast Fourier Transform (DFT) and its inverses.
+ * @author Juan Sierra
+ * @date 3/9/25
+ * @copyright MIT License
  */
 
 #pragma once
@@ -18,9 +21,31 @@ namespace jsa {
 
 class DFTImpl;
 
+/**
+ * @class DFT
+ * @ingroup SignalProcessing
+ * 
+ * This is a pImpl based wrapper to other commonly known FFTs like 
+ * - FFTW
+ * - Accelerate
+ * - MKL
+ * - PFFFT
+ * 
+ * It also provides interfaces for different "versions" of Fourier Transforms
+ * like dft and idft (a complex to complex transform), and rdft and irdft (a 
+ * real to complex transform). Moreover, it also provides interfaces to process
+ * many DFTs when the data is based on a matrix; however it is simply calling
+ * the single DFTs repeatedly
+ * 
+ * @brief The Wrapper class for other FFTs provided by different libraries
+ */
 class DFT {
 public:
     
+    /**
+     * @brief Constructor.
+     * @param fftSize FFT size (power of two).
+     */
     DFT(size_t fftSize);
     
     /**

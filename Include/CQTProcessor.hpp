@@ -5,6 +5,14 @@
 //  Created by Juan Sierra on 3/17/25.
 //
 
+/**
+ * @file CQTProcessor.hpp
+ * @brief Provides an implementation of Overlap Add Based CQT Processor
+ * @author Juan Sierra
+ * @date 3/17/25
+ * @copyright MIT License
+ */
+
 #pragma once
 
 #include <Eigen/Core>

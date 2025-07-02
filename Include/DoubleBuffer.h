@@ -5,14 +5,19 @@
 //  Created by Juan Sierra on 3/23/25.
 //
 
+/**
+ * @file DoubleBuffer.h
+ * @brief Provides an implementation of a 2 step buffer to handle current and
+ * last elements
+ * @author Juan Sierra
+ * @date 3/23/25
+ * @copyright MIT License
+ */
+
 #pragma once
 
 #include <Eigen/Core>
 
-/**
- * @namespace jsa
- * @brief Contains utility functions and classes for buffer management and mathematical operations.
- */
 namespace jsa {
 
 /**

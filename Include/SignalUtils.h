@@ -5,6 +5,14 @@
 //  Created by Juan Sierra on 5/1/25.
 //
 
+/**
+ * @file SignalUtils.h
+ * @brief Provides an implementation of a Slicer of continuous data
+ * @author Juan Sierra
+ * @date 3/23/25
+ * @copyright MIT License
+ */
+
 #pragma once
 
 #include <Eigen/Core>

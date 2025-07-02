@@ -5,6 +5,14 @@
 //  Created by Juan Sierra on 5/1/25.
 //
 
+/**
+ * @file MathUtils.h
+ * @brief Some Mathematical functions used in the library
+ * @author Juan Sierra
+ * @date 3/23/25
+ * @copyright MIT License
+ */
+
 #pragma once
 
 #include <Eigen/Core>
