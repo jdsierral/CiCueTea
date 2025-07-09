@@ -47,6 +47,15 @@ public:
                      double minFrequency, double maxFrequency, double refFrequency);
     
     /**
+     * @brief Virtual destructor for safe polymorphic use.
+     *
+     * Declared virtual to ensure that derived classes can be safely deleted
+     * through a base class pointer. This destructor is defaulted as the base class
+     * does not require custom cleanup.
+     */
+    virtual ~CqtFullProcessor() = default;
+    
+    /**
      * @brief Processes a single audio sample.
      * 
      * @param sample The audio sample to process.
@@ -119,6 +128,15 @@ public:
                        double minFrequency, double maxFrequency, double refFrequency);
 
     /**
+     * @brief Virtual destructor for safe polymorphic use.
+     *
+     * Declared virtual to ensure that derived classes can be safely deleted
+     * through a base class pointer. This destructor is defaulted as the base class
+     * does not require custom cleanup.
+     */
+    virtual ~CqtSparseProcessor() = default;
+    
+    /**
      * @brief Processes a single audio sample.
      *
      * @param sample The audio sample to process.
@@ -190,6 +208,15 @@ public:
     SlidingCQTFullProcessor(double sampleRate, Eigen::Index numSamples, double fraction,
                             double minFrequency, double maxFrequency, double refFrequency);
 
+    /**
+     * @brief Virtual destructor for safe polymorphic use.
+     *
+     * Declared virtual to ensure that derived classes can be safely deleted
+     * through a base class pointer. This destructor is defaulted as the base class
+     * does not require custom cleanup.
+     */
+    virtual ~SlidingCQTFullProcessor() = default;
+    
     /**
      * @brief Processes a single audio sample.
      * 
@@ -266,6 +293,15 @@ public:
     SlidingCqtSparseProcessor(double sampleRate, Eigen::Index numSamples,
                               double fraction, double minFrequency,
                               double maxFrequency, double refFrequency);
+    
+    /**
+     * @brief Virtual destructor for safe polymorphic use.
+     *
+     * Declared virtual to ensure that derived classes can be safely deleted
+     * through a base class pointer. This destructor is defaulted as the base class
+     * does not require custom cleanup.
+     */
+    virtual ~SlidingCqtSparseProcessor() = default;
 
     /**
      * @brief Processes a single audio sample.
