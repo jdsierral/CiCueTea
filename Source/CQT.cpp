@@ -83,25 +83,6 @@ void NsgfCqtFull::inverse(const ArrayXXcd &Xcq, ArrayXd &x) {
 //==========================================================================
 //==========================================================================
 
-NsgfCqtSparse::Span findIdx(const ArrayXd &x, double th) {
-    Index i0 = 0;
-    Index len = 0;
-    for (Index i = 0; i < x.size(); i++) {
-        if (x(i) > th) {
-            i0 = i;
-            break;
-        }
-    }
-    
-    for (Index i = i0; i < x.size(); i++) {
-        len++;
-        if (x(i) < th) {
-            break;
-        }
-    }
-    return {i0, len};
-}
-
 NsgfCqtSparse::NsgfCqtSparse(double sampleRate, Index numSamples,
                              double fraction, double minFrequency,
                              double maxFrequency, double refFrequency) :

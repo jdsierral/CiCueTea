@@ -210,8 +210,9 @@ public:
     const Eigen::ArrayXd& getDualAtom(Eigen::Index k) const { return gDual[k]; }
     const Span getBandSpan(Eigen::Index k) const { return idx[k]; }
     Eigen::ArrayXd getFrequencyAxis(Eigen::Index k) const { return fax.segment(idx[k].i0, idx[k].len); }
-    Eigen::Index getLength(Eigen::Index k) const { return idx[k].len; };
     const Coefs& getPhaseCoefs() const { return phase; }
+    Eigen::Index getLength(Eigen::Index k) const { return idx[k].len; };
+    double getCoeffRate(Eigen::Index k) const { return getSampleRate() * double(getLength(k)) / double(getBlockSize()); }
 
     // Methods for retrieving coefficients.
     Frame getRealCoefs() const;
