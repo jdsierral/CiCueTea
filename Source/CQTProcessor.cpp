@@ -20,8 +20,8 @@ CqtFullProcessor::CqtFullProcessor(double sampleRate, Index numSamples,
     xi(cqt.getBlockSize()),
     win(cqt.getBlockSize()),
     Xcq(cqt.getBlockSize(), cqt.getNumBands()),
-    slicer(cqt.getBlockSize(), cqt.getBlockSize()/2),
-    splicer(cqt.getBlockSize(), cqt.getBlockSize()/2)
+    slicer(cqt.getBlockSize(), cqt.getBlockSize() / 2),
+    splicer(cqt.getBlockSize(), cqt.getBlockSize() / 2)
 {
     win = hann(cqt.getBlockSize()).sqrt();
     xi.setZero();
@@ -37,7 +37,7 @@ CqtFullProcessor::CqtFullProcessor(double sampleRate, Index numSamples,
 double CqtFullProcessor::processSample(double sample)
 {
     RealTimeChecker ck;
-    
+
     if (fs < 0) return 0;
     slicer.pushSample(sample);
     sample = splicer.getSample();
@@ -66,8 +66,8 @@ CqtSparseProcessor::CqtSparseProcessor(double sampleRate, Index numSamples,
     xi(cqt.getBlockSize()),
     win(cqt.getBlockSize()),
     Xcq(cqt.getCoefs()),
-    slicer(cqt.getBlockSize(), cqt.getBlockSize()/2),
-    splicer(cqt.getBlockSize(), cqt.getBlockSize()/2)
+    slicer(cqt.getBlockSize(), cqt.getBlockSize() / 2),
+    splicer(cqt.getBlockSize(), cqt.getBlockSize() / 2)
 {
     win = hann(cqt.getBlockSize()).sqrt();
     xi.setZero();
@@ -81,7 +81,7 @@ CqtSparseProcessor::CqtSparseProcessor(double sampleRate, Index numSamples,
 double CqtSparseProcessor::processSample(double sample)
 {
     RealTimeChecker ck;
-    
+
     if (fs < 0) return 0;
     slicer.pushSample(sample);
     sample = splicer.getSample();
@@ -109,20 +109,20 @@ SlidingCQTFullProcessor::SlidingCQTFullProcessor(double sampleRate, Index numSam
     cqt(sampleRate, numSamples, fraction, minFrequency, maxFrequency, refFrequency),
     xi(cqt.getBlockSize()),
     win(cqt.getBlockSize()),
-    slicer(cqt.getBlockSize(), cqt.getBlockSize()/2),
-    splicer(cqt.getBlockSize(), cqt.getBlockSize()/2)
+    slicer(cqt.getBlockSize(), cqt.getBlockSize() / 2),
+    splicer(cqt.getBlockSize(), cqt.getBlockSize() / 2)
 
 {
-    Index nBands = cqt.getNumBands();
-    Index blockSize = cqt.getBlockSize();
-    win = hann(blockSize).sqrt();
-    ArrayXXcd coefs = ArrayXXcd::Zero(blockSize, nBands);
+    Index nBands         = cqt.getNumBands();
+    Index blockSize      = cqt.getBlockSize();
+    win                  = hann(blockSize).sqrt();
+    ArrayXXcd coefs      = ArrayXXcd::Zero(blockSize, nBands);
     ArrayXXcd validCoefs = ArrayXXcd::Zero(blockSize / 2, nBands);
     Xcq.fill(coefs);
     Zcq.fill(validCoefs);
     Ycq = coefs;
-    fs = cqt.getSampleRate();
-    
+    fs  = cqt.getSampleRate();
+
     assert(blockSize == cqt.getNumSamps());
     assert(blockSize == win.size());
     assert(blockSize == slicer.getBlockSize());
@@ -138,7 +138,7 @@ SlidingCQTFullProcessor::SlidingCQTFullProcessor(double sampleRate, Index numSam
 double SlidingCQTFullProcessor::processSample(double sample)
 {
     RealTimeChecker ck;
-    
+
     if (fs < 0) return 0;
     slicer.pushSample(sample);
     sample = splicer.getSample();
@@ -148,33 +148,34 @@ double SlidingCQTFullProcessor::processSample(double sample)
         Eigen::ArrayXXcd& Zi   = Zcq.current();
         Eigen::ArrayXXcd& Zim1 = Zcq.last();
         Eigen::ArrayXXcd& Yi   = Ycq;
+
         Index sz = xi.size();
         Index ol = sz / 2;
-    
+
         assert(sz == Xi.rows());
         assert(sz == 2 * Zi.rows());
         assert(sz == Ycq.rows());
         assert(sz == xi.size());
         assert(sz == win.size());
         assert(sz == cqt.getNumSamps());
-        
+
         xi = slicer.getBlock();
         xi *= win; // xi *= win; xi /= 2;
-        
+
         cqt.forward(xi, Xi);
         Xi.colwise() *= win;
         Zi = Xi.topRows(ol) + Xim1.bottomRows(ol);
-        
+
         processBlock(Zi);
-        
-        Yi.topRows(ol) = Zim1;
+
+        Yi.topRows(ol)    = Zim1;
         Yi.bottomRows(ol) = Zi;
-        
+
         Yi.colwise() *= win;
-        
+
         cqt.inverse(Yi, xi);
         xi *= win;
-        
+
         splicer.pushBlock(xi);
         Xcq.advance();
         Zcq.advance();
@@ -185,35 +186,33 @@ double SlidingCQTFullProcessor::processSample(double sample)
 //==========================================================================
 //==========================================================================
 
-
-
 SlidingCqtSparseProcessor::SlidingCqtSparseProcessor(double sampleRate, Index numSamples,
                                                      double fraction, double minFrequency,
                                                      double maxFrequency, double refFrequency) :
     cqt(sampleRate, numSamples, fraction, minFrequency, maxFrequency, refFrequency),
     xi(cqt.getBlockSize()),
     win(cqt.getBlockSize()),
-    slicer(cqt.getBlockSize(), cqt.getBlockSize()/2),
-    splicer(cqt.getBlockSize(), cqt.getBlockSize()/2)
+    slicer(cqt.getBlockSize(), cqt.getBlockSize() / 2),
+    splicer(cqt.getBlockSize(), cqt.getBlockSize() / 2)
 {
-    Index nBands = cqt.getNumBands();
+    Index nBands    = cqt.getNumBands();
     Index blockSize = cqt.getBlockSize();
     xi.setZero();
     win = hann(blockSize).sqrt();
     Win = cqt.getFrame();
-    
+
     for (Index n = 0; n < nBands; n++) {
         Index sz = Win[n].size();
-        Win[n] = hann(sz).sqrt();
+        Win[n]   = hann(sz).sqrt();
     }
-    
-    auto coefs = cqt.getCoefs();
+
+    auto coefs      = cqt.getCoefs();
     auto validCoefs = cqt.getValidCoefs();
     Xcq.fill(coefs);
     Zcq.fill(validCoefs);
     Ycq = coefs;
-    fs = cqt.getSampleRate();
-    
+    fs  = cqt.getSampleRate();
+
     assert(blockSize == cqt.getBlockSize());
     assert(blockSize == win.size());
     assert(blockSize == slicer.getBlockSize());
@@ -224,44 +223,44 @@ SlidingCqtSparseProcessor::SlidingCqtSparseProcessor(double sampleRate, Index nu
 double SlidingCqtSparseProcessor::processSample(double sample)
 {
     RealTimeChecker ck;
-    
+
     if (fs < 0) return 0;
     slicer.pushSample(sample);
     sample = splicer.getSample();
     if (slicer.hasBlock()) {
-        NsgfCqtSparse::Coefs& Xi   = Xcq.current();
-        NsgfCqtSparse::Coefs& Xim1 = Xcq.last();
-        NsgfCqtSparse::Coefs& Zi   = Zcq.current();
-        NsgfCqtSparse::Coefs& Zim1 = Zcq.last();
-        NsgfCqtSparse::Coefs& Yi   = Ycq;
-        Index nBands = cqt.getNumBands();
+        NsgfCqtSparse::Coefs& Xi     = Xcq.current();
+        NsgfCqtSparse::Coefs& Xim1   = Xcq.last();
+        NsgfCqtSparse::Coefs& Zi     = Zcq.current();
+        NsgfCqtSparse::Coefs& Zim1   = Zcq.last();
+        NsgfCqtSparse::Coefs& Yi     = Ycq;
+        Index                 nBands = cqt.getNumBands();
         assert(xi.size() == cqt.getBlockSize());
         xi = slicer.getBlock();
-        
+
         xi *= win;
-        
+
         cqt.forward(xi, Xi);
-        
+
         for (Index k = 0; k < nBands; k++) {
             Xi[k] *= Win[k];
         }
-    
+
         for (Index k = 0; k < nBands; k++) {
-            Index ol = cqt.getLength(k)/2;
-            Zi[k] = Xim1[k].tail(ol) + Xi[k].head(ol);
+            Index ol = cqt.getLength(k) / 2;
+            Zi[k]    = Xim1[k].tail(ol) + Xi[k].head(ol);
         }
-        
+
         processBlock(Zi);
-        
+
         for (Index k = 0; k < nBands; k++) {
-            Index ol = cqt.getLength(k)/2;
+            Index ol       = cqt.getLength(k) / 2;
             Yi[k].head(ol) = Zim1[k];
             Yi[k].tail(ol) = Zi[k];
         }
         for (Index k = 0; k < nBands; k++) {
             Yi[k] *= Win[k];
         }
-        
+
         cqt.inverse(Yi, xi);
         xi *= win;
         splicer.pushBlock(xi);

@@ -7,36 +7,39 @@
 
 #include "Splicer.hpp"
 
-#include "RTChecker.h"
 #include "MathUtils.h"
+#include "RTChecker.h"
 
 using namespace jsa;
 using namespace Eigen;
 
-Splicer::Splicer(Index newBlockSize, Index newHopSize) {
-    blockSize = newBlockSize;
-    hopSize = newHopSize;
+Splicer::Splicer(Index newBlockSize, Index newHopSize)
+{
+    blockSize   = newBlockSize;
+    hopSize     = newHopSize;
     overlapSize = blockSize - hopSize;
-    bufferSize = nextPow2(uint(blockSize + 1));
+    bufferSize  = nextPow2(uint(blockSize + 1));
     buffer.resize(bufferSize);
     buffer.setZero();
     wp = 0;
     rp = constrain(bufferSize - hopSize, bufferSize);
 }
 
-void Splicer::pushBlock(const ArrayXd &block) {
+void Splicer::pushBlock(const ArrayXd& block)
+{
     RealTimeChecker rt;
     for (Index n = 0, m = wp; n < block.size(); n++, m++) {
-        m = constrain(m, bufferSize);
+        m         = constrain(m, bufferSize);
         buffer(m) = (n < overlapSize) * buffer(m) + block(n);
     }
     wp += hopSize;
     wp = constrain(wp, bufferSize);
 }
 
-double Splicer::getSample() {
+double Splicer::getSample()
+{
     RealTimeChecker rt;
-    double sample = buffer(rp);
+    double          sample = buffer(rp);
     rp++;
     rp = constrain(rp, bufferSize);
     return sample;

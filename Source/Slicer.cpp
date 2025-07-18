@@ -7,37 +7,41 @@
 
 #include "Slicer.hpp"
 
-#include "RTChecker.h"
 #include "MathUtils.h"
+#include "RTChecker.h"
 
 using namespace jsa;
 
-Slicer::Slicer(Eigen::Index newBlockSize, Eigen::Index newHopSize) {
-    blockSize = newBlockSize;
-    hopSize = newHopSize;
+Slicer::Slicer(Eigen::Index newBlockSize, Eigen::Index newHopSize)
+{
+    blockSize   = newBlockSize;
+    hopSize     = newHopSize;
     overlapSize = blockSize - hopSize;
-    bufferSize = nextPow2(uint(blockSize + 1));
+    bufferSize  = nextPow2(uint(blockSize + 1));
     buffer.resize(2 * bufferSize);
     buffer.setZero();
     wp = 0;
     rp = constrain(bufferSize - overlapSize, bufferSize);
 }
 
-void Slicer::pushSample(double sample) {
+void Slicer::pushSample(double sample)
+{
     RealTimeChecker rt;
-    wp = constrain(wp, bufferSize);
+    wp         = constrain(wp, bufferSize);
     buffer(wp) = buffer(wp + bufferSize) = sample;
     wp++;
 }
 
-bool Slicer::hasBlock() {
+bool Slicer::hasBlock()
+{
     RealTimeChecker rt;
     return (wp % hopSize) == 0;
 }
 
-Eigen::Map<const Eigen::ArrayXd> Slicer::getBlock() {
+Eigen::Map<const Eigen::ArrayXd> Slicer::getBlock()
+{
     RealTimeChecker rt;
-    rp = constrain(rp, bufferSize);
+    rp           = constrain(rp, bufferSize);
     auto segment = buffer.segment(rp, blockSize);
     rp += hopSize;
     return Eigen::Map<const Eigen::ArrayXd>(segment.data(), segment.size());

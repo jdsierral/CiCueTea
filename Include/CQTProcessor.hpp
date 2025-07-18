@@ -17,10 +17,10 @@
 
 #include <Eigen/Core>
 
-#include "Splicer.hpp"
-#include "Slicer.hpp"
 #include "CQT.hpp"
 #include "DoubleBuffer.h"
+#include "Slicer.hpp"
+#include "Splicer.hpp"
 
 namespace jsa {
 
@@ -31,8 +31,9 @@ namespace jsa {
  * This class provides methods to process individual samples and blocks of data
  * using a full CQT (Constant-Q Transform) implementation.
  */
-class CqtFullProcessor {
-public:
+class CqtFullProcessor
+{
+  public:
     /**
      * @brief Constructs a CqtFullProcessor object.
      * 
@@ -45,7 +46,7 @@ public:
      */
     CqtFullProcessor(double sampleRate, Eigen::Index numSamples, double fraction,
                      double minFrequency, double maxFrequency, double refFrequency);
-    
+
     /**
      * @brief Virtual destructor for safe polymorphic use.
      *
@@ -54,7 +55,7 @@ public:
      * does not require custom cleanup.
      */
     virtual ~CqtFullProcessor() = default;
-    
+
     /**
      * @brief Processes a single audio sample.
      * 
@@ -69,7 +70,7 @@ public:
      * @param block The block of data to process.
      */
     virtual void processBlock(Eigen::ArrayXXcd& block) = 0;
-    
+
     /**
      * @brief Gets the windowing function.
      *
@@ -83,7 +84,7 @@ public:
      * @return A constant reference to the CQT object.
      */
     const NsgfCqtFull& getCqt() const { return cqt; }
-    
+
     /**
      * @brief Gets the latency produced by the processor.
      *
@@ -91,16 +92,16 @@ public:
      */
     Eigen::Index getLatency() const { return cqt.getBlockSize(); }
 
-protected:
+  protected:
     NsgfCqtFull cqt; ///< The CQT object used for processing.
 
-private:
-    Eigen::ArrayXd xi; ///< Internal processing variable.
-    Eigen::ArrayXd win; ///< Windowing function.
-    Eigen::ArrayXXcd Xcq; ///< CQT coefficients.
-    Slicer slicer; ///< Slicer for data segmentation.
-    Splicer splicer; ///< Splicer for data reconstruction.
-    double fs = -1; ///< Sampling rate.
+  private:
+    Eigen::ArrayXd   xi;      ///< Internal processing variable.
+    Eigen::ArrayXd   win;     ///< Windowing function.
+    Eigen::ArrayXXcd Xcq;     ///< CQT coefficients.
+    Slicer           slicer;  ///< Slicer for data segmentation.
+    Splicer          splicer; ///< Splicer for data reconstruction.
+    double           fs = -1; ///< Sampling rate.
 };
 
 //==========================================================================
@@ -112,8 +113,9 @@ private:
  * This class provides methods to process individual samples and blocks of data
  * using a sparse CQT implementation.
  */
-class CqtSparseProcessor {
-public:
+class CqtSparseProcessor
+{
+  public:
     /**
      * @brief Constructs a CqtSparseProcessor object.
      *
@@ -135,7 +137,7 @@ public:
      * does not require custom cleanup.
      */
     virtual ~CqtSparseProcessor() = default;
-    
+
     /**
      * @brief Processes a single audio sample.
      *
@@ -150,7 +152,7 @@ public:
      * @param block The block of data to process.
      */
     virtual void processBlock(NsgfCqtSparse::Coefs& block) = 0;
-    
+
     /**
      * @brief Gets the windowing function.
      *
@@ -164,7 +166,7 @@ public:
      * @return A constant reference to the CQT object.
      */
     const NsgfCqtSparse& getCqt() const { return cqt; }
-    
+
     /**
      * @brief Gets the latency produced by the processor.
      *
@@ -172,16 +174,16 @@ public:
      */
     Eigen::Index getLatency() const { return cqt.getBlockSize(); }
 
-protected:
+  protected:
     NsgfCqtSparse cqt; ///< The CQT object used for processing.
 
-private:
-    Eigen::ArrayXd xi; ///< Internal processing variable.
-    Eigen::ArrayXd win; ///< Windowing function.
-    NsgfCqtSparse::Coefs Xcq; ///< Sparse CQT coefficients.
-    Slicer slicer; ///< Slicer for data segmentation.
-    Splicer splicer; ///< Splicer for data reconstruction.
-    double fs = -1; ///< Sampling rate.
+  private:
+    Eigen::ArrayXd       xi;      ///< Internal processing variable.
+    Eigen::ArrayXd       win;     ///< Windowing function.
+    NsgfCqtSparse::Coefs Xcq;     ///< Sparse CQT coefficients.
+    Slicer               slicer;  ///< Slicer for data segmentation.
+    Splicer              splicer; ///< Splicer for data reconstruction.
+    double               fs = -1; ///< Sampling rate.
 };
 
 //==========================================================================
@@ -193,8 +195,9 @@ private:
  * This class provides methods to process individual samples and blocks of data
  * using a sliding window implementation of the full CQT.
  */
-class SlidingCQTFullProcessor {
-public:
+class SlidingCQTFullProcessor
+{
+  public:
     /**
      * @brief Constructs a SlidingCQTFullProcessor object.
      * 
@@ -216,7 +219,7 @@ public:
      * does not require custom cleanup.
      */
     virtual ~SlidingCQTFullProcessor() = default;
-    
+
     /**
      * @brief Processes a single audio sample.
      * 
@@ -231,7 +234,7 @@ public:
      * @param block The block of data to process.
      */
     virtual void processBlock(Eigen::ArrayXXcd& block) = 0;
-    
+
     /**
      * @brief Gets the windowing function.
      *
@@ -245,7 +248,7 @@ public:
      * @return A constant reference to the CQT object.
      */
     const NsgfCqtFull& getCqt() const { return cqt; }
-    
+
     /**
      * @brief Gets the latency produced by the processor.
      *
@@ -253,21 +256,19 @@ public:
      */
     Eigen::Index getLatency() const { return 1.5 * cqt.getBlockSize(); }
 
-protected:
+  protected:
     NsgfCqtFull cqt; ///< The CQT object used for processing.
 
-private:
-    Eigen::ArrayXd xi; ///< Internal processing variable.
-    DoubleBuffer<Eigen::ArrayXXcd> Xcq; ///< Double buffer for CQT coefficients.
-    DoubleBuffer<Eigen::ArrayXXcd> Zcq; ///< Double buffer for intermediate coefficients.
-    Eigen::ArrayXXcd Ycq; ///< Intermediate CQT coefficients.
-    Eigen::ArrayXd win; ///< Windowing function.
-    Slicer slicer; ///< Slicer for data segmentation.
-    Splicer splicer; ///< Splicer for data reconstruction.
-    double fs = -1; ///< Sampling rate.
+  private:
+    Eigen::ArrayXd                 xi;      ///< Internal processing variable.
+    DoubleBuffer<Eigen::ArrayXXcd> Xcq;     ///< Double buffer for CQT coefficients.
+    DoubleBuffer<Eigen::ArrayXXcd> Zcq;     ///< Double buffer for intermediate coefficients.
+    Eigen::ArrayXXcd               Ycq;     ///< Intermediate CQT coefficients.
+    Eigen::ArrayXd                 win;     ///< Windowing function.
+    Slicer                         slicer;  ///< Slicer for data segmentation.
+    Splicer                        splicer; ///< Splicer for data reconstruction.
+    double                         fs = -1; ///< Sampling rate.
 };
-
-
 
 //==========================================================================
 
@@ -278,8 +279,9 @@ private:
  * This class provides methods to process individual samples and blocks of data
  * using a sliding window implementation of the sparse CQT.
  */
-class SlidingCqtSparseProcessor {
-public:
+class SlidingCqtSparseProcessor
+{
+  public:
     /**
      * @brief Constructs a SlidingCqtSparseProcessor object.
      * 
@@ -293,7 +295,7 @@ public:
     SlidingCqtSparseProcessor(double sampleRate, Eigen::Index numSamples,
                               double fraction, double minFrequency,
                               double maxFrequency, double refFrequency);
-    
+
     /**
      * @brief Virtual destructor for safe polymorphic use.
      *
@@ -339,7 +341,7 @@ public:
      * @return A constant reference to the CQT object.
      */
     const NsgfCqtSparse& getCqt() const { return cqt; }
-    
+
     /**
      * @brief Gets the latency produced by the processor.
      *
@@ -347,19 +349,19 @@ public:
      */
     Eigen::Index getLatency() const { return 1.5 * cqt.getBlockSize(); }
 
-protected:
+  protected:
     NsgfCqtSparse cqt; ///< The CQT object used for processing.
 
-private:
-    Eigen::ArrayXd xi; ///< Internal processing variable.
-    DoubleBuffer<NsgfCqtSparse::Coefs> Xcq; ///< Double buffer for sparse CQT coefficients.
-    DoubleBuffer<NsgfCqtSparse::Coefs> Zcq; ///< Double buffer for intermediate coefficients.
-    NsgfCqtSparse::Coefs Ycq; ///< Intermediate sparse CQT coefficients.
-    Eigen::ArrayXd win; ///< Windowing function.
-    NsgfCqtSparse::Frame Win; ///< Frame of CQT windows.
-    Slicer slicer; ///< Slicer for data segmentation.
-    Splicer splicer; ///< Splicer for data reconstruction.
-    double fs = -1; ///< Sampling rate.
+  private:
+    Eigen::ArrayXd                     xi;      ///< Internal processing variable.
+    DoubleBuffer<NsgfCqtSparse::Coefs> Xcq;     ///< Double buffer for sparse CQT coefficients.
+    DoubleBuffer<NsgfCqtSparse::Coefs> Zcq;     ///< Double buffer for intermediate coefficients.
+    NsgfCqtSparse::Coefs               Ycq;     ///< Intermediate sparse CQT coefficients.
+    Eigen::ArrayXd                     win;     ///< Windowing function.
+    NsgfCqtSparse::Frame               Win;     ///< Frame of CQT windows.
+    Slicer                             slicer;  ///< Slicer for data segmentation.
+    Splicer                            splicer; ///< Splicer for data reconstruction.
+    double                             fs = -1; ///< Sampling rate.
 };
 
-}
+} // namespace jsa

@@ -34,7 +34,8 @@ namespace jsa {
  * result. It assumes that the input is within the range of a 32-bit unsigned
  * integer.
  */
-inline constexpr uint32_t nextPow2(uint32_t x) {
+inline constexpr uint32_t nextPow2(uint32_t x)
+{
     if (x == 0) return 1;
     x--;
     x |= x >> 1;
@@ -78,7 +79,8 @@ inline double square(double x) { return x * x; }
  * @return Eigen::ArrayXd A 1D array containing linearly spaced values from 0 to
  * num-1.
  */
-inline Eigen::ArrayXd regspace(Eigen::Index num) {
+inline Eigen::ArrayXd regspace(Eigen::Index num)
+{
     return Eigen::ArrayXd::LinSpaced(num, 0, num - 1);
 }
 
@@ -95,7 +97,8 @@ inline Eigen::ArrayXd regspace(Eigen::Index num) {
  * @return Eigen::ArrayXd A 1D array of linearly spaced values from `low` to
  * `high`.
  */
-inline Eigen::ArrayXd regspace(Eigen::Index low, Eigen::Index high) {
+inline Eigen::ArrayXd regspace(Eigen::Index low, Eigen::Index high)
+{
     return Eigen::ArrayXd::LinSpaced(high - low + 1, low, high);
 }
 
@@ -114,8 +117,9 @@ inline Eigen::ArrayXd regspace(Eigen::Index low, Eigen::Index high) {
  * @note The `start` and `end` parameters must be greater than zero, as the
  *       logarithm of non-positive numbers is undefined.
  */
-inline Eigen::ArrayXd logspace(double start, double end, Eigen::Index num) {
-    return Eigen::ArrayXd::LinSpaced(num, log(start), log(end)).exp();
+inline Eigen::ArrayXd logspace(double start, double end, Eigen::Index num)
+{
+    return Eigen::ArrayXd::LinSpaced(num, std::log(start), std::log(end)).exp();
 }
 
-}
+} // namespace jsa

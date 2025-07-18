@@ -39,15 +39,15 @@ class DFTImpl;
  * 
  * @brief The Wrapper class for other FFTs provided by different libraries
  */
-class DFT {
-public:
-    
+class DFT
+{
+  public:
     /**
      * @brief Constructor.
      * @param fftSize FFT size (power of two).
      */
     DFT(size_t fftSize);
-    
+
     /**
      * @brief Computes the Discrete Fourier Transform (DFT) on 1D data.
      * @param X Input array of complex values.
@@ -104,11 +104,11 @@ public:
      */
     void irdft(const Eigen::ArrayXXcd& X, Eigen::ArrayXXd& x);
 
-private:
+  private:
     /**
      * @brief Pointer to the implementation of the DFT operations.
      */
     DFTImpl* pImpl;
 };
 
-}
+} // namespace jsa

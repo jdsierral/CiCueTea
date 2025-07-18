@@ -28,8 +28,9 @@ namespace jsa {
  * This is useful for applications such as audio processing, feature extraction, 
  * and time-domain analysis.
  */
-class Slicer {
-public:
+class Slicer
+{
+  public:
     /**
      * @brief Slicer constructor that sets the block size and hop size for slicing.
      *
@@ -89,14 +90,14 @@ public:
      */
     Eigen::Index getBufferSize() const { return bufferSize; }
 
-private:
-    Eigen::ArrayXd buffer; ///< Internal buffer for storing samples.
-    Eigen::Index bufferSize; ///< Size of the internal buffer in samples.
-    Eigen::Index blockSize; ///< Size of each block in samples.
-    Eigen::Index overlapSize; ///< Overlap size between consecutive blocks in samples.
-    Eigen::Index hopSize; ///< Hop size (step size) between consecutive blocks in samples.
-    size_t wp = 0; ///< Write pointer for the buffer.
-    size_t rp = 0; ///< Read pointer for the buffer.
+  private:
+    Eigen::ArrayXd buffer;      ///< Internal buffer for storing samples.
+    Eigen::Index   bufferSize;  ///< Size of the internal buffer in samples.
+    Eigen::Index   blockSize;   ///< Size of each block in samples.
+    Eigen::Index   overlapSize; ///< Overlap size between consecutive blocks in samples.
+    Eigen::Index   hopSize;     ///< Hop size (step size) between consecutive blocks in samples.
+    size_t         wp = 0;      ///< Write pointer for the buffer.
+    size_t         rp = 0;      ///< Read pointer for the buffer.
 };
 
-}
+} // namespace jsa
