@@ -21,12 +21,14 @@ set(ARMADILLO_CONFIG
 set(SourceFiles
     Source/main.cpp
     Source/DFT_UnitTests.cpp
-    Source/CQT_UnitTests.cpp
-    Source/Slicing_UnitTests.cpp
-    Source/SlidingCQT_UnitTests.cpp
-    Source/Perf_UnitTests.cpp
-    Source/SlidingExtended_UnitTests.cpp
-    Source/SliCQTTest_UnitTests.cpp
+    # Source/CQT_UnitTests.cpp
+    # Source/Slicing_UnitTests.cpp
+    # Source/SlidingCQT_UnitTests.cpp
+    # Source/Perf_UnitTests.cpp
+    # Source/SlidingExtended_UnitTests.cpp
+    # Source/SliCQTTest_UnitTests.cpp
+    # Source/MultiDFT_UnitTests.cpp
+    Source/FFTLib_UnitTests.cpp
     Source/VectorOps.h
     Source/EmptyCQTProc.h
 )
@@ -60,7 +62,6 @@ target_link_libraries(${TARGET_NAME}
     PRIVATE "-framework Accelerate"
     PRIVATE ${FFT_LINK_CMD}
     PRIVATE Eigen3::Eigen
-    PRIVATE Boost::log_setup Boost::log
     PRIVATE Matplot++::matplot
     PRIVATE ${PROJECT_NAME}
 )

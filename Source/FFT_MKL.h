@@ -18,6 +18,8 @@
 #include <Eigen/Core>
 #include <mkl.h>
 
+using namespace Eigen;
+
 namespace jsa {
 class DFTImpl
 {
@@ -70,9 +72,13 @@ class DFTImpl
 
     void irdft(const dcomplex* inPtr, double* outPtr)
     {
-        MKL_Complex16* inPtr_ =
-            reinterpret_cast<MKL_Complex16*>(const_cast<dcomplex*>(inPtr));
+        MKL_Complex16* inPtr_ = reinterpret_cast<MKL_Complex16*>(const_cast<dcomplex*>(inPtr));
         DftiComputeBackward(cplxSetup, inPtr_, outPtr);
+    }
+    
+    static const std::string getName()
+    {
+        return "FFT_MKL";
     }
 
   private:

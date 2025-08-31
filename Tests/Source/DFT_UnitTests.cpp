@@ -21,35 +21,8 @@ using namespace jsa;
 
 namespace plt = matplot;
 
-#include <fftw3.h>
-
 #define FFT_SIZE 32
 #define SHOULD_PRINT false
-
-BOOST_AUTO_TEST_CASE(DFTMultiTest1)
-{
-    int       rank    = 1;
-    int       N       = 1 << 6;
-    int       howmany = 10;
-    ArrayXXd  x       = ArrayXXd::Ones(N, howmany);
-    int       istride = 1;
-    int       idist   = N;
-    ArrayXXcd X       = ArrayXXcd::Zero(N / 2 + 1, howmany);
-    int       ostride = 1;
-    int       odist   = N / 2 + 1;
-
-    fftw_plan plan = fftw_plan_many_dft_r2c(
-        rank, &N, howmany, x.data(), nullptr, istride, idist,
-        (fftw_complex*)X.data(), nullptr, ostride, odist, FFTW_MEASURE);
-
-    fftw_execute(plan);
-    //    fftw_execute_dft_r2c(plan, x.data(), (fftw_complex*)X.data());
-
-    //  eig2armaMat(x).print();
-    //  eig2armaMat(X).print();
-
-    BOOST_TEST(true);
-}
 
 BOOST_AUTO_TEST_CASE(DFTTest1)
 {

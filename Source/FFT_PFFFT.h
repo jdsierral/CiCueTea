@@ -17,6 +17,7 @@
 
 #include <Eigen/Core>
 #include <pffft_double.h>
+#include <boost/assert.hpp>
 
 using namespace Eigen;
 
@@ -27,9 +28,11 @@ class DFTImpl
     DFTImpl(size_t fftSize) :
         fftSize(fftSize)
     {
-        work.resize(2 * fftSize);
+        workData.resize(2 * fftSize);
         complexSetup = pffftd_new_setup(int(fftSize), PFFFT_COMPLEX);
         realSetup    = pffftd_new_setup(int(fftSize), PFFFT_REAL);
+        BOOST_ASSERT_MSG(complexSetup, "Complex setup not initialized properly");
+        BOOST_ASSERT_MSG(realSetup, "Real setup not initialized properly");
     }
 
     ~DFTImpl()
@@ -42,14 +45,14 @@ class DFTImpl
     {
         double* inPtr_  = reinterpret_cast<double*>(const_cast<dcomplex*>(inPtr));
         double* outPtr_ = reinterpret_cast<double*>(outPtr);
-        pffftd_transform_ordered(complexSetup, inPtr_, outPtr_, work.data(), PFFFT_FORWARD);
+        pffftd_transform_ordered(complexSetup, inPtr_, outPtr_, workData.data(), PFFFT_FORWARD);
     }
 
     void idft(const dcomplex* inPtr, dcomplex* outPtr)
     {
         double* inPtr_  = reinterpret_cast<double*>(const_cast<dcomplex*>(inPtr));
         double* outPtr_ = reinterpret_cast<double*>(outPtr);
-        pffftd_transform_ordered(complexSetup, inPtr_, outPtr_, work.data(), PFFFT_BACKWARD);
+        pffftd_transform_ordered(complexSetup, inPtr_, outPtr_, workData.data(), PFFFT_BACKWARD);
         Map<ArrayXcd>(outPtr, fftSize) *= (1.0 / fftSize);
     }
 
@@ -57,20 +60,25 @@ class DFTImpl
     {
         double* inPtr_  = reinterpret_cast<double*>(const_cast<double*>(inPtr));
         double* outPtr_ = reinterpret_cast<double*>(outPtr);
-        pffftd_transform_ordered(realSetup, inPtr_, outPtr_, work.data(), PFFFT_FORWARD);
+        pffftd_transform_ordered(realSetup, inPtr_, outPtr_, workData.data(), PFFFT_FORWARD);
     }
 
     void irdft(const dcomplex* inPtr, double* outPtr)
     {
         double* inPtr_  = reinterpret_cast<double*>(const_cast<dcomplex*>(inPtr));
         double* outPtr_ = reinterpret_cast<double*>(outPtr);
-        pffftd_transform_ordered(realSetup, inPtr_, outPtr_, work.data(), PFFFT_BACKWARD);
+        pffftd_transform_ordered(realSetup, inPtr_, outPtr_, workData.data(), PFFFT_BACKWARD);
         Map<ArrayXd>(outPtr, fftSize) *= (1.0 / fftSize);
+    }
+    
+    static std::string getName()
+    {
+        return "PFFFT";
     }
 
   private:
     const size_t   fftSize;
-    Eigen::ArrayXd work;
+    Eigen::ArrayXd workData;
     PFFFTD_Setup*  complexSetup = nullptr;
     PFFFTD_Setup*  realSetup    = nullptr;
 };

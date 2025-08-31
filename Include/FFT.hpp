@@ -103,6 +103,11 @@ class DFT
      * @param x Output matrix of transformed real values.
      */
     void irdft(const Eigen::ArrayXXcd& X, Eigen::ArrayXXd& x);
+    
+    /**
+     * @brief gets the name of the currently used backend.
+     */
+    static const std::string getName();
 
   private:
     /**

@@ -24,13 +24,12 @@ using namespace jsa;
 
 BOOST_AUTO_TEST_CASE(Slicing1)
 {
-    Slicer slicer;
 
     Index N         = (1 << 8);
     Index blockSize = 8;
     Index hopSize   = 4;
-
-    slicer.setSize(blockSize, hopSize);
+    Slicer slicer(blockSize, hopSize);
+    
     ArrayXd x = ArrayXd::LinSpaced(N, 0, N - 1);
 
     for (Index n = 0; n < N; n++) {
@@ -43,14 +42,12 @@ BOOST_AUTO_TEST_CASE(Slicing1)
 
 BOOST_AUTO_TEST_CASE(Slicing2)
 {
-    Slicer  slicer;
-    Splicer splicer;
 
     Index blockSize = 1 << 10;
     Index hopSize   = blockSize / 2;
 
-    slicer.setSize(blockSize, hopSize);
-    splicer.setSize(blockSize, hopSize);
+    Slicer  slicer(blockSize, hopSize);
+    Splicer splicer(blockSize, hopSize);
 
     Index   N = (1 << 16);
     ArrayXd x = ArrayXd::Random(N);
@@ -79,9 +76,6 @@ BOOST_AUTO_TEST_CASE(Slicing2)
 
 BOOST_AUTO_TEST_CASE(CQTSlicing1)
 {
-    Slicer  slicer;
-    Splicer composer;
-
     double fs   = 48000;
     double frac = 1;
     double fMin = 100;
@@ -96,9 +90,9 @@ BOOST_AUTO_TEST_CASE(CQTSlicing1)
     ArrayXd y = ArrayXd::Zero(N);
     ArrayXd w = hann(blockSize);
 
+    Slicer  slicer(blockSize, hopSize);
+    Splicer composer(blockSize, hopSize);
     NsgfCqtFull cqt(fs, blockSize, frac, fMin, fMax, fRef);
-    slicer.setSize(blockSize, hopSize);
-    composer.setSize(blockSize, hopSize);
 
     Index     nBands = cqt.getNumBands();
     ArrayXXcd Xcq(blockSize, nBands);
@@ -131,9 +125,7 @@ BOOST_AUTO_TEST_CASE(CQTSlicing1)
 BOOST_AUTO_TEST_CASE(CQTSlicing2)
 {
     return;
-    Slicer  slicer;
-    Splicer composer;
-
+    
     double fs   = 48000;
     double frac = 1;
     double fMin = 100;
@@ -153,9 +145,9 @@ BOOST_AUTO_TEST_CASE(CQTSlicing2)
     x.head(blockSize).setZero();
     x.tail(blockSize).setZero();
 
+    Slicer  slicer(blockSize, hopSize);
+    Splicer composer(blockSize, hopSize);
     NsgfCqtFull cqt(fs, blockSize, frac, fMin, fMax, fRef);
-    slicer.setSize(blockSize, hopSize);
-    composer.setSize(blockSize, hopSize);
 
     Index     nBands = cqt.getNumBands();
     ArrayXXcd Xm1(blockSize, nBands);

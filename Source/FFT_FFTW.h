@@ -71,6 +71,11 @@ class DFTImpl
         fftw_execute_dft_c2r(c2rPlan, inPtr_, outPtr);
         Map<ArrayXd>(outPtr, fftSize) *= (1.0 / fftSize);
     }
+    
+    static const std::string getName()
+    {
+        return "FFTW";
+    }
 
   private:
     const size_t fftSize;

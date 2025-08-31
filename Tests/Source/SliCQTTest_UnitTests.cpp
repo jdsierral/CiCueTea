@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE(SparseCQTPhaseTest1)
     double fRef      = FREF;
 
     NsgfCqtSparse cqt(fs, blockSize, frac, fMin, fMax, fRef);
-    NsgfCqtSparse::saveCoefs(cqt.getPhaseCoefs(), "Phase");
+    saveCoefs(cqt.getPhaseCoefs(), "Phase");
 
     BOOST_CHECK(true);
 }
@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE(SparseCQTTest1)
 
     eig2armaVec(x).save(csv_name("x.csv"));
     cqt.forward(x, Xi);
-    NsgfCqtSparse::saveCoefs(Xi, "Xi");
+    saveCoefs(Xi, "Xi");
     cqt.inverse(Xi, y);
     eig2armaVec(y).save(csv_name("y.csv"));
 
@@ -95,7 +95,7 @@ BOOST_AUTO_TEST_CASE(SliCQTTest1)
 
     for (int i = 0; i < ola.getCqt().getNumBands(); i++) {
         std::string name = "Xim1_" + std::to_string(i + 1) + ".csv";
-        eig2armaVec(ola.Xcq.last()[i]).save(arma::csv_name(name));
+//        eig2armaVec(ola.Xcq.last()[i]).save(arma::csv_name(name));
     }
 
     BOOST_CHECK(true);

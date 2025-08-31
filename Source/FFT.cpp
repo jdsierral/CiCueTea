@@ -49,6 +49,11 @@ void DFT::irdft(const ArrayXcd& X, ArrayXd& x)
     pImpl->irdft(X.data(), x.data());
 }
 
+const std::string DFT::getName()
+{
+    return DFTImpl::getName();
+}
+
 //==========================================================================
 
 void DFT::dft(const ArrayXXcd& X, ArrayXXcd& Y)

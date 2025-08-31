@@ -10,12 +10,13 @@
 #include <matplot/matplot.h>
 #include <numbers>
 
-#include <Benchtools.h>
 #include <CQT.hpp>
 #include <CQTProcessor.hpp>
 #include <Slicer.hpp>
 #include <Splicer.hpp>
-#include <VectorOps.h>
+
+#include "VectorOps.h"
+#include "Benchtools.h"
 
 #define NUM_SAMPLES 1 << 20
 #define BLOCK_SIZE 1 << 16
@@ -47,7 +48,7 @@ BOOST_AUTO_TEST_CASE(perf1)
     ArrayXd x = ArrayXd::Random(N);
     ArrayXd y = ArrayXd::Zero(N);
 
-    cqtFull ola(fs, blockSize, frac, fMin, fMax, fRef);
+    CqtFull ola(fs, blockSize, frac, fMin, fMax, fRef);
 
     cout << LIB_NAME << " PERF 1" << endl;
     {
@@ -75,7 +76,7 @@ BOOST_AUTO_TEST_CASE(perf2)
     ArrayXd x = ArrayXd::Random(N);
     ArrayXd y = ArrayXd::Zero(N);
 
-    sliCQTFull ola(fs, blockSize, frac, fMin, fMax, fRef);
+    SliCQTFull ola(fs, blockSize, frac, fMin, fMax, fRef);
 
     cout << LIB_NAME << " PERF 2" << endl;
     {
@@ -106,7 +107,7 @@ BOOST_AUTO_TEST_CASE(perf3)
     ArrayXd x = ArrayXd::Random(N);
     ArrayXd y = ArrayXd::Zero(N);
 
-    cqtSparse ola(fs, blockSize, frac, fMin, fMax, fRef);
+    CqtSparse ola(fs, blockSize, frac, fMin, fMax, fRef);
 
     cout << LIB_NAME << " PERF 3" << endl;
     {
@@ -134,7 +135,7 @@ BOOST_AUTO_TEST_CASE(perf4)
     ArrayXd x = ArrayXd::Random(N);
     ArrayXd y = ArrayXd::Zero(N);
 
-    sliCQTSparse ola(fs, blockSize, frac, fMin, fMax, fRef);
+    SliCQTSparse ola(fs, blockSize, frac, fMin, fMax, fRef);
 
     cout << LIB_NAME << " PERF 4" << endl;
     {
