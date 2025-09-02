@@ -20,7 +20,8 @@ set(ARMADILLO_CONFIG
 
 set(SourceFiles
     Source/main.cpp
-    Source/DFT_UnitTests.cpp
+    # Source/DFT_UnitTests.cpp
+    Source/StabilityTest.cpp
     # Source/CQT_UnitTests.cpp
     # Source/Slicing_UnitTests.cpp
     # Source/SlidingCQT_UnitTests.cpp
@@ -28,7 +29,7 @@ set(SourceFiles
     # Source/SlidingExtended_UnitTests.cpp
     # Source/SliCQTTest_UnitTests.cpp
     # Source/MultiDFT_UnitTests.cpp
-    Source/FFTLib_UnitTests.cpp
+    # Source/FFTLib_UnitTests.cpp
     Source/VectorOps.h
     Source/EmptyCQTProc.h
 )

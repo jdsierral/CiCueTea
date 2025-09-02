@@ -4,6 +4,7 @@ set(IncludeFiles
     Include/FFT.hpp
     Include/CQT.hpp
     Include/CQTProcessor.hpp
+    Include/CQTUtils.h
     Include/DoubleBuffer.h
     Include/MathUtils.h
     Include/SignalUtils.h
