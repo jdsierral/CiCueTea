@@ -75,7 +75,7 @@ class DFTImpl
         MKL_Complex16* inPtr_ = reinterpret_cast<MKL_Complex16*>(const_cast<dcomplex*>(inPtr));
         DftiComputeBackward(cplxSetup, inPtr_, outPtr);
     }
-    
+
     static const std::string getName()
     {
         return "FFT_MKL";

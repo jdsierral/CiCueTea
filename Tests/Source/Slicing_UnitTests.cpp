@@ -25,11 +25,11 @@ using namespace jsa;
 BOOST_AUTO_TEST_CASE(Slicing1)
 {
 
-    Index N         = (1 << 8);
-    Index blockSize = 8;
-    Index hopSize   = 4;
+    Index  N         = (1 << 8);
+    Index  blockSize = 8;
+    Index  hopSize   = 4;
     Slicer slicer(blockSize, hopSize);
-    
+
     ArrayXd x = ArrayXd::LinSpaced(N, 0, N - 1);
 
     for (Index n = 0; n < N; n++) {
@@ -90,8 +90,8 @@ BOOST_AUTO_TEST_CASE(CQTSlicing1)
     ArrayXd y = ArrayXd::Zero(N);
     ArrayXd w = hann(blockSize);
 
-    Slicer  slicer(blockSize, hopSize);
-    Splicer composer(blockSize, hopSize);
+    Slicer      slicer(blockSize, hopSize);
+    Splicer     composer(blockSize, hopSize);
     NsgfCqtFull cqt(fs, blockSize, frac, fMin, fMax, fRef);
 
     Index     nBands = cqt.getNumBands();
@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE(CQTSlicing1)
 BOOST_AUTO_TEST_CASE(CQTSlicing2)
 {
     return;
-    
+
     double fs   = 48000;
     double frac = 1;
     double fMin = 100;
@@ -145,8 +145,8 @@ BOOST_AUTO_TEST_CASE(CQTSlicing2)
     x.head(blockSize).setZero();
     x.tail(blockSize).setZero();
 
-    Slicer  slicer(blockSize, hopSize);
-    Splicer composer(blockSize, hopSize);
+    Slicer      slicer(blockSize, hopSize);
+    Splicer     composer(blockSize, hopSize);
     NsgfCqtFull cqt(fs, blockSize, frac, fMin, fMax, fRef);
 
     Index     nBands = cqt.getNumBands();

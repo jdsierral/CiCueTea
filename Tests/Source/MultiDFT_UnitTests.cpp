@@ -19,7 +19,6 @@ using namespace arma;
 using namespace std;
 using namespace jsa;
 
-
 #include <fftw3.h>
 
 BOOST_AUTO_TEST_CASE(DFTMultiTest1)

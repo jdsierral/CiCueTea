@@ -16,8 +16,8 @@
 #pragma once
 
 #include <Eigen/Core>
-#include <pffft_double.h>
 #include <boost/assert.hpp>
+#include <pffft_double.h>
 
 using namespace Eigen;
 
@@ -70,7 +70,7 @@ class DFTImpl
         pffftd_transform_ordered(realSetup, inPtr_, outPtr_, workData.data(), PFFFT_BACKWARD);
         Map<ArrayXd>(outPtr, fftSize) *= (1.0 / fftSize);
     }
-    
+
     static std::string getName()
     {
         return "PFFFT";

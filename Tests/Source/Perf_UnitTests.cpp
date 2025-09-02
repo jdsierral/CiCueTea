@@ -15,8 +15,8 @@
 #include <Slicer.hpp>
 #include <Splicer.hpp>
 
-#include "VectorOps.h"
 #include "Benchtools.h"
+#include "VectorOps.h"
 
 #define NUM_SAMPLES 1 << 20
 #define BLOCK_SIZE 1 << 16
