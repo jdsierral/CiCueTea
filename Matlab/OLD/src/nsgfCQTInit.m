@@ -75,7 +75,7 @@ function s = nsgfCQTInit(type, fs, nSamps, frac, fMin, fMax, fRef, th)
             nCoefs = length(ii);
             offset = ii(1) - 1;
             idxs{k} = ii;
-            n = (0:nCoefs-1);
+            n = (0:nCoefs-1).';
             phase{k} = exp(1j*2*pi*offset*n/nCoefs); % phase offsets
             gCell{k} = g(ii,k);
             gDualCell{k} = gDual(ii,k);
@@ -93,5 +93,5 @@ function ii = padIdxs(ii)
     nIdx = length(ii);
     if nIdx < 4; nIdx = 4; end
     nIdx = 2^nextpow2(nIdx);
-    ii = (i0:i0+nIdx-1);
+    ii = (i0:i0+nIdx-1).';
 end
