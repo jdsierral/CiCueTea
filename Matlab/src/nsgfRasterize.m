@@ -19,6 +19,6 @@ function Xr = nsgfRasterize(X, s)
     Xr = zeros(s.nSamps, s.nBands);
     for k = 1:s.nBands
         % Undo phase and interpolate each band to full length
-        Xr(:,k) = interpft(X{k} .* conj(s.phase{k}), s.nSamps);
+        Xr(:,k) = interpft(X{k}, s.nSamps);
     end
 end
