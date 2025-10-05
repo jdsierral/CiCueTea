@@ -1,15 +1,23 @@
+%% DEMO3  Block-wise NSGF-CQT Analysis, Slicing, and Reconstruction
+%   This demo shows how to perform block-wise NSGF-CQT analysis and synthesis
+%   on a long signal, using slicing, windowing, and splicing. It compares the
+%   result to a reference full-length transform and visualizes the error.
+%   Requires the CiCueTea library and MATLAB's Signal Processing Toolbox.
+
 clear
 clc
 
+% Add source code to path
 addpath(genpath("src"));
 
-fs = 48000;
-nSamps = 2^20;
-frac = 1;
-fMin = 100;
-fMax = 10000;
-fRef = 1000;
+% Analysis parameters
+fs = 48000;           % Sample rate
+nSamps = 2^20;        % Number of samples
+frac = 1;             % Frequency resolution (periods per octave)
+fMin = 100;           % Minimum frequency
+fMax = 10000;         % Maximum frequency      
 
+% Generate a logarithmic chirp signal and apply a Kaiser window
 t = (0:nSamps-1)'/fs;
 x = chirp(t, fMin, t(end), fMax, "logarithmic");
 w = kaiser(nSamps, 20);
@@ -19,20 +27,24 @@ blockSize = 2^14;
 overlapSize = blockSize / 2;
 win = sqrt(hann(blockSize, "periodic"));
 
+% Zero initial and final because they require a previous or next block to 
+% reconstruct properly
 x(1:overlapSize) = 0;
 x(end-overlapSize:end) = 0;
 
+% Initialize full long version NSGF-CQT and compute its transform
 sLong  = nsgfCQTInit("full", fs, nSamps,    frac);
 XcqRef = nsgfCQT(x, sLong);
 
+% Initialize short NSGF-CQT
 s = nsgfCQTInit("full", fs, blockSize, frac);
 
-% Slice the signal
+% Slice the signal    
 xBuf = slicer(x, blockSize, overlapSize);
 % Window the time domain blocks
 xBuf = xBuf .* win;
 
-% NSGF-CQT
+% NSGF-CQT (it is wrapped around a cell conversion to make avoid a for-loop)
 XcqBuf = colfun(@(x) nsgfCQT(x, s), xBuf, 'uni', 0); XcqBuf = cat(3, XcqBuf{:});
 
 % Window time-frequency planes
@@ -40,7 +52,8 @@ XcqBuf = XcqBuf .* win;
 
 % ReBuild long Form
 Xcq = spectralSplicer(XcqBuf, overlapSize);
-% 
+
+% Slice long form into short form 
 XcqBuf_ = spectralSlicer(Xcq, blockSize, overlapSize);
 
 % Window time-frequency planes
