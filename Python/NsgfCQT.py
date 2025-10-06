@@ -2,126 +2,213 @@ import numpy as np
 import scipy.fft as fft
 import scipy.signal as sg
 
+
 class NsgfCQT:
-    def __init__(self, type, fs, nSamps, frac=1/12, fMin=1e2, fMax=1e4, fRef=1e3, th=1e-6):
+    def __init__(self, mode, sample_rate, n_samples, 
+                 frac=1/12, f_min=1e2, f_max=1e4, f_ref=1e3, threshold=1e-6):
+        sample_rate = float(sample_rate)
+        n_samples = int(n_samples)
+        frac = float(frac)
+        f_min = float(f_min)
+        f_max = float(f_max)
+        f_ref = float(f_ref)
+        assert f_min != 0, "Lower bound can't be 0"
+        assert f_max * 2 < sample_rate, "Higher bound must be below nyquist"
+        assert f_min * 2 <= f_max, "Leave at least 1 octave"
+        # assert sample_rate / (f_min * ((2.0**frac) - 1.0)) > n_samples, "Q is too high"
 
-        assert(fMin != 0, "Lower bound cant be 0")
-        assert(fMax * 2 < fs, "Higher bound must be below nyquist")
-        assert(fMin * 2 <= fMax, "Leave at least 1 octave")
-        assert(fs / (fMin * (2.0**(frac) - 1)) > nSamps, "Q is too high")
+        self.min_bw = 4
 
-        self.minBW = 4
+        n_bands_up = int(np.ceil(1 / frac * np.log2(f_max / f_ref)))
+        n_bands_dn = int(np.ceil(1 / frac * np.log2(f_ref / f_min)))
+        n_bands = n_bands_dn + n_bands_up + 1
+        n_freqs = n_samples
+        bands = np.arange(-n_bands_dn, n_bands_up + 1)
+        band_axis = f_ref * 2.0 ** (frac * bands)               
+        time_axis = np.arange(-n_samples / 2, n_samples / 2) / sample_rate
+        freq_axis = np.arange(n_freqs) * sample_rate / n_freqs  
 
-        nBandsUp = int(np.ceil(1/frac * np.log2(fMax / fRef)))
-        nBandsDn = int(np.ceil(1/frac * np.log2(fRef / fMin)))
-        nBands = nBandsDn + nBandsUp + 1
-        nFreqs = nSamps
-        bax = fRef * 2.0**(frac * np.arange(-nBandsDn, nBandsUp))   # Band Axis
-        tax = np.arange(-nSamps/2, nSamps/2)                        # Time Axis
-        fax = np.arange(nFreqs) * fs / nFreqs                       # Frequency Axis
+        c = np.log(4) / (frac ** 2.0)                   # Horizontal Scale Factor
+        outer_diff = np.subtract.outer(np.log2(freq_axis), np.log2(band_axis))
+        g = np.exp(-c * outer_diff ** 2.0)              # Analytic Gaussians
+        g[np.where(freq_axis < band_axis[0]), 0] = 1    # Make lowest band an LPF
+        g[np.where(freq_axis > band_axis[-1]), -1] = 1  # Make highest band an HPF
 
-        c = np.log(4) / (frac**2.0)                                 # Horizontal Scale Factor
-        outerDif = np.subtract.outer(np.log2(bax), np.log2(fax))
-        g = np.exp(-c * outerDif**2.0)                              # Analytic Gaussains
-        g[ 0, np.where(fax < bax[ 0])] = 1                          # Make lowest band an LPF
-        g[-1, np.where(fax > bax[-1])] = 1                          # Make highest band an HPF
+        if mode == "sparse":                # In sparse mode truncate gaussians
+            g[np.where(g < threshold)] = 0
 
-        if type == "sparse":                                        # In sparse mode truncate
-            g[np.where(g < th)] = 0                                 # gaussians
+        d = np.sum(g ** 2.0, 1)
+        g_dual = g / d[:, None]             # Compute the dual frame
 
-        d = np.sum(g**2.0,0)                    
-        gDual = g / d                                               # Compute the dual frame
+        # Check for invertibility
+        assert np.sqrt(np.mean((np.sum(g * g_dual, 1) - 1) ** 2.0)) < 1e-10
 
-        assert(np.sqrt(np.mean((np.sum(g * gDual, 2) - 1)**2.0)) < 1e-10)
-                                                                    # Check for invertibility
+        g[np.where(freq_axis > sample_rate / 2), :] = 0
+        g_dual[np.where(freq_axis > sample_rate / 2), :] = 0
 
-        g[:,np.where(fax > fs/2)] = 0                               # Zero after nyquist to
-        gDual[:,np.where(fax > fs/2)] = 0                           # avoid conjugate calculation
-
-        self.fs = fs                                                # store all the data
-        self.nSamps = nSamps
-        self.nFreqs = nFreqs
-        self.nBands = nBands
-        self.fMin = fMin
-        self.fMax = fMax
-        self.fRef = fRef
-        self.bax = bax
-        self.fax = fax
+        self.sample_rate = sample_rate
+        self.n_samples = n_samples
+        self.n_freqs = n_freqs
+        self.n_bands = n_bands
+        self.f_min = f_min
+        self.f_max = f_max
+        self.f_ref = f_ref
+        self.time_axis = time_axis
+        self.band_axis = band_axis
+        self.freq_axis = freq_axis
         self.g = g
         self.d = d
-        self.gDual = gDual
-        self.type = type
+        self.g_dual = g_dual
+        self.mode = mode
 
-        if type == "sparse":                                        # In Sparse mode store data
-            idxs = [None] * nBands                                  # based on indexes after
-            gList = [None] * nBands                                 # truncation into lists
-            gDualList = [None] * nBands
-            shifts = [None] * nBands
+        if mode == "sparse":
+            idxs = [None] * n_bands
+            g_list = [None] * n_bands
+            g_dual_list = [None] * n_bands
+            shifts = [None] * n_bands
 
-            for k in range(nBands):
-                ii = np.where(g[k,:] != 0)[0]                       # Find valid indexes
-                ii = NsgfCQT.padIdxs(ii)
-                nCoefs = len(ii)
+            for k in range(n_bands):
+                ii = np.where(g[:, k] != 0)[0]
+                ii = NsgfCQT.pad_indices(ii)
+                n_coefs = len(ii)
                 offset = ii[0]
                 idxs[k] = ii
-                n = np.arange(nCoefs)
-                shifts[k] = np.exp(1j * 2 * np.pi * offset * n / nCoefs)
-                gList[k] = g[k,:]
-                gDualList[k] = gDual[k,:]
+                n = np.arange(n_coefs)
+                shifts[k] = np.exp(1j * 2 * np.pi * offset * n / n_coefs)
+                g_list[k] = g[ii,k]
+                g_dual_list[k] = g_dual[ii,k]
 
-            self.g = gList
-            self.gDual = gDualList
+            self.g = g_list
+            self.g_dual = g_dual_list
             self.idxs = idxs
             self.shifts = shifts
 
-    def forward(self, x):        
-        X = fft.fft(x, self.nSamps) / self.nSamps
 
-        if self.type == "full":
-            Xcq = 2 * fft.ifft(X * self.g) * self.nSamps
-        elif self.type == "sparse":
-            Xcq = self.nBands * [None]
-            for k in range(self.nBands):
-                nCoefs = float(len(self.idxs[k]))
+    def forward(self, x):
+        X = fft.fft(x, self.n_samples) / self.n_samples
+
+        if self.mode == "full":
+            X_cq = 2 * self.n_samples * fft.ifft(X[:, None] * self.g, self.n_samples, 0)
+        elif self.mode == "sparse":
+            X_cq = [None] * self.n_bands
+            for k in range(self.n_bands):
+                n_coefs = float(len(self.idxs[k]))
                 Xi = fft.ifft(X[self.idxs[k]] * self.g[k])
-                Xi = Xi * 2 * nCoefs * self.shifts[k]
-                Xcq[k] = Xi
-        return Xcq
+                Xi = Xi * 2 * n_coefs * self.shifts[k]
+                X_cq[k] = Xi
+        return X_cq
 
-    def inverse(self, Xcq):
-        if self.type == "full":
-            X = np.sum(fft.fft(Xcq) * self.gDual, 0) / (2.0 * self.nSamps)
-        elif self.type == "sparse":
-            X = np.zeros(self.nSamps, dtype=np.complex128)
-            for k in range(self.nBands):
-                nCoefs = len(self.idxs[k])
-                Xi = Xcq[k]
-                Xi *= self.shifts[k].conj() / (2.0 * nCoefs)
-                Xi = fft.fft(Xi) * self.gDual[k]
+
+    def inverse(self, X_cq):
+        if self.mode == "full":
+            X = 1.0 / (2.0 * self.n_samples) * np.sum(fft.fft(X_cq, self.n_samples, 0) * self.g_dual, 1)
+        elif self.mode == "sparse":
+            X = np.zeros(self.n_samples, dtype=np.complex128)
+            for k in range(self.n_bands):
+                n_coefs = len(self.idxs[k])
+                Xi = X_cq[k]
+                Xi *= self.shifts[k].conj() / (2.0 * n_coefs)
+                Xi = fft.fft(Xi) * self.g_dual[k]
                 X[self.idxs[k]] += Xi
-        x = fft.irfft(X, self.nSamps) * self.nSamps
+        x = fft.irfft(X, self.n_samples) * self.n_samples
         return x
     
+
     @staticmethod
-    def padIdxs(ii):
-        i0 = ii[0]
-        nIdx = ii.size
-        if nIdx < 4:
-            nIdx = 4
-        nidx = int(2**np.ceil(np.log2(nIdx)))
-        ii = np.arange(i0, i0+nIdx-1)
-        return ii
+    def pad_indices(indices):
+        i0 = indices[0]
+        n_idx = indices.size
+        if n_idx < 4:
+            n_idx = 4
+        n_idx_pow2 = int(2 ** np.ceil(np.log2(n_idx)))
+        indices = i0 + np.arange(n_idx_pow2)
+        return indices
     
-    def rasterize(self, Xcq):
-        Xr = np.zeros([self.nBands, self.nSamps], dtype=np.complex128)
-        for k in range(self.nBands):
-            Xr[k,:] = sg.resample(Xcq[k], self.nSamps)
-        return Xr
+
+    def rasterize(self, X_cq):
+        X_r = np.zeros([self.n_samples, self.n_bands], dtype=np.complex128)
+        for k in range(self.n_bands):
+            X_r[:,k] = sg.resample(X_cq[k], self.n_samples)
+        return X_r
     
-# function ii = padIdxs(ii)
-#     i0 = ii(1);
-#     nIdx = length(ii);
-#     if nIdx < 4; nIdx = 4; end
-#     nIdx = 2^nextpow2(nIdx);
-#     ii = (i0:i0+nIdx-1);
-# end
+class NsgfVQT(NsgfCQT):
+    def __init__(self, mode, sample_rate, n_samples, f_map=np.log2,
+                 frac=1/12, f_min=1e2, f_max=1e4, f_ref=1e3, threshold=1e-6):
+        sample_rate = float(sample_rate)
+        n_samples = int(n_samples)
+        frac = float(frac)
+        f_min = float(f_min)
+        f_max = float(f_max)
+        f_ref = float(f_ref)
+        assert f_min != 0, "Lower bound can't be 0"
+        assert f_max * 2 < sample_rate, "Higher bound must be below nyquist"
+        assert f_min * 2 <= f_max, "Leave at least 1 octave"
+        # assert sample_rate / (f_min * ((2.0**frac) - 1.0)) > n_samples, "Q is too high"
+
+        self.min_bw = 4
+
+        n_bands_up = int(np.ceil(1 / frac * (f_map(f_max) - f_map(f_min))))
+        n_bands_dn = int(np.ceil(1 / frac * (f_map(f_ref) - f_map(f_min))))
+        n_bands = n_bands_dn + n_bands_up + 1
+        n_freqs = n_samples
+        bands = np.arange(-n_bands_dn, n_bands_up + 1)
+        band_axis = f_map(f_ref) + (frac * bands)               
+        time_axis = np.arange(-n_samples / 2, n_samples / 2) / sample_rate 
+        freq_axis = np.arange(n_freqs) * sample_rate / n_freqs  
+
+        c = np.log(4) / (frac ** 2.0)                   # Horizontal Scale Factor
+        outer_diff = np.subtract.outer(f_map(freq_axis), band_axis)
+        g = np.exp(-c * outer_diff ** 2.0)              # Analytic Gaussians
+        g[np.where(f_map(freq_axis) < band_axis[0]), 0] = 1    # Make lowest band an LPF
+        g[np.where(f_map(freq_axis) > band_axis[-1]), -1] = 1  # Make highest band an HPF
+
+        if mode == "sparse":                # In sparse mode truncate gaussians
+            g[np.where(g < threshold)] = 0
+
+        d = np.sum(g ** 2.0, 1)
+        g_dual = g / d[:, None]             # Compute the dual frame
+
+        # Check for invertibility
+        assert np.sqrt(np.mean((np.sum(g * g_dual, 1) - 1) ** 2.0)) < 1e-10
+
+        g[np.where(freq_axis > sample_rate / 2), :] = 0
+        g_dual[np.where(freq_axis > sample_rate / 2), :] = 0
+
+        self.sample_rate = sample_rate
+        self.n_samples = n_samples
+        self.n_freqs = n_freqs
+        self.n_bands = n_bands
+        self.f_map = f_map
+        self.f_min = f_min
+        self.f_max = f_max
+        self.f_ref = f_ref
+        self.time_axis = time_axis
+        self.band_axis = band_axis
+        self.freq_axis = freq_axis
+        self.g = g
+        self.d = d
+        self.g_dual = g_dual
+        self.mode = mode
+
+        if mode == "sparse":
+            idxs = [None] * n_bands
+            g_list = [None] * n_bands
+            g_dual_list = [None] * n_bands
+            shifts = [None] * n_bands
+
+            for k in range(n_bands):
+                ii = np.where(g[:, k] != 0)[0]
+                ii = NsgfCQT.pad_indices(ii)
+                n_coefs = len(ii)
+                offset = ii[0]
+                idxs[k] = ii
+                n = np.arange(n_coefs)
+                shifts[k] = np.exp(1j * 2 * np.pi * offset * n / n_coefs)
+                g_list[k] = g[ii,k]
+                g_dual_list[k] = g_dual[ii,k]
+
+            self.g = g_list
+            self.g_dual = g_dual_list
+            self.idxs = idxs
+            self.shifts = shifts
+
