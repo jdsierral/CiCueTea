@@ -2,7 +2,7 @@
 %   Xcq = nsgfCQT(x, s)
 %
 %   Computes the Constant-Q Transform (CQT) of the input signal x using a
-%   nonstationary Gabor filterbank (NSGF) approach. The function supports both
+%   nonstationary Gabor frame (NSGF) approach. The function supports both
 %   full and sparse representations depending on the structure s.
 %
 %   INPUTS:

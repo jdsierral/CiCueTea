@@ -2,7 +2,7 @@
 %   x = nsgfICQT(Xcq, s)
 %
 %   Reconstructs the time-domain signal from its Constant-Q Transform (CQT)
-%   coefficients using the Nonstationary Gabor Filterbank (NSGF) approach.
+%   coefficients using the Nonstationary Gabor Frame (NSGF) approach.
 %   Supports both full and sparse representations.
 %
 %   INPUTS:

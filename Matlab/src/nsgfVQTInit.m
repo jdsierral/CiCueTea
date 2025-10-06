@@ -1,8 +1,8 @@
 % NSGFVQTINIT  Initialize Nonstationary Gabor Frame for Variable-QT
 %   s = nsgfVQTInit(type, fs, nSamps, fMap, frac, fMin, fMax, fRef, th)
 %
-%   Initializes the filterbank structure for the Nonstationary Gabor Filterbank
-%   Constant-Q Transform (CQT). This function computes the filterbank center
+%   Initializes the transform structure for the Nonstationary Gabor Frame
+%   Constant-Q Transform (CQT). This function computes the transform center
 %   frequencies, frequency responses, and other parameters required for the CQT.
 %
 %   INPUTS:
@@ -23,7 +23,7 @@
 %         .g, .gDual, .d, .type
 %         (for sparse type) .idxs, .phase
 %
-%   The function checks for valid parameter ranges and ensures the filterbank
+%   The function checks for valid parameter ranges and ensures the transform
 %   respects the Nyquist limit and octave constraints. For 'sparse' type, filters
 %   below the threshold are zeroed and indices are stored for efficient processing.
 %
