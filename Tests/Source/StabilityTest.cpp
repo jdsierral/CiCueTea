@@ -25,8 +25,8 @@ BOOST_AUTO_TEST_CASE(StabilityTests1)
     double fMax       = 10000;
     double fRef       = 1000;
 
-//    if (NsgfCqtSparse::verifyConfiguration(sampleRate, nSamps, fraction, fMin, fMax, fRef))
-//        NsgfCqtSparse cqt(sampleRate, nSamps, fraction, fMin, fMax, fRef);
+    //    if (NsgfCqtSparse::verifyConfiguration(sampleRate, nSamps, fraction, fMin, fMax, fRef))
+    //        NsgfCqtSparse cqt(sampleRate, nSamps, fraction, fMin, fMax, fRef);
 
     BOOST_CHECK(true);
 }
