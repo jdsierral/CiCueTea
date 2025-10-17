@@ -57,7 +57,6 @@ set_target_properties(${TARGET_NAME}
 target_link_libraries(${TARGET_NAME} 
     PRIVATE ${FFT_LINK_CMD}
     PRIVATE Eigen3::Eigen
-    PRIVATE Boost::log_setup Boost::log
 )
 
 if (BUILD_TESTS)
