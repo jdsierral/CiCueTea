@@ -28,7 +28,7 @@ x = sg.chirp(t, fMin, t[-1], fMax, 'logarithmic')
 w = sg.windows.kaiser(nSamps, 20)
 x *= w
 
-s1 = NsgfCQT.NsgfCQT('full', fs, nSamps, frac)
+s1 = NsgfCQT.NsgfCQT('dense', fs, nSamps, frac)
 s2 = NsgfCQT.NsgfCQT('sparse', fs, nSamps, frac)
 
 X1 = s1.forward(x)
@@ -70,12 +70,12 @@ plt.clf()
 plt.subplot(2, 1, 1)
 plt.semilogx(s1.band_axis, pow2db(np.mean(np.abs(X1)**2.0, 0)))
 plt.semilogx(s2.band_axis, pow2db(np.mean(np.abs(X2)**2.0, 0)), "-.")
-plt.legend(["full", "sparse"])
+plt.legend(["dense", "sparse"])
 
 plt.subplot(2, 1, 2)
 plt.plot(s1.time_axis, pow2db(np.mean(np.abs(X1)**2.0, 1)))
 plt.plot(s2.time_axis, pow2db(np.mean(np.abs(X2)**2.0, 1)), "-.")
-plt.legend(["full", "sparse"])
+plt.legend(["dense", "sparse"])
 
 plt.figure(3)
 plt.clf()

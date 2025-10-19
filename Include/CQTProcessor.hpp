@@ -25,17 +25,17 @@
 namespace jsa {
 
 /**
- * @class CqtFullProcessor
- * @brief Processes audio samples using a full non-stationary Gabor transform-based CQT.
+ * @class CqtDenseProcessor
+ * @brief Processes audio samples using a dense non-stationary Gabor transform-based CQT.
  * 
  * This class provides methods to process individual samples and blocks of data
- * using a full CQT (Constant-Q Transform) implementation.
+ * using a dense CQT (Constant-Q Transform) implementation.
  */
-class CqtFullProcessor
+class CqtDenseProcessor
 {
   public:
     /**
-     * @brief Constructs a CqtFullProcessor object.
+     * @brief Constructs a CqtDenseProcessor object.
      * 
      * @param sampleRate The sampling rate of the audio signal.
      * @param numSamples The number of samples to process.
@@ -44,7 +44,7 @@ class CqtFullProcessor
      * @param maxFrequency The maximum frequency of the CQT.
      * @param refFrequency The reference frequency for the CQT.
      */
-    CqtFullProcessor(double sampleRate, Eigen::Index numSamples, double fraction,
+    CqtDenseProcessor(double sampleRate, Eigen::Index numSamples, double fraction,
                      double minFrequency, double maxFrequency, double refFrequency);
 
     /**
@@ -54,7 +54,7 @@ class CqtFullProcessor
      * through a base class pointer. This destructor is defaulted as the base class
      * does not require custom cleanup.
      */
-    virtual ~CqtFullProcessor() = default;
+    virtual ~CqtDenseProcessor() = default;
 
     /**
      * @brief Processes a single audio sample.
@@ -83,7 +83,7 @@ class CqtFullProcessor
      * 
      * @return A constant reference to the CQT object.
      */
-    const NsgfCqtFull& getCqt() const { return cqt; }
+    const NsgfCqtDense& getCqt() const { return cqt; }
 
     /**
      * @brief Gets the latency produced by the processor.
@@ -93,7 +93,7 @@ class CqtFullProcessor
     Eigen::Index getLatency() const { return cqt.getBlockSize(); }
 
   protected:
-    NsgfCqtFull cqt; ///< The CQT object used for processing.
+    NsgfCqtDense cqt; ///< The CQT object used for processing.
 
   private:
     Eigen::ArrayXd   xi;      ///< Internal processing variable.
@@ -189,17 +189,17 @@ class CqtSparseProcessor
 //==========================================================================
 
 /**
- * @class SlidingCQTFullProcessor
- * @brief Processes audio samples using a sliding window full CQT.
+ * @class SlidingCQTDenseProcessor
+ * @brief Processes audio samples using a sliding window dense CQT.
  * 
  * This class provides methods to process individual samples and blocks of data
- * using a sliding window implementation of the full CQT.
+ * using a sliding window implementation of the dense CQT.
  */
-class SlidingCQTFullProcessor
+class SlidingCQTDenseProcessor
 {
   public:
     /**
-     * @brief Constructs a SlidingCQTFullProcessor object.
+     * @brief Constructs a SlidingCQTDenseProcessor object.
      * 
      * @param sampleRate The sampling rate of the audio signal.
      * @param numSamples The number of samples to process.
@@ -208,7 +208,7 @@ class SlidingCQTFullProcessor
      * @param maxFrequency The maximum frequency of the CQT.
      * @param refFrequency The reference frequency for the CQT.
      */
-    SlidingCQTFullProcessor(double sampleRate, Eigen::Index numSamples, double fraction,
+    SlidingCQTDenseProcessor(double sampleRate, Eigen::Index numSamples, double fraction,
                             double minFrequency, double maxFrequency, double refFrequency);
 
     /**
@@ -218,7 +218,7 @@ class SlidingCQTFullProcessor
      * through a base class pointer. This destructor is defaulted as the base class
      * does not require custom cleanup.
      */
-    virtual ~SlidingCQTFullProcessor() = default;
+    virtual ~SlidingCQTDenseProcessor() = default;
 
     /**
      * @brief Processes a single audio sample.
@@ -247,7 +247,7 @@ class SlidingCQTFullProcessor
      * 
      * @return A constant reference to the CQT object.
      */
-    const NsgfCqtFull& getCqt() const { return cqt; }
+    const NsgfCqtDense& getCqt() const { return cqt; }
 
     /**
      * @brief Gets the latency produced by the processor.
@@ -257,7 +257,7 @@ class SlidingCQTFullProcessor
     Eigen::Index getLatency() const { return 1.5 * cqt.getBlockSize(); }
 
   protected:
-    NsgfCqtFull cqt; ///< The CQT object used for processing.
+    NsgfCqtDense cqt; ///< The CQT object used for processing.
 
   private:
     Eigen::ArrayXd                 xi;      ///< Internal processing variable.

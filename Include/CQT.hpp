@@ -106,17 +106,17 @@ class NsgfCqtCommon
 };
 
 /**
- * @class NsgfCqtFull
- * @brief Full implementation of the NSGF-CQT.
+ * @class NsgfCqtDense
+ * @brief Dense implementation of the NSGF-CQT.
  * 
  * This class provides methods for forward and inverse NSGF-CQT transformations
- * using a full representation of the filterbank.
+ * using a dense representation of the filterbank.
  */
-class NsgfCqtFull : public NsgfCqtCommon
+class NsgfCqtDense : public NsgfCqtCommon
 {
   public:
     /**
-     * @brief Constructor for NsgfCqtFull.
+     * @brief Constructor for NsgfCqtDense.
      * 
      * @param sampleRate Sampling rate of the signal (Hz).
      * @param numSamples Number of samples in the signal.
@@ -125,7 +125,7 @@ class NsgfCqtFull : public NsgfCqtCommon
      * @param maxFrequency Maximum frequency of the filterbank (Hz).
      * @param refFrequency Reference frequency for the filterbank (Hz).
      */
-    NsgfCqtFull(double sampleRate, Eigen::Index numSamples, double fraction,
+    NsgfCqtDense(double sampleRate, Eigen::Index numSamples, double fraction,
                 double minFrequency, double maxFrequency, double refFrequency);
 
     /**

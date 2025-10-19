@@ -3,7 +3,7 @@
 %
 %   Reconstructs the time-domain signal from its Constant-Q Transform (CQT)
 %   coefficients using the Nonstationary Gabor Frame (NSGF) approach.
-%   Supports both full and sparse representations.
+%   Supports both dense and sparse representations.
 %
 %   INPUTS:
 %     Xcq : CQT coefficients (vector or cell array, depending on s.type)
@@ -15,8 +15,8 @@
 %   See also: nsgfCQT, nsgfCQTInit
 
 function x = nsgfICQT(Xcq, s)
-    if s.type == "full"
-        % Full mode: sum over all bands, apply dual window, then IFFT
+    if s.type == "dense"
+        % Dense mode: sum over all bands, apply dual window, then IFFT
         X = 1./ (2 * s.nSamps) * sum(fft(Xcq) .* s.gDual, 2);
     elseif s.type == "sparse"
         % Sparse mode: reconstruct each band and sum into frequency bins

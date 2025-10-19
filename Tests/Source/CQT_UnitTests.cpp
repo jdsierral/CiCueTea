@@ -23,7 +23,7 @@ using namespace jsa;
 
 namespace plt = matplot;
 
-BOOST_AUTO_TEST_CASE(CQTTestFull1)
+BOOST_AUTO_TEST_CASE(CQTTestDense1)
 {
     double fs     = 48000;
     int    nSamps = 1 << 10;
@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(CQTTestFull1)
     double fMax   = 10000;
     double fRef   = 1500;
 
-    NsgfCqtFull cqt(fs, nSamps, frac, fMin, fMax, fRef);
+    NsgfCqtDense cqt(fs, nSamps, frac, fMin, fMax, fRef);
 
     if (false) {
         cout << "nBands: " << cqt.getNumBands() << endl;
@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE(CQTTestFull1)
     BOOST_CHECK(rms(ggDual - 1) < 1e-10);
 }
 
-BOOST_AUTO_TEST_CASE(CQTTestFull2)
+BOOST_AUTO_TEST_CASE(CQTTestDense2)
 {
     double fs     = 48000;
     size_t nSamps = 1 << 10;
@@ -81,7 +81,7 @@ BOOST_AUTO_TEST_CASE(CQTTestFull2)
     double fMax   = 10000;
     double fRef   = 1500;
 
-    NsgfCqtFull cqt(fs, nSamps, frac, fMin, fMax, fRef);
+    NsgfCqtDense cqt(fs, nSamps, frac, fMin, fMax, fRef);
     ArrayXd     t = regspace(int(nSamps)) / fs;
     ArrayXd     x = (2 * M_PI * fRef * t).sin();
     ArrayXd     y(nSamps);
@@ -236,7 +236,7 @@ BOOST_AUTO_TEST_CASE(SlidingCQT)
     Index   nBlocks     = (nSamps - blockSize) / hopSize;
     ArrayXd win         = hann(blockSize).sqrt();
 
-    NsgfCqtFull cqt(fs, blockSize, frac, fMin, fMax, fRef);
+    NsgfCqtDense cqt(fs, blockSize, frac, fMin, fMax, fRef);
 
     ArrayXd t = regspace(nSamps) / fs;
     //    ArrayXd x = (2 * M_PI * fRef * t + M_PI_4/2).sin();

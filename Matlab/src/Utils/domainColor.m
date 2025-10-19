@@ -41,7 +41,7 @@ function c = domainColor(z, dBLimits, angSteps, magSteps)
     % Map phase to hue in [0, 1]
     hue = (dBAng + pi) / (2 * pi);
     hue = floor(angSteps * hue) / angSteps; % Quantize
-    sat = ones(size(hue));                 % Full saturation
+    sat = ones(size(hue));                 % Dense saturation
     val = dBMag;                           % Value = normalized magnitude
 
     % Combine HSV channels and convert to RGB

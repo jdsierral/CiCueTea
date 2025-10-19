@@ -7,17 +7,17 @@
 
 #pragma once
 
-class CqtFull : public jsa::CqtFullProcessor
+class CqtDense : public jsa::CqtDenseProcessor
 {
   public:
-    using jsa::CqtFullProcessor::CqtFullProcessor;
+    using jsa::CqtDenseProcessor::CqtDenseProcessor;
     void processBlock(Eigen::ArrayXXcd& block) override {}
 };
 
-class SliCQTFull : public jsa::SlidingCQTFullProcessor
+class SliCQTDense : public jsa::SlidingCQTDenseProcessor
 {
   public:
-    using jsa::SlidingCQTFullProcessor::SlidingCQTFullProcessor;
+    using jsa::SlidingCQTDenseProcessor::SlidingCQTDenseProcessor;
     void processBlock(Eigen::ArrayXXcd& block) override {};
 };
 

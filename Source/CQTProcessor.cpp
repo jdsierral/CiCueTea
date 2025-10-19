@@ -13,7 +13,7 @@
 using namespace Eigen;
 using namespace jsa;
 
-CqtFullProcessor::CqtFullProcessor(double sampleRate, Index numSamples,
+CqtDenseProcessor::CqtDenseProcessor(double sampleRate, Index numSamples,
                                    double fraction, double minFrequency,
                                    double maxFrequency, double refFrequency) :
     cqt(sampleRate, numSamples, fraction, minFrequency, maxFrequency, refFrequency),
@@ -34,7 +34,7 @@ CqtFullProcessor::CqtFullProcessor(double sampleRate, Index numSamples,
     assert(cqt.getBlockSize() == Xcq.rows());
 }
 
-double CqtFullProcessor::processSample(double sample)
+double CqtDenseProcessor::processSample(double sample)
 {
     RealTimeChecker ck;
 
@@ -103,7 +103,7 @@ double CqtSparseProcessor::processSample(double sample)
 //==========================================================================
 //==========================================================================
 
-SlidingCQTFullProcessor::SlidingCQTFullProcessor(double sampleRate, Index numSamples,
+SlidingCQTDenseProcessor::SlidingCQTDenseProcessor(double sampleRate, Index numSamples,
                                                  double fraction, double minFrequency,
                                                  double maxFrequency, double refFrequency) :
     cqt(sampleRate, numSamples, fraction, minFrequency, maxFrequency, refFrequency),
@@ -135,7 +135,7 @@ SlidingCQTFullProcessor::SlidingCQTFullProcessor(double sampleRate, Index numSam
     assert(blockSize == Ycq.rows());
 }
 
-double SlidingCQTFullProcessor::processSample(double sample)
+double SlidingCQTDenseProcessor::processSample(double sample)
 {
     RealTimeChecker ck;
 

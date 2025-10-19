@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(OlaProc1)
     ArrayXd x = ArrayXd::Random(N);
     ArrayXd y = ArrayXd::Zero(N);
 
-    CqtFull ola(fs, blockSize, 1, 1e2, 1e4, 1e3);
+    CqtDense ola(fs, blockSize, 1, 1e2, 1e4, 1e3);
 
     for (Index n = 0; n < N; n++) {
         y(n) = ola.processSample(x(n));
@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(OlaProc2)
     ArrayXd x = ArrayXd::Random(N);
     ArrayXd y = ArrayXd::Zero(N);
 
-    SliCQTFull ola(fs, blockSize, 1, 1e2, 1e4, 1e3);
+    SliCQTDense ola(fs, blockSize, 1, 1e2, 1e4, 1e3);
 
     for (Index n = 0; n < N; n++) {
         y(n) = ola.processSample(x(n));

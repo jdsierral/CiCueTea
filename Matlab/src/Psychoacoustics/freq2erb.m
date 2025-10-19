@@ -9,7 +9,7 @@
 % where the purpose doesnt entirely apply and where the frequency range
 % doesnt entirely apply.
 %
-% The ERB scale is a model of listening critical bands where a full ERB
+% The ERB scale is a model of listening critical bands where a dense ERB
 % shares particular perceptual characteristics based on masking curves,
 % equal loudness perception and even complex tone integration. Notice
 % however that any of these can be affected by other objective signal

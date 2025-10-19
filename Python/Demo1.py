@@ -26,8 +26,8 @@ x = sg.chirp(t, fMin, t[-1], fMax, 'logarithmic')
 w = sg.windows.kaiser(nSamps, 20)
 x *= w
 
-sERB = NsgfCQT.NsgfVQT('full', fs, nSamps, freq2erb, 1/2)
-sCQT = NsgfCQT.NsgfVQT('full', fs, nSamps, np.log2, 1/12)
+sERB = NsgfCQT.NsgfVQT('dense', fs, nSamps, freq2erb, 1/2)
+sCQT = NsgfCQT.NsgfVQT('dense', fs, nSamps, np.log2, 1/12)
 
 Xerb = sERB.forward(x)
 Xcqt = sCQT.forward(x)

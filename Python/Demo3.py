@@ -31,10 +31,10 @@ x *= w
 x[:blockSize] = 0
 x[-blockSize:] = 0
 
-sRef = NsgfCQT.NsgfCQT('full', fs, nSamps, frac)
+sRef = NsgfCQT.NsgfCQT('dense', fs, nSamps, frac)
 XcqRef = sRef.forward(x)
 
-s = NsgfCQT.NsgfCQT('full', fs, blockSize, frac)
+s = NsgfCQT.NsgfCQT('dense', fs, blockSize, frac)
 
 xBuf = slicer(x, blockSize, overlapSize)
 xBuf *= win
@@ -93,6 +93,6 @@ plt.clim(cRange)
 plt.colorbar()
 plt.xlabel("Time")
 plt.ylabel("Frequency")
-plt.title("CQT as Computed from full signal")
+plt.title("CQT as Computed from dense signal")
 
 plt.tight_layout()

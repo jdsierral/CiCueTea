@@ -18,7 +18,7 @@ function Xr = nsgfRasterize(X, s)
     % Preallocate output matrix
     Xr = zeros(s.nSamps, s.nBands);
     for k = 1:s.nBands
-        % Undo phase and interpolate each band to full length
+        % Undo phase and interpolate each band to dense length
         Xr(:,k) = interpft(X{k}, s.nSamps);
     end
 end

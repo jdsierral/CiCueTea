@@ -28,8 +28,8 @@ fRef = 1000;                     % Reference frequency
 
 
 % Initialize ERB-based and CQT-based transforms
-sERB = nsgfVQTInit("full", fs, nSamps, fMap, fracCQT, fMin, fMax, fRef);
-sCQT = nsgfVQTInit("full", fs, nSamps, @log2, fracERB, fMin, fMax, fRef);
+sERB = nsgfVQTInit("dense", fs, nSamps, fMap, fracCQT, fMin, fMax, fRef);
+sCQT = nsgfVQTInit("dense", fs, nSamps, @log2, fracERB, fMin, fMax, fRef);
 
 
 % Compute NSGF-VQT and NSGF-CQT transforms

@@ -40,7 +40,7 @@ NsgfCqtCommon::NsgfCqtCommon(double sampleRate, Index numSamples,
 //==========================================================================
 //==========================================================================
 
-NsgfCqtFull::NsgfCqtFull(double sampleRate, Index numSamples,
+NsgfCqtDense::NsgfCqtDense(double sampleRate, Index numSamples,
                          double fraction, double minFrequency,
                          double maxFrequency, double refFrequency) :
     NsgfCqtCommon(sampleRate, numSamples, fraction, minFrequency, maxFrequency, refFrequency),
@@ -63,7 +63,7 @@ NsgfCqtFull::NsgfCqtFull(double sampleRate, Index numSamples,
     Xmat.setZero();
 }
 
-void NsgfCqtFull::forward(const ArrayXd& x, ArrayXXcd& Xcq)
+void NsgfCqtDense::forward(const ArrayXd& x, ArrayXXcd& Xcq)
 {
     RealTimeChecker ck;
 
@@ -77,7 +77,7 @@ void NsgfCqtFull::forward(const ArrayXd& x, ArrayXXcd& Xcq)
     dft.idft(Xmat, Xcq);
 }
 
-void NsgfCqtFull::inverse(const ArrayXXcd& Xcq, ArrayXd& x)
+void NsgfCqtDense::inverse(const ArrayXXcd& Xcq, ArrayXd& x)
 {
     RealTimeChecker ck;
 

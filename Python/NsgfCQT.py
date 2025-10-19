@@ -87,7 +87,7 @@ class NsgfCQT:
     def forward(self, x):
         X = fft.fft(x, self.n_samples) / self.n_samples
 
-        if self.mode == "full":
+        if self.mode == "dense":
             X_cq = 2 * self.n_samples * fft.ifft(X[:, None] * self.g, self.n_samples, 0)
         elif self.mode == "sparse":
             X_cq = [None] * self.n_bands
@@ -100,7 +100,7 @@ class NsgfCQT:
 
 
     def inverse(self, X_cq):
-        if self.mode == "full":
+        if self.mode == "dense":
             X = 1.0 / (2.0 * self.n_samples) * np.sum(fft.fft(X_cq, self.n_samples, 0) * self.g_dual, 1)
         elif self.mode == "sparse":
             X = np.zeros(self.n_samples, dtype=np.complex128)

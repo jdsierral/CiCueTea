@@ -1,5 +1,5 @@
-%% DEMO2  Comparison of Full and Sparse NSGF-CQT Representations
-%   This demo generates a logarithmic chirp, computes its full and sparse
+%% DEMO2  Comparison of Dense and Sparse NSGF-CQT Representations
+%   This demo generates a logarithmic chirp, computes its dense and sparse
 %   nonstationary Gabor frame Constant-Q Transforms (NSGF-CQT),
 %   and visualizes the results and their differences.
 %   Requires the CiCueTea library and MATLAB's Signal Processing Toolbox.
@@ -27,18 +27,18 @@ w = kaiser(nSamps, 20);
 x = x .* w;
 
 
-% Initialize full and sparse NSGF-CQT
-s1 = nsgfCQTInit("full", fs, nSamps, frac);
+% Initialize dense and sparse NSGF-CQT
+s1 = nsgfCQTInit("dense", fs, nSamps, frac);
 s2 = nsgfCQTInit("sparse", fs, nSamps, frac);
 
 
-% Compute full and sparse CQT transforms
+% Compute dense and sparse CQT transforms
 X1 = nsgfCQT(x, s1);
 X2 = nsgfCQT(x, s2);
 X2 = nsgfRasterize(X2, s2); % Convert sparse to matrix form
 
 
-% Get the time-domain atoms of the full version by inverse real FFT
+% Get the time-domain atoms of the dense version by inverse real FFT
 g1 = s1.g(1:end/2+1,:);
 h1 = ifftshift(irfft(g1, s1.nSamps), 1);
 h1 = h1 ./ max(abs(h1));
@@ -63,11 +63,11 @@ figure(1)
 clf()
 range = [-100, 0];
 subplot 311
-imagesc(tax, bax, dB(X1).'); % Full transform
+imagesc(tax, bax, dB(X1).'); % Dense transform
 colormap jet
 colorbar
 set(gca, "CLim", range)
-title("Full Transform");
+title("Dense Transform");
 set(gca, "YDir", "normal");
 
 
@@ -81,7 +81,7 @@ set(gca, "YDir", "normal");
 
 
 subplot 313
-imagesc(tax, bax, dB(X1-X2).'); % Difference between full and sparse
+imagesc(tax, bax, dB(X1-X2).'); % Difference between dense and sparse
 colormap jet
 colorbar
 set(gca, "CLim", range)
@@ -110,7 +110,7 @@ ylabel("Amplitude (dB)")
 title("Energy across time")
 
 
-% Plot time-domain atoms for both full and sparse representations
+% Plot time-domain atoms for both dense and sparse representations
 figure(3)
 clf();
 subplot 121
@@ -118,7 +118,7 @@ plot(tax, h1 + 2 * (1:s1.nBands), "LineWidth", 2);
 xlim(0.02 * [-1, 1])
 xlabel("Time")
 yticks([]);
-title("Full time-domain Atoms")
+title("Dense time-domain Atoms")
 
 
 subplot 122

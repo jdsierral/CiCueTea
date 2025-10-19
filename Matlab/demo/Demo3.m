@@ -1,7 +1,7 @@
 %% DEMO3  Block-wise NSGF-CQT Analysis, Slicing, and Reconstruction
 %   This demo shows how to perform block-wise NSGF-CQT analysis and synthesis
 %   on a long signal, using slicing, windowing, and splicing. It compares the
-%   result to a reference full-length transform and visualizes the error.
+%   result to a reference dense-length transform and visualizes the error.
 %   Requires the CiCueTea library and MATLAB's Signal Processing Toolbox.
 
 clear
@@ -32,12 +32,12 @@ win = sqrt(hann(blockSize, "periodic"));
 x(1:overlapSize) = 0;
 x(end-overlapSize:end) = 0;
 
-% Initialize full long version NSGF-CQT and compute its transform
-sLong  = nsgfCQTInit("full", fs, nSamps,    frac);
+% Initialize dense long version NSGF-CQT and compute its transform
+sLong  = nsgfCQTInit("dense", fs, nSamps,    frac);
 XcqRef = nsgfCQT(x, sLong);
 
 % Initialize short NSGF-CQT
-s = nsgfCQTInit("full", fs, blockSize, frac);
+s = nsgfCQTInit("dense", fs, blockSize, frac);
 
 % Slice the signal    
 xBuf = slicer(x, blockSize, overlapSize);
@@ -119,6 +119,6 @@ ticks = yticks();
 yticklabels(2.^ticks);
 xlabel("Time");
 ylabel("Frequency");
-title("CQT as Computed from full signal")
+title("CQT as Computed from dense signal")
 
 

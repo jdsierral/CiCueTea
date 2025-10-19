@@ -6,7 +6,7 @@
 %   frequencies, frequency responses, and other parameters required for the CQT.
 %
 %   INPUTS:
-%     type   : (string) "full" or "sparse" (output type)
+%     type   : (string) "dense" or "sparse" (output type)
 %     fs     : (double) Sampling frequency (Hz)
 %     nSamps : (double) Number of samples for FFT
 %     fMap   : (function_handle) function that linearizes the frequency axis 
@@ -31,7 +31,7 @@
 
 function s = nsgfVQTInit(type, fs, nSamps, fMap, frac, fMin, fMax, fRef, th)
     arguments
-        type (1,1) string {mustBeMember(type, ["full","sparse"])}
+        type (1,1) string {mustBeMember(type, ["dense","sparse"])}
         fs (1,1) double {mustBePositive}
         nSamps (1,1) double {mustBeInteger, mustBePositive}
         fMap (1,1) function_handle = @log2 
@@ -62,7 +62,7 @@ function s = nsgfVQTInit(type, fs, nSamps, fMap, frac, fMin, fMax, fRef, th)
     g = exp( -c * (bax.' - fMap(fax)).^2);
         
 
-    % Ensure full coverage at the frequency range edges
+    % Ensure dense coverage at the frequency range edges
     g(fMap(fax) <= bax(1), 1) = 1;
     g(fMap(fax) >= bax(end), end) = 1;
     
@@ -131,7 +131,7 @@ function s = nsgfVQTInit(type, fs, nSamps, fMap, frac, fMin, fMax, fRef, th)
     s.g = g;            % Analysis windows (or cell array for sparse)
     s.d = d;            % Frame operator diagonal
     s.gDual = gDual;    % Dual windows (or cell array for sparse)
-    s.type = type;      % 'full' or 'sparse'
+    s.type = type;      % 'dense' or 'sparse'
 end
 
 function ii = padIdxs(ii)

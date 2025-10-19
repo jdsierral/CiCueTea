@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE(perf1)
     ArrayXd x = ArrayXd::Random(N);
     ArrayXd y = ArrayXd::Zero(N);
 
-    CqtFull ola(fs, blockSize, frac, fMin, fMax, fRef);
+    CqtDense ola(fs, blockSize, frac, fMin, fMax, fRef);
 
     cout << LIB_NAME << " PERF 1" << endl;
     {
@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE(perf2)
     ArrayXd x = ArrayXd::Random(N);
     ArrayXd y = ArrayXd::Zero(N);
 
-    SliCQTFull ola(fs, blockSize, frac, fMin, fMax, fRef);
+    SliCQTDense ola(fs, blockSize, frac, fMin, fMax, fRef);
 
     cout << LIB_NAME << " PERF 2" << endl;
     {

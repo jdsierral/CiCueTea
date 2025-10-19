@@ -46,7 +46,7 @@ def freq2erb(freq):
     """
     Frequency to Equivalent Rectangular Bandwidth (ERB) conversion
     
-    The ERB scale is a model of listening critical bands where a full ERB shares particular perceptual characteristics based on masking curves, equal loudness perception, and even complex tone integration. Notice however that any of these can be affected by other objective signal properties like loudness and timbre.
+    The ERB scale is a model of listening critical bands where a dense ERB shares particular perceptual characteristics based on masking curves, equal loudness perception, and even complex tone integration. Notice however that any of these can be affected by other objective signal properties like loudness and timbre.
     
     Reference:
     [1] Moore and Glasberg "A Revision of Zwicker's Loudness Model," ACTA Acustica, vol. 82, pp. 335-345, 1996
