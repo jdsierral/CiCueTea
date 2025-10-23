@@ -195,7 +195,7 @@ class CqtSparseProcessor
  * This class provides methods to process individual samples and blocks of data
  * using a sliding window implementation of the dense CQT.
  */
-class SlidingCQTDenseProcessor
+class SlidingCqtDenseProcessor
 {
   public:
     /**
@@ -208,7 +208,7 @@ class SlidingCQTDenseProcessor
      * @param maxFrequency The maximum frequency of the CQT.
      * @param refFrequency The reference frequency for the CQT.
      */
-    SlidingCQTDenseProcessor(double sampleRate, Eigen::Index numSamples, double fraction,
+    SlidingCqtDenseProcessor(double sampleRate, Eigen::Index numSamples, double fraction,
                             double minFrequency, double maxFrequency, double refFrequency);
 
     /**
@@ -218,7 +218,7 @@ class SlidingCQTDenseProcessor
      * through a base class pointer. This destructor is defaulted as the base class
      * does not require custom cleanup.
      */
-    virtual ~SlidingCQTDenseProcessor() = default;
+    virtual ~SlidingCqtDenseProcessor() = default;
 
     /**
      * @brief Processes a single audio sample.

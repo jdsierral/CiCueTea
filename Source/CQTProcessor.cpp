@@ -103,9 +103,9 @@ double CqtSparseProcessor::processSample(double sample)
 //==========================================================================
 //==========================================================================
 
-SlidingCQTDenseProcessor::SlidingCQTDenseProcessor(double sampleRate, Index numSamples,
-                                                 double fraction, double minFrequency,
-                                                 double maxFrequency, double refFrequency) :
+SlidingCqtDenseProcessor::SlidingCqtDenseProcessor(double sampleRate, Index numSamples,
+                                                   double fraction, double minFrequency,
+                                                   double maxFrequency, double refFrequency) :
     cqt(sampleRate, numSamples, fraction, minFrequency, maxFrequency, refFrequency),
     xi(cqt.getBlockSize()),
     win(cqt.getBlockSize()),
@@ -135,7 +135,7 @@ SlidingCQTDenseProcessor::SlidingCQTDenseProcessor(double sampleRate, Index numS
     assert(blockSize == Ycq.rows());
 }
 
-double SlidingCQTDenseProcessor::processSample(double sample)
+double SlidingCqtDenseProcessor::processSample(double sample)
 {
     RealTimeChecker ck;
 
