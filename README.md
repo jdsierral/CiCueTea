@@ -111,7 +111,7 @@ MIT License — use it freely, sip responsibly.
 
 ## 👤 Author
 
-Developed by [Juan Sierra](https://github.com/juansierradev) as part of research at NYU Abu Dhabi and Meyer Sound Labs.
+Developed by [Juan Sierra](https://github.com/juansierradev) as part of research at NYU Abu Dhabi.
 
 ---
 
