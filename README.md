@@ -1,6 +1,6 @@
 # 🍵 CiCueTea
 
-**CiCueTea** is a high-performance, real-time Constant-Q Transform engine based on **nonstationary Gabor frames**. Built for spectral signal processing with near-perfect invertibility and low-latency operation, it powers the core of the [CiCue](https://github.com/your-org) plugin suite.
+**CiCueTea** is a high-performance, real-time Constant-Q Transform engine based on **nonstationary Gabor frames**. Built for spectral signal processing. It is designed to be invertibile and low-latency operation, it powers the core of the [CiCueProc](www.JuanSaudio.com/audio-plugins) plugin suite.
 
 > 🎧 “Brew your spectrum.”™
 
@@ -11,10 +11,10 @@
 ## ✨ Features
 
 - ⚡ **Real-time performance**: Suitable for plugin use, interactive DSP, and low-latency environments.
-- ♻ **Perfect invertibility** (within numerical tolerance): Enables seamless reconstruction after transformation.
+- ♻ **Invertibile** (within numerical tolerance): Enables seamless reconstruction after transformation.
 - 🔍 **High frequency resolution** at low frequencies, **high time resolution** at high frequencies.
 - 🧠 **Based on Nonstationary Gabor Frames (NSGF)**: Sample-exact theoretical foundation.
-- 🛠️ Modular design: Drop into any C++ project or integrate as a JUCE module.
+- 🛠️ Modular design: Drop into any C++ project
 
 ---
 
@@ -42,32 +42,45 @@ git submodule update --init --recursive
 ## 🧪 Example Usage
 
 ```cpp
-#include <cicuetea/CQT.h>
+#include <Eigen/Core>
+#include <CQT.hpp>
 
-jsa::tea::CQT cqt;
-cqt.prepare(sampleRate, fftSize, hopSize);
+double fs = 48000;
+long N = 1<<16;
+double fMin = 100;
+double fMax = 10000;
+double fRef = 440;
+jsa::NsgfCqtDense cqt(fs, nSamps, frac, fMin, fMax, fRef);
+
+Eigen::ArrayXd x(cqt.getNumSamples());
+Eigen::ArrayXd y(cqt.getNumSamples());
+Eigen::ArrayXXcd Xcq(cqt.getNumSamples(), cqt.getNumBands());
 
 // Forward transform
-auto spectrum = cqt.forward(inputBlock);
+cqt.forward(x, Xcq);
 
 // Inverse transform
-auto reconstructed = cqt.inverse(spectrum);
+cqt.inverse(Xcq, y);
 ```
 
 ---
 
 ## 📀 Parameters & Design Notes
 
-| Parameter       | Description                                  |
-| --------------- | -------------------------------------------- |
-| `binsPerOctave` | Controls resolution — typically 24 or 36     |
-| `minFreq`       | Start of frequency range (e.g., 30 Hz)       |
-| `maxFreq`       | Upper limit of transform                     |
-| `gamma`         | Time/frequency scaling behavior              |
-| `overlap`       | How much overlap exists in analysis windows  |
-| `windowType`    | Type of analysis window (Gaussian preferred) |
+| Parameter       | Description                                                 |
+| --------------- | ----------------------------------------------------------- |
+| `fs`            | Sample Rate since in the CQT it is highly connected         |
+| `nSamples`      | Number of Samples to transform                              |
+| `frac`          | This is the reciprocal of points per octave allowing        | 
+|                 | fractional values                                           |
+| `minFrequency`  | Start of frequency range (e.g., 100 Hz as going to low      |
+|                 | increases latency)                                          |
+| `maxFrequency`  | Upper limit of transform (Limits the range with             |
+|                 |Constant-Q property)                                         |
+| --------------- | ----------------------------------------------------------- |
 
-> CiCueTea uses **nonzero Gaussian windows** for excellent frequency localization and smooth invertibility.
+> CiCueTea uses **Gaussian windows designed in log-frequency** to obtain perfect
+> pitch symmetry.
 
 ---
 
@@ -77,21 +90,25 @@ Most CQT implementations either:
 
 - Are not invertible,
 - Are not usable in real time,
-- Or compromise on time/frequency resolution.
+- Are not designed for true symmetric log-frequency shaped pass-bands
 
 **CiCueTea** is designed to achieve **all three**:
 
 - Real-time forward/inverse streaming
-- Almost perfect numerical reconstruction
+- Numerically accurate reconstruction
 - High resolution in perceptually-relevant bands
 
 ---
 
 ## 📦 Used in
 
-- 🎛️ [`CiCuePitchScrambler`](https://github.com/your-org/CiCuePitchScrambler)
-- 🎚️ [`CiCueEQ`](https://github.com/your-org/CiCueEQ)
-- 🔊 [`CiCueSpectrum`](https://github.com/your-org/CiCueSpectrum)
+- 🎛️ [`CiCueEq`](www.JuanSaudio.com/audio-plugins/CiCueEq)
+- 🎚️ [`CiCueDenoise`](www.JuanSaudio.com/audio-plugins/CiCueDenoise)
+- 🔊 [`CiCueDecorr`](www.JuanSaudio.com/audio-plugins/CiCueDecorr)
+- 🎛️ [`PitchDelay`](www.JuanSaudio.com/audio-plugins/PitchDelay)
+- 🎚️ [`PitchScrambler`](www.JuanSaudio.com/audio-plugins/PitchScrambler)
+- 🔊 [`PitchFDN`](www.JuanSaudio.com/audio-plugins/PitchFDN)
+
 
 ---
 
@@ -111,7 +128,7 @@ MIT License — use it freely, sip responsibly.
 
 ## 👤 Author
 
-Developed by [Juan Sierra](https://github.com/juansierradev) as part of research at NYU Abu Dhabi.
+Developed by [Juan Sierra](https://github.com/jdsierral) as part of research at NYU Abu Dhabi.
 
 ---
 
