@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 4.0)
+
+set(CMAKE_OSX_DEPLOYMENT_TARGET "15.0" CACHE STRING "Support macOS down to Big Sur")
 include(GitData.cmake)
 project("CiCueTea" VERSION ${CURRENT_VERSION})
 set(TARGET_NAME ${PROJECT_NAME})
@@ -62,3 +64,5 @@ target_link_libraries(${TARGET_NAME}
 if (BUILD_TESTS)
     add_subdirectory(Tests)
 endif()
+
+add_subdirectory(BTest)
