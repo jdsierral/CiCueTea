@@ -3,10 +3,9 @@ enable_testing()
 set(TARGET_NAME ${PROJECT_NAME}_UnitTest)
 message(STATUS ${SEP} ${TARGET_NAME} ${SEP})
 
-find_package(Matplot++ REQUIRED)
 find_package(Armadillo REQUIRED)
 cmake_policy(SET CMP0167 NEW)
-find_package(Boost 1.82 REQUIRED)
+find_package(Boost 1.89 REQUIRED)
 find_package(Boost COMPONENTS program_options log log_setup REQUIRED)
 
 set(ARMADILLO_CONFIG
@@ -23,16 +22,16 @@ set(ARMADILLO_CONFIG
 
 set(SourceFiles
     Source/main.cpp
-    # Source/DFT_UnitTests.cpp
+    Source/DFT_UnitTests.cpp
     Source/StabilityTest.cpp
-    # Source/CQT_UnitTests.cpp
-    # Source/Slicing_UnitTests.cpp
-    # Source/SlidingCQT_UnitTests.cpp
-    # Source/Perf_UnitTests.cpp
-    # Source/SlidingExtended_UnitTests.cpp
-    # Source/SliCQTTest_UnitTests.cpp
-    # Source/MultiDFT_UnitTests.cpp
-    # Source/FFTLib_UnitTests.cpp
+    Source/CQT_UnitTests.cpp
+    Source/Slicing_UnitTests.cpp
+    Source/SlidingCQT_UnitTests.cpp
+    Source/Perf_UnitTests.cpp
+    Source/SlidingExtended_UnitTests.cpp
+    Source/SliCQTTest_UnitTests.cpp
+    Source/FFTLib_UnitTests.cpp
+    Source/Timing_Tests.cpp
     Source/VectorOps.h
     Source/EmptyCQTProc.h
 )
@@ -54,9 +53,15 @@ target_compile_options(${TARGET_NAME}
         -fcolor-diagnostics
 )
 
+# message(STATUS ${SEP} ${TARGET_NAME} ${SEP})
+# message(STATUS ${Boost_INCLUDE_DIRS})
+# message(STATUS ${ARMADILLO_INCLUDE_DIRS})
+# message(STATUS ${FFT_INCLUDE_DIR})
+# message(STATUS ${SEP} ${TARGET_NAME} ${SEP})
+
 target_include_directories(${TARGET_NAME}
-    SYSTEM PRIVATE ${ARMADILLO_INCLUDE_DIRS}
     SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
+    SYSTEM PRIVATE ${ARMADILLO_INCLUDE_DIRS}
     SYSTEM PRIVATE ${FFT_INCLUDE_DIR}
     PRIVATE ../Source
     PRIVATE ../Include
@@ -66,7 +71,6 @@ target_link_libraries(${TARGET_NAME}
     PRIVATE "-framework Accelerate"
     PRIVATE ${FFT_LINK_CMD}
     PRIVATE Eigen3::Eigen
-    PRIVATE Matplot++::matplot
     PRIVATE ${PROJECT_NAME}
 )
 

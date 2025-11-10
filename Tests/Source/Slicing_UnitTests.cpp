@@ -7,7 +7,6 @@
 
 #include <armadillo>
 #include <boost/test/unit_test.hpp>
-#include <matplot/matplot.h>
 #include <numbers>
 
 #include <CQT.hpp>

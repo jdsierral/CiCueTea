@@ -7,7 +7,6 @@
 
 #include <armadillo>
 #include <boost/test/unit_test.hpp>
-#include <matplot/matplot.h>
 #include <numbers>
 
 #include <CQT.hpp>
@@ -153,7 +152,7 @@ BOOST_AUTO_TEST_CASE(ExtendedTest3)
     x         = sin(2 * M_PI * 1000 * regspace(N) / fs);
     ArrayXd y = ArrayXd::Zero(N);
 
-    SliCQTDense ola(fs, blockSize, frac, fMin, fMax, fRef);
+    SliCqtDense ola(fs, blockSize, frac, fMin, fMax, fRef);
     string      baseName = "SliCQTDense_";
     eig2armaVec(ola.getCqt().NsgfCqtCommon::getFrequencyAxis()).save(csv_name(baseName + "fax.csv"));
     eig2armaVec(ola.getWindow()).save(csv_name(baseName + "win.csv"));
@@ -195,7 +194,7 @@ BOOST_AUTO_TEST_CASE(ExtendedTest4)
     ArrayXd x = ArrayXd::Random(N);
     ArrayXd y = ArrayXd::Zero(N);
 
-    SliCQTSparse ola(fs, blockSize, frac, fMin, fMax, fRef);
+    SliCqtSparse ola(fs, blockSize, frac, fMin, fMax, fRef);
     string       baseName = "";
     eig2armaVec(ola.getCqt().NsgfCqtCommon::getFrequencyAxis()).save(csv_name(baseName + "fax.csv"));
     eig2armaVec(ola.getWindow()).save(csv_name(baseName + "win.csv"));

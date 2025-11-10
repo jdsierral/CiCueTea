@@ -7,7 +7,6 @@
 
 #include <armadillo>
 #include <boost/test/unit_test.hpp>
-#include <matplot/matplot.h>
 #include <numbers>
 
 #include <CQT.hpp>
@@ -21,8 +20,6 @@ using namespace arma;
 using namespace std;
 using namespace jsa;
 
-namespace plt = matplot;
-
 BOOST_AUTO_TEST_CASE(CQTTestDense1)
 {
     double fs     = 48000;
@@ -33,36 +30,6 @@ BOOST_AUTO_TEST_CASE(CQTTestDense1)
     double fRef   = 1500;
 
     NsgfCqtDense cqt(fs, nSamps, frac, fMin, fMax, fRef);
-
-    if (false) {
-        cout << "nBands: " << cqt.getNumBands() << endl;
-        cout << "nFreqs: " << cqt.getNumFreqs() << endl;
-        cout << "nSamps: " << cqt.getNumSamps() << endl;
-
-        eig2armaVec(cqt.getBandAxis()).print();
-        plt::figure(1);
-        plt::subplot(3, 1, 0);
-        for (int k = 0; k < cqt.getNumBands(); k++) {
-            ArrayXd xi = cqt.getFrequencyAxis();
-            ArrayXd yi = cqt.getFrame().col(k);
-            plt::semilogx(xi, yi);
-            plt::ylim({0, 1.5});
-            plt::hold(true);
-        }
-
-        plt::subplot(3, 1, 1);
-        plt::semilogx(cqt.getFrequencyAxis(), cqt.getDiagonalization());
-
-        plt::subplot(3, 1, 2);
-        for (int k = 0; k < cqt.getNumBands(); k++) {
-            ArrayXd xi = cqt.getFrequencyAxis();
-            ArrayXd yi = cqt.getDualFrame().col(k);
-            plt::semilogx(xi, yi);
-            plt::ylim({0, 1.5});
-            plt::hold(true);
-        }
-        plt::show();
-    }
 
     ArrayXd ggDual = (cqt.getFrame() * cqt.getDualFrame())
                          .rowwise()
@@ -90,29 +57,6 @@ BOOST_AUTO_TEST_CASE(CQTTestDense2)
     cqt.forward(x, Xcq);
     cqt.inverse(Xcq, y);
 
-    if (false) {
-        //        eig2armaMat(Xcq).save(csv_name("Xcq.csv"));
-        //        eig2armaMat(cqt.Xmat).save(csv_name("Xmat.csv"));
-        //        eig2armaVec(cqt.Xdft).save(csv_name("Xdft.csv"));
-        ArrayXd Sxx = 10 * (Xcq.abs2().colwise().sum()).log10();
-        plt::figure();
-        plt::semilogx(cqt.getBandAxis(), Sxx);
-        plt::show();
-        plt::figure();
-        plt::imagesc(toStdVector(20 * Xcq.transpose().abs().log10()));
-        plt::colorbar();
-        plt::show();
-        plt::figure();
-        plt::subplot(2, 1, 0);
-        plt::plot(t, x);
-        plt::subplot(2, 1, 1);
-        plt::plot(t, y);
-        plt::show();
-
-        cout << "x: " << rms(x) << endl;
-        cout << "y: " << rms(y) << endl;
-    }
-
     ArrayXd dif = x - y;
     BOOST_CHECK(rms(dif) < 1e-10);
 }
@@ -127,37 +71,6 @@ BOOST_AUTO_TEST_CASE(CQTTestSparse1)
     double fRef   = 1500;
 
     NsgfCqtSparse cqt(fs, nSamps, frac, fMin, fMax, fRef);
-
-    if (false) {
-        cout << "nBands: " << cqt.getNumBands() << endl;
-        cout << "nFreqs: " << cqt.getNumFreqs() << endl;
-        cout << "nSamps: " << cqt.getNumSamps() << endl;
-        eig2armaVec(cqt.getBandAxis()).print();
-
-        plt::figure(1);
-        plt::subplot(3, 1, 0);
-        for (int k = 0; k < cqt.getNumBands(); k++) {
-            auto    s  = cqt.getBandSpan(k);
-            ArrayXd xi = cqt.getFrequencyAxis(k);
-            ArrayXd yi = cqt.getAtom(k);
-            plt::semilogx(xi, yi);
-            plt::ylim({0, 1.5});
-            plt::hold(true);
-        }
-
-        plt::subplot(3, 1, 1);
-        //        plt::semilogx(cqt.getFrequencyAxis(), cqt.getDiagonalization());
-
-        plt::subplot(3, 1, 2);
-        for (int k = 0; k < cqt.getNumBands(); k++) {
-            ArrayXd xi = cqt.getFrequencyAxis(k);
-            ArrayXd yi = cqt.getDualAtom(k);
-            plt::semilogx(xi, yi);
-            plt::ylim({0, 1.5});
-            plt::hold(true);
-        }
-        plt::show();
-    }
 
     ArrayXd buf = ArrayXd::Zero(cqt.getNumFreqs());
     for (int k = 0; k < cqt.getNumBands(); k++) {
@@ -189,33 +102,6 @@ BOOST_AUTO_TEST_CASE(CQTTestSparse2)
 
     cqt.forward(x, Xcq);
     cqt.inverse(Xcq, y);
-
-    if (false) {
-        //        eig2armaMat(Xcq).save(csv_name("Xcq.csv"));
-        //        eig2armaMat(cqt.Xmat).save(csv_name("Xmat.csv"));
-        //        eig2armaVec(cqt.Xdft).save(csv_name("Xdft.csv"));
-        //        ArrayXd Sxx = 10 * (Xcq.abs2().colwise().sum()).log10();
-        //        plt::figure();
-        //        plt::semilogx(cqt.bax, Sxx);
-        //        plt::show();
-        //        plt::figure();
-        //        plt::imagesc(toStdVector(20 * Xcq.transpose().abs().log10()));
-        //        plt::colorbar();
-        //        plt::show();
-
-        plt::figure();
-        plt::subplot(2, 1, 0);
-        plt::plot(t, x);
-        plt::subplot(2, 1, 1);
-        plt::plot(t, y);
-        plt::show();
-
-        cout << "x: " << rms(x) << endl;
-        cout << "y: " << rms(y) << endl;
-        for (int k = 0; k < cqt.getNumBands(); k++) {
-            cout << k << ": " << Xcq[k].size() << endl;
-        }
-    }
 
     ArrayXd dif = x - y;
     BOOST_CHECK(rms(dif) < 1e-10);

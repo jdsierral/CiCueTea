@@ -7,7 +7,6 @@
 
 #include <armadillo>
 #include <boost/test/unit_test.hpp>
-#include <matplot/matplot.h>
 #include <numbers>
 
 #include <CQT.hpp>
@@ -19,7 +18,6 @@ using namespace arma;
 using namespace std;
 using namespace jsa;
 
-namespace plt = matplot;
 
 #define FFT_SIZE 32
 #define SHOULD_PRINT false

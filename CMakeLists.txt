@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 4.0)
 
-set(CMAKE_OSX_DEPLOYMENT_TARGET "15.0" CACHE STRING "Support macOS down to Big Sur")
+set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Support macOS down to Big Sur")
 include(GitData.cmake)
 project("CiCueTea" VERSION ${CURRENT_VERSION})
 set(TARGET_NAME ${PROJECT_NAME})
@@ -41,7 +41,6 @@ target_compile_definitions(${TARGET_NAME}
 
 target_include_directories(${TARGET_NAME}
     PRIVATE Include/
-    SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
     SYSTEM PRIVATE ${FFT_INCLUDE_DIR}
 )
 

@@ -11,26 +11,26 @@ class CqtDense : public jsa::CqtDenseProcessor
 {
   public:
     using jsa::CqtDenseProcessor::CqtDenseProcessor;
-    void processBlock(Eigen::ArrayXXcd& block) override {}
+    void processBlock(Eigen::ArrayXXcd& /*block*/) override {}
 };
 
-class SliCQTDense : public jsa::SlidingCQTDenseProcessor
+class SliCqtDense : public jsa::SlidingCqtDenseProcessor
 {
   public:
-    using jsa::SlidingCQTDenseProcessor::SlidingCQTDenseProcessor;
-    void processBlock(Eigen::ArrayXXcd& block) override {};
+    using jsa::SlidingCqtDenseProcessor::SlidingCqtDenseProcessor;
+    void processBlock(Eigen::ArrayXXcd& /*block*/) override {};
 };
 
 class CqtSparse : public jsa::CqtSparseProcessor
 {
   public:
     using jsa::CqtSparseProcessor::CqtSparseProcessor;
-    void processBlock(jsa::NsgfCqtSparse::Coefs& block) override {}
+    void processBlock(jsa::NsgfCqtSparse::Coefs& /*block*/) override {}
 };
 
-class SliCQTSparse : public jsa::SlidingCqtSparseProcessor
+class SliCqtSparse : public jsa::SlidingCqtSparseProcessor
 {
   public:
     using jsa::SlidingCqtSparseProcessor::SlidingCqtSparseProcessor;
-    void processBlock(jsa::NsgfCqtSparse::Coefs& block) override {};
+    void processBlock(jsa::NsgfCqtSparse::Coefs& /*block*/) override {};
 };

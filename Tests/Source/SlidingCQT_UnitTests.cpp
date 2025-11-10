@@ -7,7 +7,6 @@
 
 #include <armadillo>
 #include <boost/test/unit_test.hpp>
-#include <matplot/matplot.h>
 #include <numbers>
 
 #include <CQT.hpp>
@@ -53,7 +52,7 @@ BOOST_AUTO_TEST_CASE(OlaProc2)
     ArrayXd x = ArrayXd::Random(N);
     ArrayXd y = ArrayXd::Zero(N);
 
-    SliCQTDense ola(fs, blockSize, 1, 1e2, 1e4, 1e3);
+    SliCqtDense ola(fs, blockSize, 1, 1e2, 1e4, 1e3);
 
     for (Index n = 0; n < N; n++) {
         y(n) = ola.processSample(x(n));
@@ -102,7 +101,7 @@ BOOST_AUTO_TEST_CASE(OlaProc4)
     ArrayXd x = ArrayXd::Random(N);
     ArrayXd y = ArrayXd::Zero(N);
 
-    SliCQTSparse ola(fs, blockSize, frac, fMin, fMax, fRef);
+    SliCqtSparse ola(fs, blockSize, frac, fMin, fMax, fRef);
 
     for (Index n = 0; n < N; n++) {
         y(n) = ola.processSample(x(n));
