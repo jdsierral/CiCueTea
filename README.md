@@ -17,6 +17,7 @@
 - 🛠️ Modular design: Drop into any C++ project.
 - ✌️ **Two different versions**: A dense version that has the same sample-rate at every band, and a sparse version that has a decimated sample-rate per band.
 - 👀 **Multiple FFT Backends**: vDSP (Default), MKL, FFTW and PFFT backends supported
+- 🤓 **Matlab** and **Python** implementations are also provided as a reference!
 
 ---
 
