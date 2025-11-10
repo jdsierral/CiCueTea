@@ -18,7 +18,6 @@ using namespace arma;
 using namespace std;
 using namespace jsa;
 
-
 #define FFT_SIZE 32
 #define SHOULD_PRINT false
 
