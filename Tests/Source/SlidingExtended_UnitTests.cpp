@@ -68,7 +68,7 @@ BOOST_AUTO_TEST_CASE(ExtendedTest1)
     ArrayXd y = ArrayXd::Zero(N);
 
     CqtDense ola(fs, blockSize, frac, fMin, fMax, fRef);
-    string  baseName = "CqtDense_";
+    string   baseName = "CqtDense_";
     eig2armaVec(ola.getCqt().NsgfCqtCommon::getFrequencyAxis()).save(csv_name(baseName + "fax.csv"));
     eig2armaVec(ola.getWindow()).save(csv_name(baseName + "win.csv"));
     eig2armaVec(ola.getCqt().getDiagonalization()).save(csv_name(baseName + "d.csv"));
@@ -154,7 +154,7 @@ BOOST_AUTO_TEST_CASE(ExtendedTest3)
     ArrayXd y = ArrayXd::Zero(N);
 
     SliCQTDense ola(fs, blockSize, frac, fMin, fMax, fRef);
-    string     baseName = "SliCQTDense_";
+    string      baseName = "SliCQTDense_";
     eig2armaVec(ola.getCqt().NsgfCqtCommon::getFrequencyAxis()).save(csv_name(baseName + "fax.csv"));
     eig2armaVec(ola.getWindow()).save(csv_name(baseName + "win.csv"));
     eig2armaVec(ola.getCqt().getDiagonalization()).save(csv_name(baseName + "d.csv"));

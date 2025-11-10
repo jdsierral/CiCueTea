@@ -82,10 +82,10 @@ BOOST_AUTO_TEST_CASE(CQTTestDense2)
     double fRef   = 1500;
 
     NsgfCqtDense cqt(fs, nSamps, frac, fMin, fMax, fRef);
-    ArrayXd     t = regspace(int(nSamps)) / fs;
-    ArrayXd     x = (2 * M_PI * fRef * t).sin();
-    ArrayXd     y(nSamps);
-    ArrayXXcd   Xcq(cqt.getNumSamps(), cqt.getNumBands());
+    ArrayXd      t = regspace(int(nSamps)) / fs;
+    ArrayXd      x = (2 * M_PI * fRef * t).sin();
+    ArrayXd      y(nSamps);
+    ArrayXXcd    Xcq(cqt.getNumSamps(), cqt.getNumBands());
 
     cqt.forward(x, Xcq);
     cqt.inverse(Xcq, y);

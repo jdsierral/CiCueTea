@@ -31,7 +31,8 @@ using namespace Eigen;
 //    BOOST_CHECK(true);
 //}
 
-BOOST_AUTO_TEST_CASE(BenchTest) {
-    
+BOOST_AUTO_TEST_CASE(BenchTest)
+{
+
     std::cout << "bench" << std::endl;
 }

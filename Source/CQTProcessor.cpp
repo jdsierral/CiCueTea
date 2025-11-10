@@ -14,8 +14,8 @@ using namespace Eigen;
 using namespace jsa;
 
 CqtDenseProcessor::CqtDenseProcessor(double sampleRate, Index numSamples,
-                                   double fraction, double minFrequency,
-                                   double maxFrequency, double refFrequency) :
+                                     double fraction, double minFrequency,
+                                     double maxFrequency, double refFrequency) :
     cqt(sampleRate, numSamples, fraction, minFrequency, maxFrequency, refFrequency),
     xi(cqt.getBlockSize()),
     win(cqt.getBlockSize()),

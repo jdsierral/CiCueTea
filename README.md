@@ -15,7 +15,8 @@
 - 🔍 **High frequency resolution** at low frequencies, **high time resolution** at high frequencies.
 - 🧠 **Based on Nonstationary Gabor Frames (NSGF)**: Sample-exact theoretical foundation.
 - 🛠️ Modular design: Drop into any C++ project.
-- 👀 **Two different versions**: A dense version that has the same sample-rate at every band, and a sparse version that has a decimated sample-rate per band.
+- ✌️ **Two different versions**: A dense version that has the same sample-rate at every band, and a sparse version that has a decimated sample-rate per band.
+- 👀 **Multiple FFT Backends**: vDSP (Default), MKL, FFTW and PFFT backends supported
 
 ---
 
@@ -150,6 +151,7 @@ MIT License — use it freely, sip responsibly.
 ## 👤 Author
 
 Developed by [Juan Sierra](https://github.com/jdsierral) as part of research at NYU Abu Dhabi.
+Check my website as well [JuanSaudio](https://JuanSaudio.com)
 
 ---
 

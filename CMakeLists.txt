@@ -8,9 +8,6 @@ message(STATUS ${SEP} ${TARGET_NAME} ${SEP})
 option(BUILD_TESTS "Build all the unit tests" OFF)
 
 find_package(Eigen3 3.3 REQUIRED)
-cmake_policy(SET CMP0167 NEW)
-find_package(Boost 1.82 REQUIRED)
-find_package(Boost COMPONENTS program_options log log_setup REQUIRED)
 
 include(SourceFiles.cmake)
 include(FFTSelection.cmake)
@@ -64,5 +61,3 @@ target_link_libraries(${TARGET_NAME}
 if (BUILD_TESTS)
     add_subdirectory(Tests)
 endif()
-
-add_subdirectory(BTest)

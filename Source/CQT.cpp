@@ -41,15 +41,16 @@ NsgfCqtCommon::NsgfCqtCommon(double sampleRate, Index numSamples,
 //==========================================================================
 
 NsgfCqtDense::NsgfCqtDense(double sampleRate, Index numSamples,
-                         double fraction, double minFrequency,
-                         double maxFrequency, double refFrequency) :
+                           double fraction, double minFrequency,
+                           double maxFrequency, double refFrequency) :
     NsgfCqtCommon(sampleRate, numSamples, fraction, minFrequency, maxFrequency, refFrequency),
     Xmat(nSamps, nBands)
 {
-    double   c        = log(4) / (square(frac));
     ArrayXXd outerDif = fax.log2().rowwise().replicate(bax.size()) -
                         bax.log2().transpose().colwise().replicate(fax.size());
-    g = (-c * outerDif.square()).exp();
+
+    double c = log(4) / (square(frac));
+    g        = (-c * outerDif.square()).exp();
 
     Index end  = nBands - 1;
     g.col(0)   = (fax < bax(0)).select(1, g.col(0));
@@ -104,9 +105,10 @@ NsgfCqtSparse::NsgfCqtSparse(double sampleRate, Index numSamples,
     scale(nBands),
     dfts(nBands)
 {
-    double   c        = log(4) / (square(frac));
     ArrayXXd outerDif = fax.log2().rowwise().replicate(bax.size()) -
                         bax.log2().transpose().colwise().replicate(fax.size());
+
+    double   c  = log(4) / (square(frac));
     ArrayXXd g_ = (-c * outerDif.square()).exp();
 
     Index end   = nBands - 1;

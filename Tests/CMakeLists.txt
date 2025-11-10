@@ -5,6 +5,9 @@ message(STATUS ${SEP} ${TARGET_NAME} ${SEP})
 
 find_package(Matplot++ REQUIRED)
 find_package(Armadillo REQUIRED)
+cmake_policy(SET CMP0167 NEW)
+find_package(Boost 1.82 REQUIRED)
+find_package(Boost COMPONENTS program_options log log_setup REQUIRED)
 
 set(ARMADILLO_CONFIG
     ARMA_NO_DEBUG

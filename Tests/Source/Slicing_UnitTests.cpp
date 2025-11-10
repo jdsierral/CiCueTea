@@ -90,8 +90,8 @@ BOOST_AUTO_TEST_CASE(CQTSlicing1)
     ArrayXd y = ArrayXd::Zero(N);
     ArrayXd w = hann(blockSize);
 
-    Slicer      slicer(blockSize, hopSize);
-    Splicer     composer(blockSize, hopSize);
+    Slicer       slicer(blockSize, hopSize);
+    Splicer      composer(blockSize, hopSize);
     NsgfCqtDense cqt(fs, blockSize, frac, fMin, fMax, fRef);
 
     Index     nBands = cqt.getNumBands();
@@ -145,8 +145,8 @@ BOOST_AUTO_TEST_CASE(CQTSlicing2)
     x.head(blockSize).setZero();
     x.tail(blockSize).setZero();
 
-    Slicer      slicer(blockSize, hopSize);
-    Splicer     composer(blockSize, hopSize);
+    Slicer       slicer(blockSize, hopSize);
+    Splicer      composer(blockSize, hopSize);
     NsgfCqtDense cqt(fs, blockSize, frac, fMin, fMax, fRef);
 
     Index     nBands = cqt.getNumBands();
