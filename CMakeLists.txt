@@ -1,8 +1,9 @@
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 3.30)
 
-set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Support macOS down to Big Sur")
-
+set(SEP " ========= ")
+set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0")
 file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/VERSION CURRENT_VERSION)
+
 project("CiCueTea" VERSION ${CURRENT_VERSION})
 set(TARGET_NAME ${PROJECT_NAME})
 message(STATUS ${SEP} ${TARGET_NAME} ${SEP})
@@ -36,14 +37,6 @@ target_compile_definitions(${TARGET_NAME}
 target_include_directories(${TARGET_NAME}
     PRIVATE Include/
     SYSTEM PRIVATE ${FFT_INCLUDE_DIR}
-)
-
-set_target_properties(${TARGET_NAME} 
-    PROPERTIES 
-        XCODE_GENERATE_SCHEME ON
-        XCODE_SCHEME_LAUNCH_CONFIGURATION "Release"
-        XCODE_SCHEME_ARGUMENTS --color_output=no
-        XCODE_SCHEME_ENVIRONMENT "PATH=/opt/homebrew/bin"
 )
 
 target_link_libraries(${TARGET_NAME} 

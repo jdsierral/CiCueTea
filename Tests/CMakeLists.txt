@@ -53,12 +53,6 @@ target_compile_options(${TARGET_NAME}
         -fcolor-diagnostics
 )
 
-# message(STATUS ${SEP} ${TARGET_NAME} ${SEP})
-# message(STATUS ${Boost_INCLUDE_DIRS})
-# message(STATUS ${ARMADILLO_INCLUDE_DIRS})
-# message(STATUS ${FFT_INCLUDE_DIR})
-# message(STATUS ${SEP} ${TARGET_NAME} ${SEP})
-
 target_include_directories(${TARGET_NAME}
     SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
     SYSTEM PRIVATE ${ARMADILLO_INCLUDE_DIRS}
@@ -78,5 +72,4 @@ set_target_properties(${TARGET_NAME}
     PROPERTIES
         XCODE_GENERATE_SCHEME ON
         XCODE_SCHEME_ARGUMENTS --color_output=no
-        XCODE_SCHEME_ENVIRONMENT "PATH=/opt/homebrew/bin"
 )
