@@ -26,12 +26,7 @@ target_compile_features(${TARGET_NAME} PRIVATE cxx_std_20)
 if(MSVC)
   target_compile_options(${TARGET_NAME} PRIVATE /W4)
 else()
-  target_compile_options(${TARGET_NAME}
-    PRIVATE
-        -Wall
-        -Wextra
-        -Wpedantic
-)
+  target_compile_options(${TARGET_NAME} PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
 target_compile_definitions(${TARGET_NAME}
