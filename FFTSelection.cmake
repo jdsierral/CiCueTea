@@ -1,3 +1,11 @@
+if (WIN32)
+    option(FFT_VDSP "Use vDSP FFT" OFF)
+    option(FFT_MKL "Use MKL FFT" ON)
+else()
+    option(FFT_VDSP "Use vDSP FFT" ON)
+    option(FFT_MKL "Use MKL FFT" OFF)
+endif()
+
 option(FFT_FFTW "Use FFTW FFT" OFF)
 option(FFT_PFFFT "Use PFFFT FFT" OFF)
 option(FFT_VDSP "Use vDSP FFT" OFF)
