@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 3.30)
 
 set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Support macOS down to Big Sur")
 
@@ -21,12 +21,16 @@ set(EIGEN_CONFIG
 
 add_library(${TARGET_NAME} STATIC ${SourceFiles})
 target_compile_features(${TARGET_NAME} PRIVATE cxx_std_20)
-target_compile_options(${TARGET_NAME}
+if(MSVC)
+  target_compile_options(${TARGET_NAME} PRIVATE /W4)
+else()
+  target_compile_options(${TARGET_NAME}
     PRIVATE
         -Wall
         -Wextra
         -Wpedantic
 )
+endif()
 
 target_compile_definitions(${TARGET_NAME}
     PRIVATE ${EIGEN_CONFIG}

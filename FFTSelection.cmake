@@ -1,7 +1,7 @@
 option(FFT_FFTW "Use FFTW FFT" OFF)
 option(FFT_PFFFT "Use PFFFT FFT" OFF)
-option(FFT_VDSP "Use vDSP FFT" ON)
-option(FFT_MKL "Use MKL FFT" OFF)
+option(FFT_VDSP "Use vDSP FFT" OFF)
+option(FFT_MKL "Use MKL FFT" ON)
 
 if (FFT_MKL)
     set(FFT_NAME "FFT_MKL")

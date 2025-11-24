@@ -17,7 +17,7 @@ Slicer::Slicer(Eigen::Index newBlockSize, Eigen::Index newHopSize)
     blockSize   = newBlockSize;
     hopSize     = newHopSize;
     overlapSize = blockSize - hopSize;
-    bufferSize  = nextPow2(uint(blockSize + 1));
+    bufferSize  = nextPow2(unsigned int(blockSize + 1));
     buffer.resize(2 * bufferSize);
     buffer.setZero();
     wp = 0;

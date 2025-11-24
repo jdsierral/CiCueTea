@@ -79,7 +79,7 @@ class NsgfCqtCommon
      * @param fRef Reference frequency for the filterbank (Hz).
      * @return BandInfo Struct containing band information.
      */
-    inline constexpr BandInfo computeBandInfo(double frac, double fMin,
+    inline BandInfo computeBandInfo(double frac, double fMin,
                                               double fMax, double fRef)
     {
         Eigen::Index nBandsUp   = Eigen::Index(ceil(1.0 / frac * log2(fMax / fRef)));
