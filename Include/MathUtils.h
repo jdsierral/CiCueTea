@@ -35,14 +35,13 @@ namespace jsa {
  * equal to the input value `x`. If `x` is 0, the function returns 1.
  *
  * @param x The input value for which the next power of 2 is to be computed.
- *          Must be a 32-bit unsigned integer.
  * @return The next power of 2 greater than or equal to `x`.
  *
  * @note This function uses bitwise operations to efficiently compute the
- * result. It assumes that the input is within the range of a 32-bit unsigned
+ * result. It assumes that the input is within the range of a 64-bit unsigned
  * integer.
  */
-inline constexpr uint32_t nextPow2(uint32_t x)
+inline constexpr size_t nextPow2(size_t x)
 {
     if (x == 0) return 1;
     x--;
@@ -51,6 +50,9 @@ inline constexpr uint32_t nextPow2(uint32_t x)
     x |= x >> 4;
     x |= x >> 8;
     x |= x >> 16;
+#if SIZE_MAX > 0xFFFFFFFFu
+    x |= x >> 32;
+#endif
     return x + 1;
 }
 
