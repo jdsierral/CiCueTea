@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.30)
 
 
-set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Support macOS down to Big Sur")
 set(SEP " ========= ")
 set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0")
 file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/VERSION CURRENT_VERSION)
