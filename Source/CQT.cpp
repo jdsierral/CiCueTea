@@ -7,6 +7,8 @@
 
 #include "CQT.hpp"
 
+#include <numbers>
+
 #include "MathUtils.h"
 #include "RTChecker.h"
 
@@ -130,7 +132,7 @@ NsgfCqtSparse::NsgfCqtSparse(double sampleRate, Index numSamples,
         Index len = idx[k].len;
         scale(k)  = double(len);
         ArrayXd n = regspace(len);
-        phase[k]  = exp(1i * 2.0 * M_PI * double(i0) * n / double(len));
+        phase[k]  = exp(1i * 2.0 * std::numbers::pi * double(i0) * n / double(len));
         g[k]      = g_.col(k).segment(i0, len);
         gDual[k]  = gDual_.col(k).segment(i0, len);
         dfts[k].reset(new DFT(len));

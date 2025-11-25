@@ -15,14 +15,7 @@
 
 #pragma once
 
-#define _USE_MATH_DEFINE
-
-#include <cmath>
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
+#include <numbers>
 #include <Eigen/Core>
 
 #include "MathUtils.h"
@@ -33,7 +26,7 @@ inline Eigen::ArrayXd hann(Eigen::Index N)
 {
     assert(N > 0);
     Eigen::ArrayXd n   = regspace(N);
-    Eigen::ArrayXd win = (M_PI * n / N).sin().square();
+    Eigen::ArrayXd win = (std::numbers::pi * n / N).sin().square();
     return win;
 }
 
