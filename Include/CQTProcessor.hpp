@@ -90,7 +90,7 @@ class CqtDenseProcessor
      *
      * @return Integer number of samples of delay between input and output.
      */
-    Eigen::Index getLatency() const { return cqt.getBlockSize(); }
+    Eigen::Index getLatency() const { return slicer.getBlockSize(); }
 
   protected:
     NsgfCqtDense cqt; ///< The CQT object used for processing.
@@ -172,7 +172,7 @@ class CqtSparseProcessor
      *
      * @return Integer number of samples of delay between input and output.
      */
-    Eigen::Index getLatency() const { return cqt.getBlockSize(); }
+    Eigen::Index getLatency() const { return slicer.getBlockSize(); }
 
   protected:
     NsgfCqtSparse cqt; ///< The CQT object used for processing.
@@ -254,7 +254,7 @@ class SlidingCqtDenseProcessor
      *
      * @return Integer number of samples of delay between input and output.
      */
-    Eigen::Index getLatency() const { return 1.5 * cqt.getBlockSize(); }
+    Eigen::Index getLatency() const { return slicer.getBlockSize() + slicer.getHopSize(); }
 
   protected:
     NsgfCqtDense cqt; ///< The CQT object used for processing.
@@ -347,7 +347,7 @@ class SlidingCqtSparseProcessor
      *
      * @return Integer number of samples of delay between input and output.
      */
-    Eigen::Index getLatency() const { return 1.5 * cqt.getBlockSize(); }
+    Eigen::Index getLatency() const { return slicer.getBlockSize() + slicer.getHopSize(); }
 
   protected:
     NsgfCqtSparse cqt; ///< The CQT object used for processing.

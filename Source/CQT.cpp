@@ -7,6 +7,7 @@
 
 #include "CQT.hpp"
 
+#include <cassert>
 #include <numbers>
 
 #include "MathUtils.h"
@@ -54,14 +55,14 @@ NsgfCqtDense::NsgfCqtDense(double sampleRate, Index numSamples,
     double c = log(4) / (square(frac));
     g        = (-c * outerDif.square()).exp();
 
-    Index end  = nBands - 1;
+    Index end  = nBands-1;
     g.col(0)   = (fax < bax(0)).select(1, g.col(0));
     g.col(end) = (fax > bax(end)).select(1, g.col(end));
     d          = g.square().rowwise().sum();
     gDual      = g.colwise() / d;
 
-    g.bottomRows(nFreqs / 2 - 1).setZero();
-    gDual.bottomRows(nFreqs / 2 - 1).setZero();
+    g.bottomRows(nFreqs/2-1).setZero();
+    gDual.bottomRows(nFreqs/2-1).setZero();
 
     Xmat.setZero();
 }
@@ -121,8 +122,8 @@ NsgfCqtSparse::NsgfCqtSparse(double sampleRate, Index numSamples,
     d               = g_.square().rowwise().sum();
     ArrayXXd gDual_ = g_.colwise() / d;
 
-    g_.bottomRows(nFreqs / 2 - 1).fill(0);
-    gDual_.bottomRows(nFreqs / 2 - 1).fill(0);
+    g_.bottomRows(nFreqs/2-1).fill(0);
+    gDual_.bottomRows(nFreqs/2-1).fill(0);
 
     using namespace std::complex_literals;
 

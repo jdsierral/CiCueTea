@@ -16,6 +16,7 @@
 #pragma once
 
 #include <Eigen/Core>
+//#include <memory>
 
 namespace jsa {
 
@@ -47,6 +48,31 @@ class DFT
      * @param fftSize FFT size (power of two).
      */
     DFT(size_t fftSize);
+    
+    /**
+     * @brief Destructor
+     */
+    ~DFT();
+    
+    /**
+     * @brief Copy constructor
+     */
+    DFT(DFT&&) noexcept;
+    
+    /**
+     * @brief Copy assignment
+     */
+    DFT& operator=(DFT&&) noexcept;
+    
+    /**
+     * @brief Move constructor
+     */
+    DFT(const DFT&) = delete;
+    
+    /**
+     * @brief Move assignment operator
+     */
+    DFT& operator = (const DFT&) = delete;
 
     /**
      * @brief Computes the Discrete Fourier Transform (DFT) on 1D data.
@@ -113,7 +139,7 @@ class DFT
     /**
      * @brief Pointer to the implementation of the DFT operations.
      */
-    DFTImpl* pImpl;
+    std::unique_ptr<DFTImpl> pImpl;
 };
 
 } // namespace jsa

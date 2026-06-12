@@ -5,6 +5,8 @@
 //  Created by Juan Sierra on 3/23/25.
 //
 
+#include <cassert>
+
 #include "Slicer.hpp"
 
 #include "MathUtils.h"
@@ -14,6 +16,7 @@ using namespace jsa;
 
 Slicer::Slicer(Eigen::Index newBlockSize, Eigen::Index newHopSize)
 {
+    assert(newHopSize > 0);
     blockSize   = newBlockSize;
     hopSize     = newHopSize;
     overlapSize = blockSize - hopSize;

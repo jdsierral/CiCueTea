@@ -38,7 +38,6 @@ double CqtDenseProcessor::processSample(double sample)
 {
     RealTimeChecker ck;
 
-    if (fs < 0) return 0;
     slicer.pushSample(sample);
     sample = splicer.getSample();
     if (slicer.hasBlock()) {
@@ -82,12 +81,10 @@ double CqtSparseProcessor::processSample(double sample)
 {
     RealTimeChecker ck;
 
-    if (fs < 0) return 0;
     slicer.pushSample(sample);
     sample = splicer.getSample();
     if (slicer.hasBlock()) {
         xi = slicer.getBlock();
-        assert(xi.size() == xi.size());
         assert(xi.size() == win.size());
         assert(xi.size() == cqt.getNumSamps());
         xi *= win;
@@ -139,7 +136,6 @@ double SlidingCqtDenseProcessor::processSample(double sample)
 {
     RealTimeChecker ck;
 
-    if (fs < 0) return 0;
     slicer.pushSample(sample);
     sample = splicer.getSample();
     if (slicer.hasBlock()) {
