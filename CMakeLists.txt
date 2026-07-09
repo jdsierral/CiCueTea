@@ -10,7 +10,7 @@ set(TARGET_NAME ${PROJECT_NAME})
 message(STATUS ${SEP} ${TARGET_NAME} ${SEP})
 option(BUILD_TESTS "Build all the unit tests" OFF)
 
-find_package(Eigen3 3.3 REQUIRED)
+find_package(Eigen3 5.0 REQUIRED)
 
 include(SourceFiles.cmake)
 include(FFTSelection.cmake)

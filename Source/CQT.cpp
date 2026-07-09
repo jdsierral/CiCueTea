@@ -7,6 +7,7 @@
 
 #include "CQT.hpp"
 
+#include <cassert>
 #include <numbers>
 
 #include "MathUtils.h"
