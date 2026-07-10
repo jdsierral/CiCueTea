@@ -92,6 +92,14 @@ class CqtDenseProcessor
      */
     Eigen::Index getLatency() const { return slicer.getBlockSize(); }
 
+    /**
+     * @brief True when the underlying CQT configuration is valid.
+     *
+     * An invalid processor is inert: processSample() returns 0 (silence)
+     * and never touches its internals. See NsgfCqtCommon::isValid().
+     */
+    bool isValid() const { return cqt.isValid(); }
+
   protected:
     NsgfCqtDense cqt; ///< The CQT object used for processing.
 
@@ -101,7 +109,6 @@ class CqtDenseProcessor
     Eigen::ArrayXXcd Xcq;     ///< CQT coefficients.
     Slicer           slicer;  ///< Slicer for data segmentation.
     Splicer          splicer; ///< Splicer for data reconstruction.
-    double           fs = -1; ///< Sampling rate.
 };
 
 //==========================================================================
@@ -174,6 +181,14 @@ class CqtSparseProcessor
      */
     Eigen::Index getLatency() const { return slicer.getBlockSize(); }
 
+    /**
+     * @brief True when the underlying CQT configuration is valid.
+     *
+     * An invalid processor is inert: processSample() returns 0 (silence)
+     * and never touches its internals. See NsgfCqtCommon::isValid().
+     */
+    bool isValid() const { return cqt.isValid(); }
+
   protected:
     NsgfCqtSparse cqt; ///< The CQT object used for processing.
 
@@ -183,7 +198,6 @@ class CqtSparseProcessor
     NsgfCqtSparse::Coefs Xcq;     ///< Sparse CQT coefficients.
     Slicer               slicer;  ///< Slicer for data segmentation.
     Splicer              splicer; ///< Splicer for data reconstruction.
-    double               fs = -1; ///< Sampling rate.
 };
 
 //==========================================================================
@@ -256,6 +270,14 @@ class SlidingCqtDenseProcessor
      */
     Eigen::Index getLatency() const { return slicer.getBlockSize() + slicer.getHopSize(); }
 
+    /**
+     * @brief True when the underlying CQT configuration is valid.
+     *
+     * An invalid processor is inert: processSample() returns 0 (silence)
+     * and never touches its internals. See NsgfCqtCommon::isValid().
+     */
+    bool isValid() const { return cqt.isValid(); }
+
   protected:
     NsgfCqtDense cqt; ///< The CQT object used for processing.
 
@@ -267,7 +289,6 @@ class SlidingCqtDenseProcessor
     Eigen::ArrayXd                 win;     ///< Windowing function.
     Slicer                         slicer;  ///< Slicer for data segmentation.
     Splicer                        splicer; ///< Splicer for data reconstruction.
-    double                         fs = -1; ///< Sampling rate.
 };
 
 //==========================================================================
@@ -349,6 +370,14 @@ class SlidingCqtSparseProcessor
      */
     Eigen::Index getLatency() const { return slicer.getBlockSize() + slicer.getHopSize(); }
 
+    /**
+     * @brief True when the underlying CQT configuration is valid.
+     *
+     * An invalid processor is inert: processSample() returns 0 (silence)
+     * and never touches its internals. See NsgfCqtCommon::isValid().
+     */
+    bool isValid() const { return cqt.isValid(); }
+
   protected:
     NsgfCqtSparse cqt; ///< The CQT object used for processing.
 
@@ -361,7 +390,6 @@ class SlidingCqtSparseProcessor
     NsgfCqtSparse::Frame               Win;     ///< Frame of CQT windows.
     Slicer                             slicer;  ///< Slicer for data segmentation.
     Splicer                            splicer; ///< Splicer for data reconstruction.
-    double                             fs = -1; ///< Sampling rate.
 };
 
 } // namespace jsa

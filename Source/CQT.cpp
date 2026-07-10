@@ -19,21 +19,23 @@ using namespace Eigen;
 NsgfCqtCommon::NsgfCqtCommon(double sampleRate, Index numSamples,
                              double fraction, double minFrequency,
                              double maxFrequency, double refFrequency) :
+    valid(validate(sampleRate, numSamples, fraction, minFrequency, maxFrequency, refFrequency)),
     fs(sampleRate),
-    nSamps(numSamples),
+    nSamps(valid ? numSamples : 0),
     frac(fraction),
     fMin(minFrequency),
     fMax(maxFrequency),
     fRef(refFrequency),
-    bandInfo(computeBandInfo(frac, fMin, fMax, fRef)),
+    bandInfo(valid ? computeBandInfo(frac, fMin, fMax, fRef) : BandInfo{0, 0, 0}),
     nBands(bandInfo.nBands),
     nFreqs(nSamps),
     bax(nBands),
     fax(nFreqs),
     d(nFreqs),
     Xdft(nSamps),
-    dft(nSamps)
+    dft(valid ? DFT(size_t(nSamps)) : DFT())
 {
+    if (!valid) return; // inert: members stay empty, methods output silence
     Xdft.setZero();
     bax = fRef * (frac * log(2) * regspace(-bandInfo.nBandsDown, bandInfo.nBandsUp)).exp();
     fax = ArrayXd::LinSpaced(nFreqs, 0, nFreqs - 1) * fs / double(nFreqs);
@@ -49,6 +51,8 @@ NsgfCqtDense::NsgfCqtDense(double sampleRate, Index numSamples,
     NsgfCqtCommon(sampleRate, numSamples, fraction, minFrequency, maxFrequency, refFrequency),
     Xmat(nSamps, nBands)
 {
+    if (!valid) return;
+
     ArrayXXd outerDif = fax.log2().rowwise().replicate(bax.size()) -
                         bax.log2().transpose().colwise().replicate(fax.size());
 
@@ -71,6 +75,10 @@ void NsgfCqtDense::forward(const ArrayXd& x, ArrayXXcd& Xcq)
 {
     RealTimeChecker ck;
 
+    if (!valid) {
+        Xcq.setZero();
+        return;
+    }
     assert(x.size() == nSamps);
     assert(Xcq.cols() == Index(nBands));
     assert(Xcq.rows() == Index(nSamps));
@@ -85,6 +93,10 @@ void NsgfCqtDense::inverse(const ArrayXXcd& Xcq, ArrayXd& x)
 {
     RealTimeChecker ck;
 
+    if (!valid) {
+        x.setZero();
+        return;
+    }
     assert(x.size() == nSamps);
     assert(Xcq.cols() == Index(nBands));
     assert(Xcq.rows() == Index(nSamps));
@@ -108,6 +120,8 @@ NsgfCqtSparse::NsgfCqtSparse(double sampleRate, Index numSamples,
     scale(nBands),
     dfts(nBands)
 {
+    if (!valid) return;
+
     ArrayXXd outerDif = fax.log2().rowwise().replicate(bax.size()) -
                         bax.log2().transpose().colwise().replicate(fax.size());
 
@@ -146,7 +160,10 @@ void NsgfCqtSparse::forward(const ArrayXd& x, Coefs& Xcq)
 {
     RealTimeChecker ck;
 
-    if (fs < 0) return;
+    if (!valid) {
+        for (auto& c : Xcq) c.setZero();
+        return;
+    }
     assert(Index(Xcq.size()) == nBands);
     Xdft.fill(0);
     dft.rdft(x, Xdft);
@@ -162,7 +179,10 @@ void NsgfCqtSparse::inverse(const Coefs& Xcq, ArrayXd& x)
 {
     RealTimeChecker ck;
 
-    if (fs < 0) return;
+    if (!valid) {
+        x.setZero();
+        return;
+    }
     assert(Index(Xcq.size()) == nBands);
     Xdft.fill(0);
     for (Index k = 0; k < nBands; k++) {
@@ -198,9 +218,7 @@ NsgfCqtSparse::Span NsgfCqtSparse::getIdx(const ArrayXd& x)
 
 NsgfCqtSparse::Frame NsgfCqtSparse::getRealCoefs() const
 {
-    assert(fs > 0);
-    assert(bax.size() > 0);
-    Frame frame(nBands);
+    Frame frame(nBands); // empty when invalid (nBands == 0)
     for (Index k = 0; k < nBands; k++) {
         Index sz = g[k].size();
         frame[k].resize(sz);
@@ -210,9 +228,7 @@ NsgfCqtSparse::Frame NsgfCqtSparse::getRealCoefs() const
 
 NsgfCqtSparse::Coefs NsgfCqtSparse::getCoefs() const
 {
-    assert(fs > 0);
-    assert(bax.size() > 0);
-    Coefs coefs(nBands);
+    Coefs coefs(nBands); // empty when invalid (nBands == 0)
     for (Index k = 0; k < nBands; k++) {
         Index sz = g[k].size();
         coefs[k].resize(sz);
@@ -223,9 +239,7 @@ NsgfCqtSparse::Coefs NsgfCqtSparse::getCoefs() const
 
 NsgfCqtSparse::Coefs NsgfCqtSparse::getValidCoefs() const
 {
-    assert(fs > 0);
-    assert(bax.size() > 0);
-    Coefs coefs(nBands);
+    Coefs coefs(nBands); // empty when invalid (nBands == 0)
     for (Index k = 0; k < nBands; k++) {
         Index sz = g[k].size();
         assert(sz % 2 == 0);

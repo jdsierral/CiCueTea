@@ -7,6 +7,8 @@
 
 #include "Splicer.hpp"
 
+#include <algorithm>
+
 #include "MathUtils.h"
 #include "RTChecker.h"
 
@@ -15,8 +17,8 @@ using namespace Eigen;
 
 Splicer::Splicer(Index newBlockSize, Index newHopSize)
 {
-    blockSize   = newBlockSize;
-    hopSize     = newHopSize;
+    blockSize   = std::max<Index>(newBlockSize, 1);
+    hopSize     = std::clamp<Index>(newHopSize, 1, blockSize);
     overlapSize = blockSize - hopSize;
     bufferSize  = nextPow2(size_t(blockSize + 1));
     buffer.resize(bufferSize);

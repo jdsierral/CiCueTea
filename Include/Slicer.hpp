@@ -34,6 +34,11 @@ class Slicer
     /**
      * @brief Slicer constructor that sets the block size and hop size for slicing.
      *
+     * Degenerate sizes are clamped to safe minimums (blockSize >= 1,
+     * 1 <= hopSize <= blockSize) instead of asserted, so owners may construct
+     * a Slicer from an invalid configuration (see NsgfCqtCommon::isValid());
+     * such an instance is safe to hold but produces no useful blocks.
+     *
      * @param newBlockSize The size of each block in samples.
      * @param newHopSize The hop size (step size) between consecutive blocks in samples.
      */

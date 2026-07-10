@@ -5,20 +5,20 @@
 //  Created by Juan Sierra on 3/23/25.
 //
 
-#include <cassert>
-
 #include "Slicer.hpp"
+
+#include <algorithm>
 
 #include "MathUtils.h"
 #include "RTChecker.h"
 
 using namespace jsa;
+using namespace Eigen;
 
-Slicer::Slicer(Eigen::Index newBlockSize, Eigen::Index newHopSize)
+Slicer::Slicer(Index newBlockSize, Index newHopSize)
 {
-    assert(newHopSize > 0);
-    blockSize   = newBlockSize;
-    hopSize     = newHopSize;
+    blockSize   = std::max<Index>(newBlockSize, 1);
+    hopSize     = std::clamp<Index>(newHopSize, 1, blockSize);
     overlapSize = blockSize - hopSize;
     bufferSize  = nextPow2(size_t(blockSize + 1));
     buffer.resize(2 * bufferSize);
@@ -41,11 +41,11 @@ bool Slicer::hasBlock()
     return (wp % hopSize) == 0;
 }
 
-Eigen::Map<const Eigen::ArrayXd> Slicer::getBlock()
+Map<const ArrayXd> Slicer::getBlock()
 {
     RealTimeChecker rt;
     rp           = constrain(rp, bufferSize);
     auto segment = buffer.segment(rp, blockSize);
     rp += hopSize;
-    return Eigen::Map<const Eigen::ArrayXd>(segment.data(), segment.size());
+    return Map<const ArrayXd>(segment.data(), segment.size());
 }

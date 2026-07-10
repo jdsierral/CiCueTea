@@ -29,6 +29,7 @@ using namespace jsa;
 using namespace Eigen;
 
 DFT::DFT(size_t fftSize) : pImpl(std::make_unique<DFTImpl>(fftSize)) {}
+DFT::DFT() = default; // unplanned: pImpl stays null, transforms must not be called
 DFT::~DFT()                         = default;
 DFT::DFT(DFT&&) noexcept            = default;
 DFT& DFT::operator=(DFT&&) noexcept = default;

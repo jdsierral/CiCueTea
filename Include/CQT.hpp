@@ -31,6 +31,14 @@ namespace jsa {
  * 
  * This class provides common functionality and data members for NSGF-CQT operations, 
  * including frequency axis computation, band information, and diagonalization.
+ *
+ * Construction never throws and never crashes: a configuration that fails
+ * validate() produces an *inert* object — isValid() returns false, the
+ * processing methods output silence, and accessors return empty data. This
+ * supports host lifecycles (e.g. DAWs) that construct with a placeholder
+ * sample rate before the real one is known; since the whole design depends
+ * on the sample rate, the correct response to a new rate is constructing a
+ * new object.
  */
 class NsgfCqtCommon
 {
@@ -58,6 +66,15 @@ class NsgfCqtCommon
     NsgfCqtCommon(double sampleRate, Eigen::Index numSamples, double fraction,
                   double minFrequency, double maxFrequency, double refFrequency);
 
+    /**
+     * @brief True when the configuration passed validate() at construction.
+     *
+     * An invalid object is inert: forward()/inverse() write zeros to their
+     * outputs and return, and accessors return empty data. Parameter getters
+     * (getSampleRate() etc.) still report the values that were passed in.
+     */
+    bool isValid() const { return valid; }
+
     // Accessor methods for various parameters and computed data.
     double                getSampleRate() const { return fs; }
     Eigen::Index          getBlockSize() const { return nSamps; } ///< Synonym of getNumSamps().
@@ -75,6 +92,26 @@ class NsgfCqtCommon
 
   protected:
     /**
+     * @brief Checks the unambiguous validity conditions for a configuration.
+     *
+     * Deliberately limited to conditions under which the transform is
+     * provably meaningless: positive sample rate, power-of-two block size
+     * (a structural assumption of the per-band span logic, see
+     * NsgfCqtSparse::getIdx — independent of what a backend could handle),
+     * positive fraction and reference frequency, fMin > 0, at least one
+     * octave of range (2·fMin ≤ fMax), and fMax strictly below Nyquist.
+     * Feasibility questions with fuzzy boundaries (Q vs. block length,
+     * latency vs. fMin) are intentionally not gated here.
+     */
+    static bool validate(double fs, Eigen::Index nSamps, double frac,
+                         double fMin, double fMax, double fRef)
+    {
+        bool pow2 = nSamps > 0 && ((nSamps & (nSamps - 1)) == 0);
+        return fs > 0 && pow2 && frac > 0 && fRef > 0 && fMin > 0 &&
+               2 * fMin <= fMax && 2 * fMax < fs;
+    }
+
+    /**
      * @brief Computes band information for the filterbank.
      * 
      * @param frac Reciprocal of bands per octave.
@@ -83,7 +120,7 @@ class NsgfCqtCommon
      * @param fRef Reference frequency for the filterbank (Hz).
      * @return BandInfo Struct containing band information.
      */
-    inline BandInfo computeBandInfo(double frac, double fMin,
+    static BandInfo computeBandInfo(double frac, double fMin,
                                     double fMax, double fRef)
     {
         Eigen::Index nBandsUp   = Eigen::Index(ceil(1.0 / frac * log2(fMax / fRef)));
@@ -93,8 +130,11 @@ class NsgfCqtCommon
     }
 
     // Member variables for filterbank parameters and computed data.
+    // `valid` is declared first on purpose: member initialization follows
+    // declaration order, and the members below branch on it.
+    const bool         valid;    ///< Result of validate() at construction.
     const double       fs;       ///< Sampling rate (Hz).
-    const Eigen::Index nSamps;   ///< Number of samples in a block.
+    const Eigen::Index nSamps;   ///< Number of samples in a block (0 when invalid).
     const double       frac;     ///< Reciprocal of bands per octave.
     const double       fMin;     ///< Minimum frequency (Hz).
     const double       fMax;     ///< Maximum frequency (Hz).

@@ -20,6 +20,7 @@
 #include <MathUtils.h>
 #include <SignalUtils.h>
 
+#include "EmptyCQTProc.h"
 #include "TestSignals.h"
 
 using namespace Eigen;
@@ -124,6 +125,58 @@ BOOST_AUTO_TEST_CASE(CQTTestSparse2)
         BOOST_CHECK_MESSAGE(rms(dif) < 1e-10,
                             "frac = " << frac << ", rms = " << rms(dif));
     }
+}
+
+// Construction contract: an invalid configuration must never crash or throw —
+// it constructs an inert object that reports !isValid() and outputs silence.
+// This supports host lifecycles (DAWs) that construct with a placeholder
+// sample rate before the real one is known.
+BOOST_AUTO_TEST_CASE(CQTTestValidity)
+{
+    double fs = 48000;
+    Index  N  = 1 << 10;
+
+    BOOST_CHECK(NsgfCqtDense(fs, N, 1, 100, 10000, 1500).isValid());
+    BOOST_CHECK(!NsgfCqtDense(0, N, 1, 100, 10000, 1500).isValid());     // placeholder fs
+    BOOST_CHECK(!NsgfCqtDense(-48e3, N, 1, 100, 10000, 1500).isValid()); // negative fs
+    BOOST_CHECK(!NsgfCqtDense(fs, N - 1, 1, 100, 10000, 1500).isValid()); // non-pow2 block
+    BOOST_CHECK(!NsgfCqtDense(fs, N, 1, 0, 10000, 1500).isValid());      // fMin = 0
+    BOOST_CHECK(!NsgfCqtDense(fs, N, 1, 100, 30000, 1500).isValid());    // fMax over Nyquist
+    BOOST_CHECK(!NsgfCqtDense(fs, N, 1, 6000, 10000, 8000).isValid());   // < one octave
+
+    // Inert dense transform: outputs are zeroed, nothing crashes.
+    NsgfCqtDense bad(0, N, 1, 100, 10000, 1500);
+    ArrayXd      x   = ArrayXd::Random(N);
+    ArrayXd      y   = ArrayXd::Random(N);
+    ArrayXXcd    Xcq = ArrayXXcd::Random(N, 8);
+    bad.forward(x, Xcq);
+    BOOST_CHECK(Xcq.abs().maxCoeff() == 0);
+    bad.inverse(Xcq, y);
+    BOOST_CHECK(y.abs().maxCoeff() == 0);
+
+    // Inert sparse transform.
+    NsgfCqtSparse badSparse(0, N, 1, 100, 10000, 1500);
+    BOOST_CHECK(!badSparse.isValid());
+    NsgfCqtSparse::Coefs coefs = badSparse.getCoefs(); // empty, no assert
+    badSparse.forward(x, coefs);
+    badSparse.inverse(coefs, y);
+    BOOST_CHECK(y.abs().maxCoeff() == 0);
+
+    // Inert processors: silence out, no crash, for all four variants.
+    CqtDense     p1(0, N, 1, 100, 10000, 1500);
+    CqtSparse    p2(0, N, 1, 100, 10000, 1500);
+    SliCqtDense  p3(0, N, 1, 100, 10000, 1500);
+    SliCqtSparse p4(0, N, 1, 100, 10000, 1500);
+    BOOST_CHECK(!p1.isValid());
+    BOOST_CHECK(!p2.isValid());
+    BOOST_CHECK(!p3.isValid());
+    BOOST_CHECK(!p4.isValid());
+    double acc = 0;
+    for (Index n = 0; n < 4 * N; n++) {
+        acc += std::abs(p1.processSample(1.0)) + std::abs(p2.processSample(1.0)) +
+               std::abs(p3.processSample(1.0)) + std::abs(p4.processSample(1.0));
+    }
+    BOOST_CHECK(acc == 0);
 }
 
 // Layer 2 — block-streamed round trip: a chirp is processed in 50%-overlapped

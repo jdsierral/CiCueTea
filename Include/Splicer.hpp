@@ -33,6 +33,11 @@ class Splicer
     /**
      * @brief Constructor sets the block size and hop size for the splicer.
      *
+     * Degenerate sizes are clamped to safe minimums (blockSize >= 1,
+     * 1 <= hopSize <= blockSize) instead of asserted, so owners may construct
+     * a Splicer from an invalid configuration (see NsgfCqtCommon::isValid());
+     * such an instance is safe to hold but splices only silence.
+     *
      * @param newBlockSize The size of the audio block.
      * @param newHopSize The hop size (step size) between consecutive blocks.
      */

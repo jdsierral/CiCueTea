@@ -52,6 +52,15 @@ class DFT
     DFT(size_t fftSize);
 
     /**
+     * @brief Constructs an unplanned DFT: no backend state is created.
+     *
+     * Exists so owners (e.g. an inert NsgfCqt* object, see
+     * NsgfCqtCommon::isValid()) can hold a DFT member without planning one.
+     * Calling any transform on an unplanned DFT is undefined.
+     */
+    DFT();
+
+    /**
      * @brief Destructor
      */
     ~DFT();

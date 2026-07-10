@@ -23,10 +23,11 @@ CqtDenseProcessor::CqtDenseProcessor(double sampleRate, Index numSamples,
     slicer(cqt.getBlockSize(), cqt.getBlockSize() / 2),
     splicer(cqt.getBlockSize(), cqt.getBlockSize() / 2)
 {
+    if (!cqt.isValid()) return;
+
     win = hann(cqt.getBlockSize()).sqrt();
     xi.setZero();
     Xcq.setZero();
-    fs = cqt.getSampleRate();
     assert(cqt.getBlockSize() == win.size());
     assert(cqt.getBlockSize() == slicer.getBlockSize());
     assert(cqt.getBlockSize() == splicer.getBlockSize());
@@ -38,6 +39,7 @@ double CqtDenseProcessor::processSample(double sample)
 {
     RealTimeChecker ck;
 
+    if (!cqt.isValid()) return 0.0; // inert: silence, never touch internals
     slicer.pushSample(sample);
     sample = splicer.getSample();
     if (slicer.hasBlock()) {
@@ -68,9 +70,10 @@ CqtSparseProcessor::CqtSparseProcessor(double sampleRate, Index numSamples,
     slicer(cqt.getBlockSize(), cqt.getBlockSize() / 2),
     splicer(cqt.getBlockSize(), cqt.getBlockSize() / 2)
 {
+    if (!cqt.isValid()) return;
+
     win = hann(cqt.getBlockSize()).sqrt();
     xi.setZero();
-    fs = cqt.getSampleRate();
     assert(cqt.getBlockSize() == win.size());
     assert(cqt.getBlockSize() == slicer.getBlockSize());
     assert(cqt.getBlockSize() == splicer.getBlockSize());
@@ -81,6 +84,7 @@ double CqtSparseProcessor::processSample(double sample)
 {
     RealTimeChecker ck;
 
+    if (!cqt.isValid()) return 0.0; // inert: silence, never touch internals
     slicer.pushSample(sample);
     sample = splicer.getSample();
     if (slicer.hasBlock()) {
@@ -110,6 +114,8 @@ SlidingCqtDenseProcessor::SlidingCqtDenseProcessor(double sampleRate, Index numS
     splicer(cqt.getBlockSize(), cqt.getBlockSize() / 2)
 
 {
+    if (!cqt.isValid()) return;
+
     Index nBands         = cqt.getNumBands();
     Index blockSize      = cqt.getBlockSize();
     win                  = hann(blockSize).sqrt();
@@ -118,7 +124,6 @@ SlidingCqtDenseProcessor::SlidingCqtDenseProcessor(double sampleRate, Index numS
     Xcq.fill(coefs);
     Zcq.fill(validCoefs);
     Ycq = coefs;
-    fs  = cqt.getSampleRate();
 
     assert(blockSize == cqt.getNumSamps());
     assert(blockSize == win.size());
@@ -136,6 +141,7 @@ double SlidingCqtDenseProcessor::processSample(double sample)
 {
     RealTimeChecker ck;
 
+    if (!cqt.isValid()) return 0.0; // inert: silence, never touch internals
     slicer.pushSample(sample);
     sample = splicer.getSample();
     if (slicer.hasBlock()) {
@@ -191,6 +197,8 @@ SlidingCqtSparseProcessor::SlidingCqtSparseProcessor(double sampleRate, Index nu
     slicer(cqt.getBlockSize(), cqt.getBlockSize() / 2),
     splicer(cqt.getBlockSize(), cqt.getBlockSize() / 2)
 {
+    if (!cqt.isValid()) return;
+
     Index nBands    = cqt.getNumBands();
     Index blockSize = cqt.getBlockSize();
     xi.setZero();
@@ -207,7 +215,6 @@ SlidingCqtSparseProcessor::SlidingCqtSparseProcessor(double sampleRate, Index nu
     Xcq.fill(coefs);
     Zcq.fill(validCoefs);
     Ycq = coefs;
-    fs  = cqt.getSampleRate();
 
     assert(blockSize == cqt.getBlockSize());
     assert(blockSize == win.size());
@@ -220,7 +227,7 @@ double SlidingCqtSparseProcessor::processSample(double sample)
 {
     RealTimeChecker ck;
 
-    if (fs < 0) return 0;
+    if (!cqt.isValid()) return 0.0; // inert: silence, never touch internals
     slicer.pushSample(sample);
     sample = splicer.getSample();
     if (slicer.hasBlock()) {
