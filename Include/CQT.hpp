@@ -80,7 +80,7 @@ class NsgfCqtCommon
      * @return BandInfo Struct containing band information.
      */
     inline BandInfo computeBandInfo(double frac, double fMin,
-                                              double fMax, double fRef)
+                                    double fMax, double fRef)
     {
         Eigen::Index nBandsUp   = Eigen::Index(ceil(1.0 / frac * log2(fMax / fRef)));
         Eigen::Index nBandsDown = Eigen::Index(ceil(1.0 / frac * log2(fRef / fMin)));
@@ -126,7 +126,7 @@ class NsgfCqtDense : public NsgfCqtCommon
      * @param refFrequency Reference frequency for the filterbank (Hz).
      */
     NsgfCqtDense(double sampleRate, Eigen::Index numSamples, double fraction,
-                double minFrequency, double maxFrequency, double refFrequency);
+                 double minFrequency, double maxFrequency, double refFrequency);
 
     /**
      * @brief Performs the forward NSGF-CQT transformation.

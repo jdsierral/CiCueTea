@@ -45,7 +45,7 @@ class CqtDenseProcessor
      * @param refFrequency The reference frequency for the CQT.
      */
     CqtDenseProcessor(double sampleRate, Eigen::Index numSamples, double fraction,
-                     double minFrequency, double maxFrequency, double refFrequency);
+                      double minFrequency, double maxFrequency, double refFrequency);
 
     /**
      * @brief Virtual destructor for safe polymorphic use.
@@ -209,7 +209,7 @@ class SlidingCqtDenseProcessor
      * @param refFrequency The reference frequency for the CQT.
      */
     SlidingCqtDenseProcessor(double sampleRate, Eigen::Index numSamples, double fraction,
-                            double minFrequency, double maxFrequency, double refFrequency);
+                             double minFrequency, double maxFrequency, double refFrequency);
 
     /**
      * @brief Virtual destructor for safe polymorphic use.
