@@ -34,7 +34,7 @@ function c = domainColor(z, dBLimits, angSteps, magSteps)
     dBAng = angle(z);
 
     % Clip and normalize magnitude to [0, 1]
-    dBMag = clip(dBMag, dBLimits(1), dBLimits(2));
+    dBMag = min(max(dBMag, dBLimits(1)), dBLimits(2)); % clamp (clip() needs R2024b+)
     dBMag = (dBMag - dBLimits(1)) ./ diff(dBLimits);
     dBMag = floor(magSteps * dBMag) / magSteps; % Quantize
 

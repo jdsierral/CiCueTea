@@ -1,6 +1,5 @@
 import numpy as np
 import scipy.fft as fft
-import scipy.signal as sg
 
 
 class NsgfCQT:
@@ -12,12 +11,8 @@ class NsgfCQT:
         f_min = float(f_min)
         f_max = float(f_max)
         f_ref = float(f_ref)
-        # Structural validity: each condition provably breaks the transform on
-        # its own. Feasibility with fuzzy boundaries (Q vs. block length) is
-        # measured on the constructed frame below, not predicted from the
-        # parameters; sub-octave ranges are legitimate. (The C++ version
-        # additionally requires power-of-two n_samples in both modes, since
-        # its FFT backends do.)
+        
+        # Structural validity
         assert sample_rate > 0, "Sample rate must be positive"
         assert n_samples > 0, "Block must be non-empty"
         if mode == "sparse":  # power-of-two spans (pad_indices) assume it
@@ -50,12 +45,10 @@ class NsgfCQT:
 
         d = np.sum(g ** 2.0, 1)
 
-        # Measured frame health (mirrors the C++ checks). Two failure modes:
-        # coverage gaps (bins no atom reaches) show up as an ill-conditioned
-        # frame operator; unresolved atoms (bands too narrow for the grid)
-        # are invisible in d and are caught by per-atom support instead.
-        # (The old identity check rms(sum(g*g_dual) - 1) was algebraically
-        # zero by construction — it could only ever catch exact 0/0 NaNs.)
+        # Measured frame health. Two failure modes: coverage gaps (bins no atom reaches) show up as an ill-conditioned 
+        # frame operator; unresolved atoms (bands too narrow for the grid) are invisible in d and are caught by per-atom 
+        # support instead. (The old identity check rms(sum(g*g_dual) - 1) was algebraically zero by construction — it 
+        # could only ever catch exact 0/0 NaNs.)
         dh = d[freq_axis <= sample_rate / 2]
         assert dh.min() > 1e-6 * dh.max(), \
             "Frame operator ill-conditioned: coverage gaps (Q too high or threshold too aggressive)"
@@ -128,8 +121,7 @@ class NsgfCQT:
             X = np.zeros(self.n_samples, dtype=np.complex128)
             for k in range(self.n_bands):
                 n_coefs = len(self.idxs[k])
-                Xi = X_cq[k]
-                Xi *= self.shifts[k].conj() / (2.0 * n_coefs)
+                Xi = X_cq[k] * (self.shifts[k].conj() / (2.0 * n_coefs))
                 Xi = fft.fft(Xi) * self.g_dual[k]
                 X[self.idxs[k]] += Xi
         x = fft.irfft(X, self.n_samples) * self.n_samples
@@ -148,9 +140,19 @@ class NsgfCQT:
     
 
     def rasterize(self, X_cq):
+        """Reconstruct the dense [n_samples, n_bands] representation from
+        sparse coefficients: undo the per-band phase and scaling, recover the
+        band's span spectrum, and embed it at its true bins. Exactly equal to
+        the dense transform's columns (up to the sparsity threshold), unlike
+        naive bandlimited interpolation, which assumes baseband input while
+        the coefficients carry the (aliased) carrier."""
         X_r = np.zeros([self.n_samples, self.n_bands], dtype=np.complex128)
         for k in range(self.n_bands):
-            X_r[:,k] = sg.resample(X_cq[k], self.n_samples)
+            n_coefs = len(self.idxs[k])
+            Xi = X_cq[k] * (self.shifts[k].conj() / (2.0 * n_coefs))
+            spec = np.zeros(self.n_freqs, dtype=np.complex128)
+            spec[self.idxs[k]] = fft.fft(Xi)
+            X_r[:, k] = 2 * self.n_samples * fft.ifft(spec)
         return X_r
     
 class NsgfVQT(NsgfCQT):

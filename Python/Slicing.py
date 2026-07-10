@@ -34,7 +34,7 @@ def splicer(x, overlap_size):
     pos = 0
 
     n_samples = hop_size * n_blocks + overlap_size  # Total length of reconstructed signal
-    y = np.zeros(n_samples, dtype='complex128')
+    y = np.zeros(n_samples, dtype=x.dtype)  # follow the input (real stays real)
 
     for i in np.arange(n_blocks):
         ii = np.arange(block_size) + pos  # Indices for current block
