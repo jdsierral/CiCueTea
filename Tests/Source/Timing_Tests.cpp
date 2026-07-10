@@ -19,6 +19,7 @@
 
 using namespace Eigen;
 using namespace jsa;
+using namespace jsa::test;
 
 BOOST_AUTO_TEST_CASE(BenchmarkTest1)
 {

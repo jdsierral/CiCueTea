@@ -4,6 +4,10 @@
 //
 //  Created by Juan Sierra on 5/1/25.
 //
+//  Identity test doubles: one subclass per processor variant with an empty
+//  processBlock(), so tests exercise the full analysis/synthesis chain with
+//  no coefficient manipulation — output must reconstruct the input.
+//
 
 #pragma once
 

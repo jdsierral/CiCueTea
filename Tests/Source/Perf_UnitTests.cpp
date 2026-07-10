@@ -17,7 +17,7 @@
 
 #include "Benchtools.h"
 #include "EmptyCQTProc.h"
-#include "VectorOps.h"
+#include "TestSignals.h"
 
 #define NUM_SAMPLES 1 << 20
 #define BLOCK_SIZE 1 << 16
@@ -31,6 +31,7 @@
 using namespace Eigen;
 using namespace std;
 using namespace jsa;
+using namespace jsa::test;
 
 BOOST_AUTO_TEST_CASE(perf1)
 {

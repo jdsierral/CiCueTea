@@ -16,11 +16,12 @@
 #include <Eigen/Core>
 
 #include "EmptyCQTProc.h"
-#include "VectorOps.h"
+#include "TestSignals.h"
 
 using namespace Eigen;
 using namespace std;
 using namespace jsa;
+using namespace jsa::test;
 
 // Block-processor, dense: exact reconstruction (painless frame, no sliding).
 BOOST_AUTO_TEST_CASE(OlaProc1)

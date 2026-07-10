@@ -18,11 +18,12 @@
 #include <Slicer.hpp>
 #include <Splicer.hpp>
 
-#include "VectorOps.h"
+#include "TestSignals.h"
 
 using namespace Eigen;
 using namespace std;
 using namespace jsa;
+using namespace jsa::test;
 
 // Slicer contract, verified on a ramp input. The slicer streams from time
 // zero (its buffer starts zeroed), so the first blockSize/hopSize − 1 blocks

@@ -15,7 +15,7 @@ set(SourceFiles
     Source/Perf_UnitTests.cpp
     Source/FFTLib_UnitTests.cpp
     Source/Timing_Tests.cpp
-    Source/VectorOps.h
+    Source/TestSignals.h
     Source/EmptyCQTProc.h
     Source/Benchtools.h
 )

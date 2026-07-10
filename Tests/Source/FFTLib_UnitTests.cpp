@@ -21,6 +21,7 @@
 #define N_TESTS 100
 
 using namespace jsa;
+using namespace jsa::test;
 using namespace Eigen;
 
 BOOST_AUTO_TEST_CASE(FFTLibTest1)

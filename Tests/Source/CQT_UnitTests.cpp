@@ -20,11 +20,12 @@
 #include <MathUtils.h>
 #include <SignalUtils.h>
 
-#include "VectorOps.h"
+#include "TestSignals.h"
 
 using namespace Eigen;
 using namespace std;
 using namespace jsa;
+using namespace jsa::test;
 
 // Layer 1 — painless-frame identity (dense): the frame and its canonical dual
 // must satisfy Σₖ gₖ(f)·g̃ₖ(f) = 1 at every bin up to Nyquist. This holds by
