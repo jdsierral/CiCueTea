@@ -7,6 +7,11 @@
 
 #pragma once
 
+#include <Eigen/Core>
+
+#include <CQT.hpp>
+#include <CQTProcessor.hpp>
+
 class CqtDense : public jsa::CqtDenseProcessor
 {
   public:

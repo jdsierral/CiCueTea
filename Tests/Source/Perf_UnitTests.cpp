@@ -4,16 +4,19 @@
 //
 //  Created by Juan Sierra on 4/6/25.
 //
+//  Benchmarks (CTest label "bench") that also assert correctness: each of
+//  the four processor variants streams 2^20 samples at 12 bands/octave,
+//  printing wall time while verifying the reconstruction. LIB_NAME marks
+//  the linear-algebra backend for cross-library comparison runs (this file
+//  originated as the Eigen half of an Eigen-vs-Armadillo harness).
+//
 
 #include <boost/test/unit_test.hpp>
-#include <numbers>
 
-#include <CQT.hpp>
-#include <CQTProcessor.hpp>
-#include <Slicer.hpp>
-#include <Splicer.hpp>
+#include <Eigen/Core>
 
 #include "Benchtools.h"
+#include "EmptyCQTProc.h"
 #include "VectorOps.h"
 
 #define NUM_SAMPLES 1 << 20
@@ -28,8 +31,6 @@
 using namespace Eigen;
 using namespace std;
 using namespace jsa;
-
-#include "EmptyCQTProc.h"
 
 BOOST_AUTO_TEST_CASE(perf1)
 {
@@ -54,7 +55,8 @@ BOOST_AUTO_TEST_CASE(perf1)
         }
     }
 
-    ArrayXd d = x.head(N - blockSize) - y.tail(N - blockSize);
+    Index   latency = ola.getLatency();
+    ArrayXd d       = x.head(N - latency) - y.tail(N - latency);
     BOOST_CHECK(rms(d) < 1e-10);
 }
 
@@ -81,10 +83,8 @@ BOOST_AUTO_TEST_CASE(perf2)
         }
     }
 
-    x = x.head(N - blockSize - blockSize / 2);
-    y = y.tail(N - blockSize - blockSize / 2);
-
-    ArrayXd d = x - y;
+    Index   latency = ola.getLatency();
+    ArrayXd d       = x.head(N - latency) - y.tail(N - latency);
     BOOST_CHECK(rms(d) < 1e-3);
 }
 
@@ -111,7 +111,8 @@ BOOST_AUTO_TEST_CASE(perf3)
         }
     }
 
-    ArrayXd d = x.head(N - blockSize) - y.tail(N - blockSize);
+    Index   latency = ola.getLatency();
+    ArrayXd d       = x.head(N - latency) - y.tail(N - latency);
     BOOST_CHECK(rms(d) < 1e-10);
 }
 
@@ -138,10 +139,7 @@ BOOST_AUTO_TEST_CASE(perf4)
         }
     }
 
-    x = x.head(N - blockSize - blockSize / 2);
-    y = y.tail(N - blockSize - blockSize / 2);
-
-    ArrayXd d = x - y;
-    cout << rms(d) << endl;
+    Index   latency = ola.getLatency();
+    ArrayXd d       = x.head(N - latency) - y.tail(N - latency);
     BOOST_CHECK(rms(d) < 1e-3);
 }

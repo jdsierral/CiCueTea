@@ -1,10 +1,24 @@
+//
+//  Timing_Tests.cpp
+//  CiCueTea_UnitTest
+//
+//  Benchmarks (CTest label "bench", no correctness assertions): wall-time of
+//  one full forward + inverse pass over 2^20 samples at 12 bands/octave, for
+//  the dense (BenchmarkTest1) and sparse (BenchmarkTest2) transforms —
+//  prints the realtime multiple. Correctness round trips live in
+//  CQT_UnitTests.cpp.
+//
+
 #include <boost/test/unit_test.hpp>
 
 #include <CQT.hpp>
 #include <Eigen/Core>
 #include <iostream>
 
+#include "Benchtools.h"
+
 using namespace Eigen;
+using namespace jsa;
 
 BOOST_AUTO_TEST_CASE(BenchmarkTest1)
 {
@@ -25,17 +39,17 @@ BOOST_AUTO_TEST_CASE(BenchmarkTest1)
     ArrayXXcd Xcq    = ArrayXXcd::Zero(nSamps, nBands);
     ArrayXXcd Ycq    = ArrayXXcd::Zero(nSamps, nBands);
 
-    auto t0 = std::chrono::steady_clock::now();
+    Timer tFwd(false);
     cqt1.forward(x, Xcq);
-    auto t1 = std::chrono::steady_clock::now();
-    Ycq     = Xcq;
-    auto t2 = std::chrono::steady_clock::now();
-    cqt1.inverse(Ycq, y);
-    auto t3 = std::chrono::steady_clock::now();
+    double dur1 = tFwd.get();
 
-    double e    = sqrt((x - y).square().mean());
-    auto   dur1 = std::chrono::duration<double, std::milli>(t1 - t0).count();
-    auto   dur2 = std::chrono::duration<double, std::milli>(t3 - t2).count();
+    Ycq = Xcq;
+
+    Timer tInv(false);
+    cqt1.inverse(Ycq, y);
+    double dur2 = tInv.get();
+
+    double e = sqrt((x - y).square().mean());
     double mul  = (N / fs) * 1000 / (dur1 + dur2);
 
     std::cout << "Error: " << e << " with duration " << dur1 << "," << dur2 << " ms which is " << mul << "x realtime" << std::endl;
@@ -62,16 +76,15 @@ BOOST_AUTO_TEST_CASE(BenchmarkTest2)
     ArrayXd                   y      = ArrayXd::Zero(nSamps);
     jsa::NsgfCqtSparse::Coefs Xcq    = cqt.getCoefs();
 
-    auto t0 = std::chrono::steady_clock::now();
+    Timer tFwd(false);
     cqt.forward(x, Xcq);
-    auto t1 = std::chrono::steady_clock::now();
-    auto t2 = std::chrono::steady_clock::now();
-    cqt.inverse(Xcq, y);
-    auto t3 = std::chrono::steady_clock::now();
+    double dur1 = tFwd.get();
 
-    double e    = sqrt((x - y).square().mean());
-    auto   dur1 = std::chrono::duration<double, std::milli>(t1 - t0).count();
-    auto   dur2 = std::chrono::duration<double, std::milli>(t3 - t2).count();
+    Timer tInv(false);
+    cqt.inverse(Xcq, y);
+    double dur2 = tInv.get();
+
+    double e = sqrt((x - y).square().mean());
     double mul  = (N / fs) * 1000 / (dur1 + dur2);
 
     std::cout << "Error: " << e << " with duration " << dur1 << "," << dur2 << " ms which is " << mul << "x realtime" << std::endl;

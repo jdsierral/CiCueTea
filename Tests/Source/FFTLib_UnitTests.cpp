@@ -4,6 +4,12 @@
 //
 //  Created by Juan Sierra on 8/28/25.
 //
+//  Benchmarks (CTest label "bench", no correctness assertions): raw timing
+//  of the selected FFT backend — rdft across sizes 2^2..2^17, then all four
+//  transform directions at 2^16. Correctness of the wrapper is covered by
+//  DFT_UnitTests.cpp; this file exists to compare backends and spot
+//  performance regressions by eye.
+//
 
 #include <FFT.hpp>
 #include <boost/test/unit_test.hpp>

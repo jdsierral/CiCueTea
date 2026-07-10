@@ -4,13 +4,18 @@
 //
 //  Created by Juan Sierra on 4/8/25.
 //
+//  Layer 0 — smoke tests for the DFT wrapper (whichever FFT backend is
+//  selected at build time): DC-bin values on constant inputs pin down the
+//  scaling and normalization conventions of rdft/irdft and dft/idft that
+//  every layer above depends on.
+//
 
 #include <boost/test/unit_test.hpp>
-#include <numbers>
+#include <complex>
 
-#include <CQT.hpp>
+#include <Eigen/Core>
 
-#include "VectorOps.h"
+#include <FFT.hpp>
 
 using namespace Eigen;
 using namespace std;

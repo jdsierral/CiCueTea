@@ -4,23 +4,25 @@
 //
 //  Created by Juan Sierra on 3/23/25.
 //
+//  Layer 3 — processor-class API tests. Each CQT{Dense,Sparse} /
+//  SliCqt{Dense,Sparse} processor is driven sample-by-sample through an
+//  identity manipulation (EmptyCQTProc.h) and must reconstruct its input
+//  delayed by exactly getLatency() samples — so these tests verify the
+//  round trip and the latency report at the same time.
+//
 
 #include <boost/test/unit_test.hpp>
-#include <numbers>
 
-#include <CQT.hpp>
-#include <CQTProcessor.hpp>
-#include <Slicer.hpp>
-#include <Splicer.hpp>
+#include <Eigen/Core>
 
+#include "EmptyCQTProc.h"
 #include "VectorOps.h"
 
 using namespace Eigen;
 using namespace std;
 using namespace jsa;
 
-#include "EmptyCQTProc.h"
-
+// Block-processor, dense: exact reconstruction (painless frame, no sliding).
 BOOST_AUTO_TEST_CASE(OlaProc1)
 {
     double fs        = 48000;
@@ -36,10 +38,13 @@ BOOST_AUTO_TEST_CASE(OlaProc1)
         y(n) = ola.processSample(x(n));
     }
 
-    ArrayXd d = x.head(N - blockSize) - y.tail(N - blockSize);
-    BOOST_CHECK(rms(d) < 1e-10);
+    Index   latency = ola.getLatency();
+    ArrayXd d       = x.head(N - latency) - y.tail(N - latency);
+    BOOST_CHECK_MESSAGE(rms(d) < 1e-10, "rms = " << rms(d));
 }
 
+// Sliding processor, dense: reconstruction through the sliCQ-style
+// overlapped path.
 BOOST_AUTO_TEST_CASE(OlaProc2)
 {
     double fs        = 48000;
@@ -55,13 +60,12 @@ BOOST_AUTO_TEST_CASE(OlaProc2)
         y(n) = ola.processSample(x(n));
     }
 
-    x = x.head(N - blockSize - blockSize / 2);
-    y = y.tail(N - blockSize - blockSize / 2);
-
-    ArrayXd d = x - y;
-    //    BOOST_CHECK(rms(d) < 1e-4);
+    Index   latency = ola.getLatency();
+    ArrayXd d       = x.head(N - latency) - y.tail(N - latency);
+    BOOST_CHECK_MESSAGE(rms(d) < 1e-3, "rms = " << rms(d));
 }
 
+// Block-processor, sparse: exact reconstruction.
 BOOST_AUTO_TEST_CASE(OlaProc3)
 {
     double fs        = 48000;
@@ -77,10 +81,12 @@ BOOST_AUTO_TEST_CASE(OlaProc3)
         y(n) = ola.processSample(x(n));
     }
 
-    ArrayXd d = x.head(N - blockSize) - y.tail(N - blockSize);
-    BOOST_CHECK(rms(d) < 1e-10);
+    Index   latency = ola.getLatency();
+    ArrayXd d       = x.head(N - latency) - y.tail(N - latency);
+    BOOST_CHECK_MESSAGE(rms(d) < 1e-10, "rms = " << rms(d));
 }
 
+// Sliding processor, sparse, at 3 bands/octave.
 BOOST_AUTO_TEST_CASE(OlaProc4)
 {
     double fs        = 48000;
@@ -100,9 +106,7 @@ BOOST_AUTO_TEST_CASE(OlaProc4)
         y(n) = ola.processSample(x(n));
     }
 
-    x = x.head(N - blockSize - blockSize / 2);
-    y = y.tail(N - blockSize - blockSize / 2);
-
-    ArrayXd d = x - y;
-    //    BOOST_CHECK(rms(d) < 1e-4);
+    Index   latency = ola.getLatency();
+    ArrayXd d       = x.head(N - latency) - y.tail(N - latency);
+    BOOST_CHECK_MESSAGE(rms(d) < 1e-3, "rms = " << rms(d));
 }

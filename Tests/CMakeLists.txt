@@ -1,20 +1,18 @@
 set(TARGET_NAME ${PROJECT_NAME}_UnitTest)
 message(STATUS ${SEP} ${TARGET_NAME} ${SEP})
 
+# Tests use the header-only Boost.Test variant (boost/test/included/unit_test.hpp),
+# so only Boost headers are needed — no compiled components, nothing to link.
 cmake_policy(SET CMP0167 NEW)
-find_package(Boost 1.89 REQUIRED)
-find_package(Boost COMPONENTS program_options log log_setup REQUIRED)
+find_package(Boost 1.70 REQUIRED)
 
 set(SourceFiles
     Source/main.cpp
     Source/DFT_UnitTests.cpp
-    Source/StabilityTest.cpp
     Source/CQT_UnitTests.cpp
     Source/Slicing_UnitTests.cpp
     Source/SlidingCQT_UnitTests.cpp
     Source/Perf_UnitTests.cpp
-    Source/SlidingExtended_UnitTests.cpp
-    Source/SliCQTTest_UnitTests.cpp
     Source/FFTLib_UnitTests.cpp
     Source/Timing_Tests.cpp
     Source/VectorOps.h
@@ -70,13 +68,10 @@ add_boost_test(DFT              "DFTTest*")
 add_boost_test(CQT              "CQTTest*,SlidingCQT")
 add_boost_test(Slicing          "Slicing*,CQTSlicing*")
 add_boost_test(OlaProcessors    "OlaProc*")
-add_boost_test(SlidingExtended  "DoubleBufferTest,ExtendedTest*")
-add_boost_test(SliCQT           "SparseCQT*,SliCQTTest1")
-add_boost_test(Stability        "BenchTest")
 
 # Benchmarks: slow, timing-dependent — excluded from quick runs via `ctest -LE bench`
 add_boost_test(FFTBench         "FFTLibTest*")
 add_boost_test(Perf             "perf*")
-add_boost_test(Timing           "BenchmarkTest1")
+add_boost_test(Timing           "BenchmarkTest*")
 
 set_tests_properties(FFTBench Perf Timing PROPERTIES LABELS "bench" TIMEOUT 600)

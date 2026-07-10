@@ -7,31 +7,35 @@
 
 #pragma once
 
-#include <Eigen/Core>
+#include <chrono>
 #include <iostream>
 
 namespace jsa {
 
+// Scope timer. By default prints the elapsed time on destruction; construct
+// with Timer(false) to keep it silent and read the value via get() instead.
 class Timer
 {
   public:
-    Timer() :
+    explicit Timer(bool printOnExit = true) :
+        verbose(printOnExit),
         startTime(std::chrono::high_resolution_clock::now()) {}
     ~Timer()
     {
-        double t = get();
-        std::cout << "Timer Result: " << t << " ms" << std::endl;
+        if (verbose)
+            std::cout << "Timer Result: " << get() << " ms" << std::endl;
     }
 
+    /// Elapsed time since construction in fractional milliseconds.
     double get()
     {
         using namespace std::chrono;
-        auto   curTime  = high_resolution_clock::now();
-        double duration = duration_cast<milliseconds>(curTime - startTime).count();
-        return duration;
+        auto curTime = high_resolution_clock::now();
+        return duration<double, std::milli>(curTime - startTime).count();
     }
 
   private:
+    bool                                           verbose;
     std::chrono::high_resolution_clock::time_point startTime;
 };
 

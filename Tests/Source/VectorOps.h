@@ -7,6 +7,9 @@
 
 #pragma once
 
+#include <cmath>
+#include <vector>
+
 #include <Eigen/Core>
 
 namespace jsa {
