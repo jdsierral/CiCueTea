@@ -27,8 +27,8 @@ using namespace jsa;
 using namespace Eigen;
 
 DFT::DFT(size_t fftSize) : pImpl(std::make_unique<DFTImpl>(fftSize)) {}
-DFT::~DFT() = default;
-DFT::DFT(DFT&&) noexcept = default;
+DFT::~DFT()                         = default;
+DFT::DFT(DFT&&) noexcept            = default;
 DFT& DFT::operator=(DFT&&) noexcept = default;
 
 void DFT::dft(const ArrayXcd& X, ArrayXcd& Y)

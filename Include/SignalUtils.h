@@ -17,6 +17,7 @@
 
 #include <cassert>
 #include <numbers>
+
 #include <Eigen/Core>
 
 #include "MathUtils.h"

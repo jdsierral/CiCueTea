@@ -1,1 +1,109 @@
-/Users/juans/.clang-format
+BasedOnStyle: LLVM
+IndentWidth: 4
+UseTab: Never
+ColumnLimit: 0 
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: All
+BreakConstructorInitializers: AfterColon
+BreakInheritanceList: AfterColon
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterCaseLabel: false
+  AfterControlStatement: false
+  AfterEnum: false
+  AfterFunction: true
+  AfterNamespace: false
+  AfterObjCDeclaration: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: false
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+ReflowComments: false
+PointerAlignment: Left
+SortIncludes: true
+# IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^<.*\.h>'
+    Priority: 1
+  - Regex: '^"(.*)"'
+    Priority: 2
+IndentPPDirectives: AfterHash
+
+# BasedOnStyle: LLVM
+# IndentWidth: 4
+# UseTab: Never
+# ColumnLimit: 0  # Don't enforce line length (JUCE doesn't)
+# BreakBeforeBraces: Attach
+# AllowShortFunctionsOnASingleLine: Inline
+# AllowShortIfStatementsOnASingleLine: true
+# BreakConstructorInitializers: AfterColon
+# AlignConsecutiveAssignments: true
+# AlignConsecutiveDeclarations: true
+# PointerAlignment: Left
+# SpaceBeforeParens: ControlStatements
+# ReflowComments: false
+# SortIncludes: false
+# KeepEmptyLinesAtTheStartOfBlocks: false
+# EmptyLineBeforeAccessModifier: Always
+# BraceWrapping:
+#   AfterEnum: true
+#   AfterStruct: true
+#   SplitEmptyFunction: false
+
+# BasedOnStyle: LLVM
+# IndentWidth: 4
+# UseTab: Never
+# TabWidth: 4
+# AllowShortIfStatementsOnASingleLine: true
+# AllowShortFunctionsOnASingleLine: Inline
+# AllowShortBlocksOnASingleLine: true
+# ConstructorInitializerAllOnOneLineOrOnePerLine: false
+# AlignAfterOpenBracket: Align
+# AlignOperands: true
+# AlignConsecutiveAssignments: true
+# AlignConsecutiveDeclarations: true
+# PointerAlignment: Left
+# SpaceAfterCStyleCast: true
+# SpaceBeforeParens: ControlStatements
+# SpaceInEmptyParentheses: false
+# Cpp11BracedListStyle: true
+# IncludeBlocks: Regroup
+# IncludeCategories:
+#   - Regex: '^<.*\.h>'
+#     Priority: 1
+#   - Regex: '^"(.*)"'
+#     Priority: 2
+# SortIncludes: true
+# ColumnLimit: 100 
+# NamespaceIndentation: None
+# EmptyLineBeforeAccessModifier: Always
+# IndentCaseLabels: false
+# KeepEmptyLinesAtTheStartOfBlocks: false
+# ReflowComments: false
+# SortUsingDeclarations: true
+# BreakConstructorInitializers: AfterColon
+# BreakBeforeBraces: Custom
+# BraceWrapping:
+#   AfterFunction: true
+#   AfterClass: true
+#   AfterEnum: true
+#   AfterStruct: true
+#   AfterNamespace: true
+#   AfterUnion: true
+#   AfterControlStatement: false
+#   BeforeElse: true
+
+# AllowShortBlocksOnASingleLine: false
+# AllowShortIfStatementsOnASingleLine: true
+# AllowShortLoopsOnASingleLine: true
+# AllowShortFunctionsOnASingleLine: true

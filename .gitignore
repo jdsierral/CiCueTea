@@ -326,3 +326,5 @@ __marimo__/
 
 
 BenchTests/**
+
+*.md
