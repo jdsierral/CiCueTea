@@ -8,6 +8,8 @@
 #include "CQT.hpp"
 
 #include <cassert>
+#include <cmath>
+#include <limits>
 #include <numbers>
 
 #include "MathUtils.h"
@@ -15,6 +17,48 @@
 
 using namespace jsa;
 using namespace Eigen;
+
+NsgfCqtCommon::BandInfo NsgfCqtCommon::computeBandInfo(double frac, double fMin,
+                                                        double fMax, double fRef)
+{
+    // ceil() rounds both counts outward, so bax(0) <= fMin and
+    // bax(end) >= fMax hold even when fRef lies outside [fMin, fMax]
+    // (one count simply goes negative), and fMin < fMax guarantees
+    // nBands >= 1.
+    Index nBandsUp   = Index(ceil(1.0 / frac * log2(fMax / fRef)));
+    Index nBandsDown = Index(ceil(1.0 / frac * log2(fRef / fMin)));
+    Index nBands     = nBandsDown + nBandsUp + 1;
+    return {nBands, nBandsDown, nBandsUp};
+}
+
+bool NsgfCqtCommon::validate(double fs, Index nSamps, double frac,
+                             double fMin, double fMax, double fRef)
+{
+    // Written as !(x > 0) rather than (x <= 0) so that NaNs fail too.
+    if (!(fs > 0)) return false;                    // no sample rate yet (e.g. DAW placeholder)
+    if (nSamps <= 0) return false;                  // no block
+    if ((nSamps & (nSamps - 1)) != 0) return false; // power of two: getIdx span assumption
+    if (!(frac > 0)) return false;                  // bands per octave must be positive
+    if (!(fRef > 0)) return false;                  // log2(fRef) must exist
+    if (!(fMin > 0)) return false;                  // log2(fMin) must exist
+    if (!(fMin < fMax)) return false;               // the range must be a range
+    if (!(2 * fMax < fs)) return false;             // respect Nyquist
+    return true;
+}
+
+bool NsgfCqtCommon::checkFrameHealth() const
+{
+    if (nFreqs == 0) return false;
+    auto dh = d.head(nFreqs / 2 + 1);
+    return dh.minCoeff() > dHealthTol * dh.maxCoeff();
+}
+
+double NsgfCqtCommon::getFrameConditionNumber() const
+{
+    if (!valid || nFreqs == 0) return std::numeric_limits<double>::infinity();
+    auto dh = d.head(nFreqs / 2 + 1);
+    return dh.maxCoeff() / dh.minCoeff();
+}
 
 NsgfCqtCommon::NsgfCqtCommon(double sampleRate, Index numSamples,
                              double fraction, double minFrequency,
@@ -63,7 +107,14 @@ NsgfCqtDense::NsgfCqtDense(double sampleRate, Index numSamples,
     g.col(0)   = (fax < bax(0)).select(1, g.col(0));
     g.col(end) = (fax > bax(end)).select(1, g.col(end));
     d          = g.square().rowwise().sum();
-    gDual      = g.colwise() / d;
+
+    frameOk = checkFrameHealth();
+    for (Index k = 0; frameOk && k < nBands; k++) {
+        frameOk = (g.col(k) > th).count() >= minAtomSupport;
+    }
+    if (!frameOk) return; // inert: gaps in d, or atoms the grid cannot resolve
+
+    gDual = g.colwise() / d;
 
     g.bottomRows(nFreqs / 2 - 1).setZero();
     gDual.bottomRows(nFreqs / 2 - 1).setZero();
@@ -75,7 +126,7 @@ void NsgfCqtDense::forward(const ArrayXd& x, ArrayXXcd& Xcq)
 {
     RealTimeChecker ck;
 
-    if (!valid) {
+    if (!isValid()) {
         Xcq.setZero();
         return;
     }
@@ -93,7 +144,7 @@ void NsgfCqtDense::inverse(const ArrayXXcd& Xcq, ArrayXd& x)
 {
     RealTimeChecker ck;
 
-    if (!valid) {
+    if (!isValid()) {
         x.setZero();
         return;
     }
@@ -133,7 +184,17 @@ NsgfCqtSparse::NsgfCqtSparse(double sampleRate, Index numSamples,
     g_.col(end) = (fax > bax(end)).select(1, g_.col(end));
     g_          = (g_ <= th).select(0.0, g_);
 
-    d               = g_.square().rowwise().sum();
+    d = g_.square().rowwise().sum();
+
+    // Measured health: coverage gaps show up in d (condition number); atoms
+    // the grid cannot resolve show up as insufficient support — the latter
+    // would otherwise break the span extraction below.
+    frameOk = checkFrameHealth();
+    for (Index k = 0; frameOk && k < nBands; k++) {
+        frameOk = (g_.col(k) > th).count() >= minAtomSupport;
+    }
+    if (!frameOk) return;
+
     ArrayXXd gDual_ = g_.colwise() / d;
 
     g_.bottomRows(nFreqs / 2 - 1).fill(0);
@@ -160,7 +221,7 @@ void NsgfCqtSparse::forward(const ArrayXd& x, Coefs& Xcq)
 {
     RealTimeChecker ck;
 
-    if (!valid) {
+    if (!isValid()) {
         for (auto& c : Xcq) c.setZero();
         return;
     }
@@ -179,7 +240,7 @@ void NsgfCqtSparse::inverse(const Coefs& Xcq, ArrayXd& x)
 {
     RealTimeChecker ck;
 
-    if (!valid) {
+    if (!isValid()) {
         x.setZero();
         return;
     }

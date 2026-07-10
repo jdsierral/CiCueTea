@@ -15,7 +15,6 @@
 
 #pragma once
 
-#include <cmath>
 #include <memory>
 #include <vector>
 
@@ -67,13 +66,31 @@ class NsgfCqtCommon
                   double minFrequency, double maxFrequency, double refFrequency);
 
     /**
-     * @brief True when the configuration passed validate() at construction.
+     * @brief True when the object is usable: the configuration passed
+     * validate() *and* the constructed frame passed the measured health
+     * check (see checkFrameHealth()).
+     *
+     * Two tiers on purpose: parameter rules catch the provable absurdities,
+     * but the fuzzy boundary — a convergence of factors with no closed-form
+     * criterion — is decided by inspecting the frame that was actually
+     * built, not by predicting from parameters. Two measured modes:
+     * coverage gaps (bins no atom reaches: frame-operator condition number,
+     * checkFrameHealth()) and unresolved atoms (bands too narrow for the
+     * grid: per-atom support ≥ minAtomSupport).
      *
      * An invalid object is inert: forward()/inverse() write zeros to their
-     * outputs and return, and accessors return empty data. Parameter getters
-     * (getSampleRate() etc.) still report the values that were passed in.
+     * outputs and return, and accessors return empty or unusable data.
+     * Parameter getters (getSampleRate() etc.) still report what was passed.
      */
-    bool isValid() const { return valid; }
+    bool isValid() const { return valid && frameOk; }
+
+    /**
+     * @brief Condition number of the painless frame operator, max(d)/min(d)
+     * up to Nyquist. Advisory: reconstruction error amplifies by roughly
+     * cond·ε, so values ≲ 1e6 keep double-precision round trips near 1e-10.
+     * Returns +inf when the object is invalid.
+     */
+    double getFrameConditionNumber() const;
 
     // Accessor methods for various parameters and computed data.
     double                getSampleRate() const { return fs; }
@@ -92,24 +109,19 @@ class NsgfCqtCommon
 
   protected:
     /**
-     * @brief Checks the unambiguous validity conditions for a configuration.
+     * @brief Checks the structural validity conditions for a configuration.
      *
      * Deliberately limited to conditions under which the transform is
      * provably meaningless: positive sample rate, power-of-two block size
      * (a structural assumption of the per-band span logic, see
      * NsgfCqtSparse::getIdx — independent of what a backend could handle),
-     * positive fraction and reference frequency, fMin > 0, at least one
-     * octave of range (2·fMin ≤ fMax), and fMax strictly below Nyquist.
-     * Feasibility questions with fuzzy boundaries (Q vs. block length,
-     * latency vs. fMin) are intentionally not gated here.
+     * positive fraction and reference frequency, 0 < fMin < fMax, and fMax
+     * strictly below Nyquist. Nothing about the *extent* of the range is
+     * gated (sub-octave ranges are legitimate): feasibility is measured on
+     * the constructed frame instead (checkFrameHealth(), atom support).
      */
     static bool validate(double fs, Eigen::Index nSamps, double frac,
-                         double fMin, double fMax, double fRef)
-    {
-        bool pow2 = nSamps > 0 && ((nSamps & (nSamps - 1)) == 0);
-        return fs > 0 && pow2 && frac > 0 && fRef > 0 && fMin > 0 &&
-               2 * fMin <= fMax && 2 * fMax < fs;
-    }
+                         double fMin, double fMax, double fRef);
 
     /**
      * @brief Computes band information for the filterbank.
@@ -121,18 +133,43 @@ class NsgfCqtCommon
      * @return BandInfo Struct containing band information.
      */
     static BandInfo computeBandInfo(double frac, double fMin,
-                                    double fMax, double fRef)
-    {
-        Eigen::Index nBandsUp   = Eigen::Index(ceil(1.0 / frac * log2(fMax / fRef)));
-        Eigen::Index nBandsDown = Eigen::Index(ceil(1.0 / frac * log2(fRef / fMin)));
-        Eigen::Index nBands     = nBandsDown + nBandsUp + 1;
-        return {nBands, nBandsDown, nBandsUp};
-    }
+                                    double fMax, double fRef);
+
+    /**
+     * @brief Measured frame-health check on the constructed frame operator.
+     *
+     * The painless frame operator is diagonal with entries d(f); the
+     * transform is invertible iff min(d) > 0 on the covered range, and
+     * numerically trustworthy iff the condition number max(d)/min(d) is
+     * moderate. Requiring min(d) > dHealthTol·max(d) bounds the condition
+     * number by 1/dHealthTol. Called by the derived constructors once d is
+     * available; every "Q too high for this block" failure mode lands here,
+     * whatever combination of parameters caused it.
+     */
+    bool checkFrameHealth() const;
+
+    /// Relative floor for the frame-operator diagonal: bounds the frame
+    /// condition number by 1e6, keeping double-precision round trips ~1e-10.
+    static constexpr double dHealthTol = 1e-6;
+
+    /// Atom magnitude threshold: below it a bin does not count as support
+    /// (and, in the sparse variant, is zeroed for efficiency).
+    static constexpr double th = 1e-6;
+
+    /// Minimum number of bins above `th` an atom must occupy to count as
+    /// resolved by the frequency grid. The fuzzy "Q too big for the block"
+    /// failure mode is invisible in d — with many bands per octave every bin
+    /// is still covered — so it is caught from the atom side instead:
+    /// unresolved atoms are the measured, warp-agnostic equivalent of the
+    /// parametric Q check. 4 matches the smallest FFT span getIdx will build
+    /// (and min_bw in the Python reference).
+    static constexpr Eigen::Index minAtomSupport = 4;
 
     // Member variables for filterbank parameters and computed data.
     // `valid` is declared first on purpose: member initialization follows
     // declaration order, and the members below branch on it.
-    const bool         valid;    ///< Result of validate() at construction.
+    const bool         valid;    ///< Structural validity: result of validate().
+    bool               frameOk = true; ///< Measured frame health; set by derived ctors.
     const double       fs;       ///< Sampling rate (Hz).
     const Eigen::Index nSamps;   ///< Number of samples in a block (0 when invalid).
     const double       frac;     ///< Reciprocal of bands per octave.
@@ -286,7 +323,6 @@ class NsgfCqtSparse : public NsgfCqtCommon
     Eigen::ArrayXd                    scale;     ///< Per-band scale (= span length). Stored as double
     Coefs                             Xcoefs;    ///< Sparse coefficients.
     std::vector<std::unique_ptr<DFT>> dfts;      ///< DFT objects for each band.
-    inline static const double        th = 1e-6; ///< Threshold for sparsity.
 };
 
 } // namespace jsa
