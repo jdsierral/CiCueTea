@@ -24,16 +24,18 @@ using namespace jsa;
 using namespace jsa::test;
 
 // Block-processor, dense: exact reconstruction (painless frame, no sliding).
+// (blockSize must be large enough for the atoms to be resolved — a 32-sample
+// block at fMin = 100 Hz is rejected by the frame-health check by design.)
 BOOST_AUTO_TEST_CASE(OlaProc1)
 {
     double fs        = 48000;
-    Index  N         = 1 << 10;
-    Index  blockSize = 1 << 5;
+    Index  N         = 1 << 12;
+    Index  blockSize = 1 << 8;
 
     ArrayXd x = ArrayXd::Random(N);
     ArrayXd y = ArrayXd::Zero(N);
 
-    CqtDense ola(fs, blockSize, 1, 1e2, 1e4, 1e3);
+    CqtDense ola(fs, blockSize, 1, 4e2, 1e4, 1e3);
 
     for (Index n = 0; n < N; n++) {
         y(n) = ola.processSample(x(n));

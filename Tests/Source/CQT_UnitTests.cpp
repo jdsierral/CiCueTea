@@ -142,7 +142,40 @@ BOOST_AUTO_TEST_CASE(CQTTestValidity)
     BOOST_CHECK(!NsgfCqtDense(fs, N - 1, 1, 100, 10000, 1500).isValid()); // non-pow2 block
     BOOST_CHECK(!NsgfCqtDense(fs, N, 1, 0, 10000, 1500).isValid());      // fMin = 0
     BOOST_CHECK(!NsgfCqtDense(fs, N, 1, 100, 30000, 1500).isValid());    // fMax over Nyquist
-    BOOST_CHECK(!NsgfCqtDense(fs, N, 1, 6000, 10000, 8000).isValid());   // < one octave
+    BOOST_CHECK(!NsgfCqtDense(fs, N, 1, 10000, 6000, 8000).isValid());  // inverted range
+
+    // Sub-octave ranges are legitimate — feasibility is measured on the
+    // constructed frame, not assumed from the parameter extent.
+    BOOST_CHECK(NsgfCqtDense(fs, N, 1, 6000, 10000, 8000).isValid());
+
+    // Fuzzy boundary — structurally fine, but Q is too high for the block
+    // (12 bands/octave from 100 Hz in 256 samples): no parameter rule fires;
+    // the *measured* frame-health check does.
+    BOOST_CHECK(!NsgfCqtDense(fs, 1 << 8, 1.0 / 12, 100, 10000, 1500).isValid());
+    BOOST_CHECK(!NsgfCqtSparse(fs, 1 << 8, 1.0 / 12, 100, 10000, 1500).isValid());
+    BOOST_CHECK(NsgfCqtSparse(fs, 1 << 16, 1.0 / 12, 100, 10000, 1500).isValid());
+
+    // fRef only anchors the band grid — it may lie outside [fMin, fMax].
+    // ceil() rounds the band counts outward (they go negative on one side),
+    // so bax(0) <= fMin and bax(end) >= fMax hold regardless; the measured
+    // health checks judge the result like any other configuration.
+    {
+        NsgfCqtDense anchored(fs, N, 1, 2000, 20000, 440);
+        BOOST_CHECK(anchored.isValid());
+        ArrayXd   xa = ArrayXd::Random(N);
+        ArrayXd   ya(N);
+        ArrayXXcd Xa(anchored.getNumSamps(), anchored.getNumBands());
+        anchored.forward(xa, Xa);
+        anchored.inverse(Xa, ya);
+        BOOST_CHECK_MESSAGE(rms(xa - ya) < 1e-10, "rms = " << rms(xa - ya));
+
+        NsgfCqtSparse anchoredSp(fs, N, 1, 2000, 20000, 440);
+        BOOST_CHECK(anchoredSp.isValid());
+        auto Xs = anchoredSp.getCoefs();
+        anchoredSp.forward(xa, Xs);
+        anchoredSp.inverse(Xs, ya);
+        BOOST_CHECK_MESSAGE(rms(xa - ya) < 1e-10, "rms = " << rms(xa - ya));
+    }
 
     // Inert dense transform: outputs are zeroed, nothing crashes.
     NsgfCqtDense bad(0, N, 1, 100, 10000, 1500);
