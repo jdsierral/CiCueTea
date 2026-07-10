@@ -12,10 +12,21 @@ class NsgfCQT:
         f_min = float(f_min)
         f_max = float(f_max)
         f_ref = float(f_ref)
-        assert f_min != 0, "Lower bound can't be 0"
+        # Structural validity: each condition provably breaks the transform on
+        # its own. Feasibility with fuzzy boundaries (Q vs. block length) is
+        # measured on the constructed frame below, not predicted from the
+        # parameters; sub-octave ranges are legitimate. (The C++ version
+        # additionally requires power-of-two n_samples in both modes, since
+        # its FFT backends do.)
+        assert sample_rate > 0, "Sample rate must be positive"
+        assert n_samples > 0, "Block must be non-empty"
+        if mode == "sparse":  # power-of-two spans (pad_indices) assume it
+            assert (n_samples & (n_samples - 1)) == 0, "n_samples must be a power of 2"
+        assert frac > 0, "frac (reciprocal of bands per octave) must be positive"
+        assert f_ref > 0, "Reference frequency must be positive"
+        assert f_min > 0, "Lower bound must be positive"
+        assert f_min < f_max, "The range must be a range (f_min < f_max)"
         assert f_max * 2 < sample_rate, "Higher bound must be below nyquist"
-        assert f_min * 2 <= f_max, "Leave at least 1 octave"
-        # assert sample_rate / (f_min * ((2.0**frac) - 1.0)) > n_samples, "Q is too high"
 
         self.min_bw = 4
 
@@ -38,10 +49,21 @@ class NsgfCQT:
             g[np.where(g < threshold)] = 0
 
         d = np.sum(g ** 2.0, 1)
-        g_dual = g / d[:, None]             # Compute the dual frame
 
-        # Check for invertibility
-        assert np.sqrt(np.mean((np.sum(g * g_dual, 1) - 1) ** 2.0)) < 1e-10
+        # Measured frame health (mirrors the C++ checks). Two failure modes:
+        # coverage gaps (bins no atom reaches) show up as an ill-conditioned
+        # frame operator; unresolved atoms (bands too narrow for the grid)
+        # are invisible in d and are caught by per-atom support instead.
+        # (The old identity check rms(sum(g*g_dual) - 1) was algebraically
+        # zero by construction — it could only ever catch exact 0/0 NaNs.)
+        dh = d[freq_axis <= sample_rate / 2]
+        assert dh.min() > 1e-6 * dh.max(), \
+            "Frame operator ill-conditioned: coverage gaps (Q too high or threshold too aggressive)"
+        support = np.count_nonzero(g > threshold, axis=0)
+        assert support.min() >= self.min_bw, \
+            "Atoms unresolved by the frequency grid (Q too high for this block size)"
+
+        g_dual = g / d[:, None]             # Compute the dual frame
 
         g[np.where(freq_axis > sample_rate / 2), :] = 0
         g_dual[np.where(freq_axis > sample_rate / 2), :] = 0
@@ -140,14 +162,25 @@ class NsgfVQT(NsgfCQT):
         f_min = float(f_min)
         f_max = float(f_max)
         f_ref = float(f_ref)
-        assert f_min != 0, "Lower bound can't be 0"
+        # Structural validity: each condition provably breaks the transform on
+        # its own. Feasibility with fuzzy boundaries (Q vs. block length) is
+        # measured on the constructed frame below, not predicted from the
+        # parameters; sub-octave ranges are legitimate. (The C++ version
+        # additionally requires power-of-two n_samples in both modes, since
+        # its FFT backends do.)
+        assert sample_rate > 0, "Sample rate must be positive"
+        assert n_samples > 0, "Block must be non-empty"
+        if mode == "sparse":  # power-of-two spans (pad_indices) assume it
+            assert (n_samples & (n_samples - 1)) == 0, "n_samples must be a power of 2"
+        assert frac > 0, "frac (reciprocal of bands per octave) must be positive"
+        assert f_ref > 0, "Reference frequency must be positive"
+        assert f_min > 0, "Lower bound must be positive"
+        assert f_min < f_max, "The range must be a range (f_min < f_max)"
         assert f_max * 2 < sample_rate, "Higher bound must be below nyquist"
-        assert f_min * 2 <= f_max, "Leave at least 1 octave"
-        # assert sample_rate / (f_min * ((2.0**frac) - 1.0)) > n_samples, "Q is too high"
 
         self.min_bw = 4
 
-        n_bands_up = int(np.ceil(1 / frac * (f_map(f_max) - f_map(f_min))))
+        n_bands_up = int(np.ceil(1 / frac * (f_map(f_max) - f_map(f_ref))))
         n_bands_dn = int(np.ceil(1 / frac * (f_map(f_ref) - f_map(f_min))))
         n_bands = n_bands_dn + n_bands_up + 1
         n_freqs = n_samples
@@ -166,10 +199,21 @@ class NsgfVQT(NsgfCQT):
             g[np.where(g < threshold)] = 0
 
         d = np.sum(g ** 2.0, 1)
-        g_dual = g / d[:, None]             # Compute the dual frame
 
-        # Check for invertibility
-        assert np.sqrt(np.mean((np.sum(g * g_dual, 1) - 1) ** 2.0)) < 1e-10
+        # Measured frame health (mirrors the C++ checks). Two failure modes:
+        # coverage gaps (bins no atom reaches) show up as an ill-conditioned
+        # frame operator; unresolved atoms (bands too narrow for the grid)
+        # are invisible in d and are caught by per-atom support instead.
+        # (The old identity check rms(sum(g*g_dual) - 1) was algebraically
+        # zero by construction — it could only ever catch exact 0/0 NaNs.)
+        dh = d[freq_axis <= sample_rate / 2]
+        assert dh.min() > 1e-6 * dh.max(), \
+            "Frame operator ill-conditioned: coverage gaps (Q too high or threshold too aggressive)"
+        support = np.count_nonzero(g > threshold, axis=0)
+        assert support.min() >= self.min_bw, \
+            "Atoms unresolved by the frequency grid (Q too high for this block size)"
+
+        g_dual = g / d[:, None]             # Compute the dual frame
 
         g[np.where(freq_axis > sample_rate / 2), :] = 0
         g_dual[np.where(freq_axis > sample_rate / 2), :] = 0

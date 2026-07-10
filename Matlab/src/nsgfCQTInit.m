@@ -21,8 +21,9 @@
 %         .g, .gDual, .d, .type
 %         (for sparse type) .idxs, .phase
 %
-%   The function checks for valid parameter ranges and ensures the transform
-%   respects the Nyquist limit and octave constraints. For 'sparse' type, filters
+%   The function checks structural parameter validity (Nyquist, positivity)
+%   and then verifies the *constructed* frame: frame-operator conditioning
+%   and per-atom support. For 'sparse' type, filters
 %   below the threshold are zeroed and indices are stored for efficient processing.
 %
 %   See also: nsgfCQT, nsgfICQT, nsgfRasterize
@@ -39,10 +40,11 @@ function s = nsgfCQTInit(type, fs, nSamps, frac, fMin, fMax, fRef, th)
         th (1,1) double {mustBePositive, mustBeLessThan(th, 1)} = 1e-6
     end
 
-    % Check for valid frequency and Q settings
-    if fMax * 2 >= fs; error("Not respecting nyquist limit"); end % Nyquist limit
-    if fMin * 2 > fMax; error("Leave at least 1 octave"); end      % At least 1 octave
-    if (fs / (fMin * (exp2(frac) - 1))) > nSamps; error("Q is too big"); end % Q constraint
+    % Structural validity
+    if fMax * 2 >= fs; error("Not respecting nyquist limit"); end
+    if type == "sparse" && nSamps ~= 2^nextpow2(nSamps) % padIdxs spans assume it
+        error("nSamps must be a power of 2 for the sparse transform");
+    end
 
 
     % Calculate number of bands above and below reference frequency
@@ -72,9 +74,15 @@ function s = nsgfCQTInit(type, fs, nSamps, frac, fMin, fMax, fRef, th)
     % Compute frame operator diagonal (energy normalization)
     d = sum(g.^2, 2);
 
-    % Check for invertibility (no zero diagonal entries below Nyquist)
-    if (any(d(fax<fs/2) == 0))
-        error("Q is too high for blockSize")
+    % Measured frame health. Two failure modes: coverage gaps (bins no atom reaches) 
+    % show up as an ill-conditioned frame operator; unresolved atoms (bands too narrow for the grid) 
+    % are invisible in d and are caught by per-atom support instead.
+    dh = d(fax <= fs/2);
+    if min(dh) <= 1e-6 * max(dh)
+        error("Frame operator ill-conditioned: coverage gaps (Q too high or threshold too aggressive)")
+    end
+    if any(sum(g > th, 1) < 4)
+        error("Atoms unresolved by the frequency grid (Q too high for blockSize)")
     end
     gDual = g ./ d; % Dual frame windows
 
