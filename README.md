@@ -26,7 +26,7 @@
 - **CMake ≥ 3.30**
 - **Eigen ≥ 3.4** (Eigen 5.x supported)
 - An FFT backend: **vDSP** (macOS, system-provided; default) or **MKL** / **FFTW** / **PFFFT** — selected via `FFTSelection.cmake`
-- **Boost ≥ 1.89** (unit tests only)
+- **Boost ≥ 1.70**, headers only (unit tests only — the library itself has no Boost dependency)
 
 ---
 
