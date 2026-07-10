@@ -7,7 +7,7 @@
 
 /**
  * @file SignalUtils.h
- * @brief Provides an implementation of a Slicer of continuous data
+ * @brief Signal utilities: window functions.
  * @author Juan Sierra
  * @date 3/23/25
  * @copyright MIT License
@@ -24,6 +24,12 @@
 
 namespace jsa {
 
+/**
+ * @brief Periodic Hann window of length N: sin²(πn/N).
+ *
+ * Periodic (DFT-even) form, so sqrt-Hann analysis/synthesis pairs at 50%
+ * overlap satisfy the WOLA condition exactly.
+ */
 inline Eigen::ArrayXd hann(Eigen::Index N)
 {
     assert(N > 0);

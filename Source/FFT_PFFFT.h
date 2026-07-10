@@ -15,8 +15,9 @@
 
 #pragma once
 
+#include <cassert>
+
 #include <Eigen/Core>
-#include <boost/assert.hpp>
 #include <pffft_double.h>
 
 using namespace Eigen;
@@ -31,8 +32,8 @@ class DFTImpl
         workData.resize(2 * fftSize);
         complexSetup = pffftd_new_setup(int(fftSize), PFFFT_COMPLEX);
         realSetup    = pffftd_new_setup(int(fftSize), PFFFT_REAL);
-        BOOST_ASSERT_MSG(complexSetup, "Complex setup not initialized properly");
-        BOOST_ASSERT_MSG(realSetup, "Real setup not initialized properly");
+        assert(complexSetup && "Complex setup not initialized properly");
+        assert(realSetup && "Real setup not initialized properly");
     }
 
     ~DFTImpl()

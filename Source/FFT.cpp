@@ -7,6 +7,8 @@
 
 #include "FFT.hpp"
 
+#include <memory>
+
 #ifdef FFT_FFTW
 #    include "FFT_FFTW.h"
 #endif
@@ -51,7 +53,7 @@ void DFT::irdft(const ArrayXcd& X, ArrayXd& x)
     pImpl->irdft(X.data(), x.data());
 }
 
-const std::string DFT::getName()
+std::string DFT::getName()
 {
     return DFTImpl::getName();
 }

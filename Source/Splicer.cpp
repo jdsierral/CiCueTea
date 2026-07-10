@@ -30,6 +30,9 @@ void Splicer::pushBlock(const ArrayXd& block)
     RealTimeChecker rt;
     for (Index n = 0, m = wp; n < block.size(); n++, m++) {
         m         = constrain(m, bufferSize);
+        // Overlap region accumulates into what is already there; past it,
+        // the (n < overlapSize) mask zeroes the stale buffer content so the
+        // new block overwrites it.
         buffer(m) = (n < overlapSize) * buffer(m) + block(n);
     }
     wp += hopSize;

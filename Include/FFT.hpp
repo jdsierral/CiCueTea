@@ -7,13 +7,16 @@
 
 /**
  * @file FFT.hpp
- * @brief Provides an implementation of Fast Fourier Transform (DFT) and its inverses.
+ * @brief FFT wrapper (the DFT class) over the vDSP / MKL / FFTW / PFFFT backends.
  * @author Juan Sierra
  * @date 3/9/25
  * @copyright MIT License
  */
 
 #pragma once
+
+#include <memory>
+#include <string>
 
 #include <Eigen/Core>
 
@@ -54,22 +57,22 @@ class DFT
     ~DFT();
 
     /**
-     * @brief Copy constructor
+     * @brief Move constructor
      */
     DFT(DFT&&) noexcept;
 
     /**
-     * @brief Copy assignment
+     * @brief Move assignment
      */
     DFT& operator=(DFT&&) noexcept;
 
     /**
-     * @brief Move constructor
+     * @brief Copy constructor (deleted: a DFT owns backend-specific state)
      */
     DFT(const DFT&) = delete;
 
     /**
-     * @brief Move assignment operator
+     * @brief Copy assignment (deleted: a DFT owns backend-specific state)
      */
     DFT& operator=(const DFT&) = delete;
 
@@ -132,7 +135,7 @@ class DFT
     /**
      * @brief gets the name of the currently used backend.
      */
-    static const std::string getName();
+    static std::string getName();
 
   private:
     /**

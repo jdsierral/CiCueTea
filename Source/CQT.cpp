@@ -154,7 +154,7 @@ void NsgfCqtSparse::forward(const ArrayXd& x, Coefs& Xcq)
     for (Index k = 0; k < nBands; k++) {
         Xcoefs[k] = g[k] * Xdft.segment(idx[k].i0, idx[k].len);
         dfts[k]->idft(Xcoefs[k], Xcoefs[k]);
-        Xcq[k] = 2.0 * idx[k].len * phase[k] * Xcoefs[k];
+        Xcq[k] = 2.0 * scale(k) * phase[k] * Xcoefs[k];
     }
 }
 
@@ -166,7 +166,7 @@ void NsgfCqtSparse::inverse(const Coefs& Xcq, ArrayXd& x)
     assert(Index(Xcq.size()) == nBands);
     Xdft.fill(0);
     for (Index k = 0; k < nBands; k++) {
-        Xcoefs[k] = 1.0 / (2.0 * idx[k].len) * phase[k].conjugate() * Xcq[k];
+        Xcoefs[k] = 1.0 / (2.0 * scale(k)) * phase[k].conjugate() * Xcq[k];
         dfts[k]->dft(Xcoefs[k], Xcoefs[k]);
         Xdft.segment(idx[k].i0, idx[k].len) += gDual[k] * Xcoefs[k];
     }

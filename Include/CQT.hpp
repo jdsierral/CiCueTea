@@ -15,6 +15,10 @@
 
 #pragma once
 
+#include <cmath>
+#include <memory>
+#include <vector>
+
 #include <Eigen/Core>
 
 #include "FFT.hpp"
@@ -46,7 +50,7 @@ class NsgfCqtCommon
      *
      * @param sampleRate Sampling rate of the signal (Hz).
      * @param numSamples Number of samples in a block.
-     * @param fraction Fractional bandwidth of the filterbank.
+     * @param fraction Reciprocal of bands per octave (e.g. 1.0/12 for 12 bands/octave); fractional values allowed.
      * @param minFrequency Minimum frequency of the filterbank (Hz).
      * @param maxFrequency Maximum frequency of the filterbank (Hz).
      * @param refFrequency Reference frequency for the filterbank (Hz).
@@ -56,8 +60,8 @@ class NsgfCqtCommon
 
     // Accessor methods for various parameters and computed data.
     double                getSampleRate() const { return fs; }
-    Eigen::Index          getBlockSize() const { return nSamps; }
-    Eigen::Index          getNumSamps() const { return nSamps; }
+    Eigen::Index          getBlockSize() const { return nSamps; } ///< Synonym of getNumSamps().
+    Eigen::Index          getNumSamps() const { return nSamps; }  ///< Synonym of getBlockSize().
     double                getFraction() const { return frac; }
     double                getPpo() const { return 1.0 / frac; }
     double                getMinFreq() const { return fMin; }
@@ -73,7 +77,7 @@ class NsgfCqtCommon
     /**
      * @brief Computes band information for the filterbank.
      * 
-     * @param frac Fractional bandwidth of the filterbank.
+     * @param frac Reciprocal of bands per octave.
      * @param fMin Minimum frequency of the filterbank (Hz).
      * @param fMax Maximum frequency of the filterbank (Hz).
      * @param fRef Reference frequency for the filterbank (Hz).
@@ -91,7 +95,7 @@ class NsgfCqtCommon
     // Member variables for filterbank parameters and computed data.
     const double       fs;       ///< Sampling rate (Hz).
     const Eigen::Index nSamps;   ///< Number of samples in a block.
-    const double       frac;     ///< Fractional bandwidth.
+    const double       frac;     ///< Reciprocal of bands per octave.
     const double       fMin;     ///< Minimum frequency (Hz).
     const double       fMax;     ///< Maximum frequency (Hz).
     const double       fRef;     ///< Reference frequency (Hz).
@@ -120,7 +124,7 @@ class NsgfCqtDense : public NsgfCqtCommon
      * 
      * @param sampleRate Sampling rate of the signal (Hz).
      * @param numSamples Number of samples in the signal.
-     * @param fraction Fractional bandwidth of the filterbank.
+     * @param fraction Reciprocal of bands per octave (e.g. 1.0/12 for 12 bands/octave); fractional values allowed.
      * @param minFrequency Minimum frequency of the filterbank (Hz).
      * @param maxFrequency Maximum frequency of the filterbank (Hz).
      * @param refFrequency Reference frequency for the filterbank (Hz).
@@ -182,7 +186,7 @@ class NsgfCqtSparse : public NsgfCqtCommon
      * 
      * @param sampleRate Sampling rate of the signal (Hz).
      * @param nSamps Number of samples in the signal.
-     * @param fraction Fractional bandwidth of the filterbank.
+     * @param fraction Reciprocal of bands per octave (e.g. 1.0/12 for 12 bands/octave); fractional values allowed.
      * @param minFrequency Minimum frequency of the filterbank (Hz).
      * @param maxFrequency Maximum frequency of the filterbank (Hz).
      * @param refFrequency Reference frequency for the filterbank (Hz).
@@ -212,7 +216,7 @@ class NsgfCqtSparse : public NsgfCqtCommon
     const Frame&          getDualFrame() const { return gDual; }
     const Eigen::ArrayXd& getDualAtom(Eigen::Index k) const { return gDual[k]; }
     const Coefs&          getPhaseCoefs() const { return phase; }
-    const Span            getBandSpan(Eigen::Index k) const { return idx[k]; }
+    Span                  getBandSpan(Eigen::Index k) const { return idx[k]; }
     Eigen::ArrayXd        getFrequencyAxis(Eigen::Index k) const { return fax.segment(idx[k].i0, idx[k].len); }
     Eigen::Index          getLength(Eigen::Index k) const { return idx[k].len; };
     double                getCoeffRate(Eigen::Index k) const { return getSampleRate() * double(getLength(k)) / double(getBlockSize()); }
@@ -224,10 +228,14 @@ class NsgfCqtSparse : public NsgfCqtCommon
 
   private:
     /**
-     * @brief Computes the span of indices for a given array.
-     * 
-     * @param ii Input array of indices.
-     * @return Span Struct representing the span of indices.
+     * @brief Derives the index span a band occupies on the frequency grid.
+     *
+     * Scans for the first and last indices whose value exceeds the sparsity
+     * threshold, then enforces a "correct" span: at least 4 bins long and
+     * rounded up to a power of two, so each band gets an efficient FFT size.
+     *
+     * @param ii The band's profile over frequency-grid indices.
+     * @return Span Power-of-two-length index span covering the band's support.
      */
     Span getIdx(const Eigen::ArrayXd& ii);
 
@@ -235,7 +243,7 @@ class NsgfCqtSparse : public NsgfCqtCommon
     Frame                             g;         ///< Frame representation.
     Frame                             gDual;     ///< Dual frame representation.
     Coefs                             phase;     ///< Phase coefficients.
-    Eigen::ArrayXd                    scale;     ///< Scale factors.
+    Eigen::ArrayXd                    scale;     ///< Per-band scale (= span length). Stored as double
     Coefs                             Xcoefs;    ///< Sparse coefficients.
     std::vector<std::unique_ptr<DFT>> dfts;      ///< DFT objects for each band.
     inline static const double        th = 1e-6; ///< Threshold for sparsity.

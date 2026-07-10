@@ -1,5 +1,5 @@
 //
-//  DoubleBuffer.hpp
+//  DoubleBuffer.h
 //  CQTDSP
 //
 //  Created by Juan Sierra on 3/23/25.
@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <Eigen/Core>
+#include <array>
 
 namespace jsa {
 
@@ -33,7 +33,7 @@ class DoubleBuffer
      * @brief Fills both buffers with the given value.
      * @param value The value to fill the buffers with.
      */
-    void fill(T& value)
+    void fill(const T& value)
     {
         push(value);
         push(value);
@@ -43,7 +43,7 @@ class DoubleBuffer
      * @brief Pushes a value into the buffer and advances the state.
      * @param value The value to push into the buffer.
      */
-    void push(T& value)
+    void push(const T& value)
     {
         advance();
         buffer[state] = value;

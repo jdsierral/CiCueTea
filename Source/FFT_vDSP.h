@@ -15,9 +15,10 @@
 
 #pragma once
 
+#include <cassert>
+
 #include <Accelerate/Accelerate.h>
 #include <Eigen/Core>
-#include <assert.h>
 
 using namespace Eigen;
 

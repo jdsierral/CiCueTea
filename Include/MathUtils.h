@@ -15,6 +15,8 @@
 
 #pragma once
 
+#include <cmath>
+
 #include <Eigen/Core>
 
 namespace jsa {

@@ -1,5 +1,5 @@
 //
-//  OverlapAddProcessor.cpp
+//  CQTProcessor.cpp
 //  CQTDSP
 //
 //  Created by Juan Sierra on 3/17/25.

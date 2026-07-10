@@ -1,5 +1,5 @@
 //
-//  OverlapAddProcessor.hpp
+//  CQTProcessor.hpp
 //  CQTDSP
 //
 //  Created by Juan Sierra on 3/17/25.
@@ -39,7 +39,7 @@ class CqtDenseProcessor
      * 
      * @param sampleRate The sampling rate of the audio signal.
      * @param numSamples The number of samples to process.
-     * @param fraction The fraction of overlap between windows.
+     * @param fraction Reciprocal of bands per octave (e.g. 1.0/12 for 12 bands/octave); fractional values allowed.
      * @param minFrequency The minimum frequency of the CQT.
      * @param maxFrequency The maximum frequency of the CQT.
      * @param refFrequency The reference frequency for the CQT.
@@ -121,7 +121,7 @@ class CqtSparseProcessor
      *
      * @param sampleRate The sampling rate of the audio signal.
      * @param numSamples The number of samples to process.
-     * @param fraction The fraction of overlap between windows.
+     * @param fraction Reciprocal of bands per octave (e.g. 1.0/12 for 12 bands/octave); fractional values allowed.
      * @param minFrequency The minimum frequency of the CQT.
      * @param maxFrequency The maximum frequency of the CQT.
      * @param refFrequency The reference frequency for the CQT.
@@ -189,7 +189,7 @@ class CqtSparseProcessor
 //==========================================================================
 
 /**
- * @class SlidingCQTDenseProcessor
+ * @class SlidingCqtDenseProcessor
  * @brief Processes audio samples using a sliding window dense CQT.
  * 
  * This class provides methods to process individual samples and blocks of data
@@ -199,11 +199,11 @@ class SlidingCqtDenseProcessor
 {
   public:
     /**
-     * @brief Constructs a SlidingCQTDenseProcessor object.
+     * @brief Constructs a SlidingCqtDenseProcessor object.
      * 
      * @param sampleRate The sampling rate of the audio signal.
      * @param numSamples The number of samples to process.
-     * @param fraction The fraction of overlap between windows.
+     * @param fraction Reciprocal of bands per octave (e.g. 1.0/12 for 12 bands/octave); fractional values allowed.
      * @param minFrequency The minimum frequency of the CQT.
      * @param maxFrequency The maximum frequency of the CQT.
      * @param refFrequency The reference frequency for the CQT.
@@ -287,7 +287,7 @@ class SlidingCqtSparseProcessor
      * 
      * @param sampleRate The sampling rate of the audio signal.
      * @param numSamples The number of samples to process.
-     * @param fraction The fraction of overlap between windows.
+     * @param fraction Reciprocal of bands per octave (e.g. 1.0/12 for 12 bands/octave); fractional values allowed.
      * @param minFrequency The minimum frequency of the CQT.
      * @param maxFrequency The maximum frequency of the CQT.
      * @param refFrequency The reference frequency for the CQT.
