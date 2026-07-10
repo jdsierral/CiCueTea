@@ -8,40 +8,11 @@
 #pragma once
 
 #include <Eigen/Core>
-#include <armadillo>
 
 namespace jsa {
 
 template <typename T>
 inline T nextPow2(T n) { return exp2(ceil(log2(n))); }
-
-inline arma::vec eig2armaVec(Eigen::ArrayXd x)
-{
-    return arma::vec(x.data(), x.size());
-}
-
-inline arma::cx_vec eig2armaVec(Eigen::ArrayXcd x)
-{
-    return arma::cx_vec(x.data(), x.size());
-}
-
-inline arma::mat eig2armaMat(Eigen::ArrayXXd x)
-{
-    return arma::mat(x.data(), x.rows(), x.cols());
-}
-
-inline arma::cx_mat eig2armaMat(Eigen::ArrayXXcd x)
-{
-    return arma::cx_mat(x.data(), x.rows(), x.cols());
-}
-
-inline void saveCoefs(const std::vector<Eigen::ArrayXcd>& X, std::string name)
-{
-    for (size_t i = 0; i < X.size(); i++) {
-        std::string name_i = name + "_" + std::to_string(i + 1) + ".csv";
-        eig2armaVec(X[i]).save(arma::csv_name(name_i));
-    }
-}
 
 inline double rms(const Eigen::ArrayXd& x)
 {

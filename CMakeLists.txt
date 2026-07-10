@@ -10,7 +10,13 @@ set(TARGET_NAME ${PROJECT_NAME})
 message(STATUS ${SEP} ${TARGET_NAME} ${SEP})
 option(BUILD_TESTS "Build all the unit tests" OFF)
 
-find_package(Eigen3 5.0 REQUIRED)
+# Eigen's package config only matches same-major requests, so ask for any
+# version and enforce the floor ourselves (3.4+ and 5.x both work).
+find_package(Eigen3 REQUIRED)
+if(Eigen3_VERSION VERSION_LESS 3.4)
+    message(FATAL_ERROR "CiCueTea requires Eigen >= 3.4 (found ${Eigen3_VERSION})")
+endif()
+message(STATUS "Eigen version: ${Eigen3_VERSION}")
 
 include(SourceFiles.cmake)
 include(FFTSelection.cmake)
@@ -45,5 +51,6 @@ target_link_libraries(${TARGET_NAME}
 )
 
 if (BUILD_TESTS)
+    enable_testing()
     add_subdirectory(Tests)
 endif()

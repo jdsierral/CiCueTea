@@ -5,7 +5,6 @@
 //  Created by Juan Sierra on 3/9/25.
 //
 
-#include <armadillo>
 #include <boost/test/unit_test.hpp>
 #include <numbers>
 
@@ -16,7 +15,6 @@
 #include "VectorOps.h"
 
 using namespace Eigen;
-using namespace arma;
 using namespace std;
 using namespace jsa;
 
@@ -32,7 +30,7 @@ using namespace jsa;
 
 BOOST_AUTO_TEST_CASE(SparseCQTPhaseTest1)
 {
-    return;
+    std::cout << BOOST_CURRENT_LOCATION << std::endl;
     double fs        = 48000;
     Index  blockSize = exp2(16);
     double frac      = FRAC;
@@ -41,14 +39,13 @@ BOOST_AUTO_TEST_CASE(SparseCQTPhaseTest1)
     double fRef      = FREF;
 
     NsgfCqtSparse cqt(fs, blockSize, frac, fMin, fMax, fRef);
-    saveCoefs(cqt.getPhaseCoefs(), "Phase");
 
     BOOST_CHECK(true);
 }
 
 BOOST_AUTO_TEST_CASE(SparseCQTTest1)
 {
-    return;
+    std::cout << BOOST_CURRENT_LOCATION << std::endl;
     double fs        = 48000;
     Index  blockSize = exp2(16);
     double frac      = FRAC;
@@ -61,11 +58,8 @@ BOOST_AUTO_TEST_CASE(SparseCQTTest1)
     ArrayXd              y  = ArrayXd::Zero(blockSize);
     NsgfCqtSparse::Coefs Xi = cqt.getCoefs();
 
-    eig2armaVec(x).save(csv_name("x.csv"));
     cqt.forward(x, Xi);
-    saveCoefs(Xi, "Xi");
     cqt.inverse(Xi, y);
-    eig2armaVec(y).save(csv_name("y.csv"));
 
     double err = rms(x - y);
     BOOST_CHECK(err < 0.1);
@@ -73,7 +67,6 @@ BOOST_AUTO_TEST_CASE(SparseCQTTest1)
 
 BOOST_AUTO_TEST_CASE(SliCQTTest1)
 {
-    return;
     std::cout << BOOST_CURRENT_LOCATION << std::endl;
     double fs        = 48000;
     Index  N         = exp2(16);
@@ -90,11 +83,6 @@ BOOST_AUTO_TEST_CASE(SliCQTTest1)
 
     for (int i = 0; i < N; i++) {
         y[i] = ola.processSample(x[i]);
-    }
-
-    for (int i = 0; i < ola.getCqt().getNumBands(); i++) {
-        std::string name = "Xim1_" + std::to_string(i + 1) + ".csv";
-        //        eig2armaVec(ola.Xcq.last()[i]).save(arma::csv_name(name));
     }
 
     BOOST_CHECK(true);

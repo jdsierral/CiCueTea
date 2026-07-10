@@ -5,7 +5,6 @@
 //  Created by Juan Sierra on 5/6/25.
 //
 
-#include <armadillo>
 #include <boost/test/unit_test.hpp>
 #include <numbers>
 
@@ -18,7 +17,6 @@
 #include "VectorOps.h"
 
 using namespace Eigen;
-using namespace arma;
 using namespace std;
 using namespace jsa;
 
@@ -68,13 +66,6 @@ BOOST_AUTO_TEST_CASE(ExtendedTest1)
 
     CqtDense ola(fs, blockSize, frac, fMin, fMax, fRef);
     string   baseName = "CqtDense_";
-    eig2armaVec(ola.getCqt().NsgfCqtCommon::getFrequencyAxis()).save(csv_name(baseName + "fax.csv"));
-    eig2armaVec(ola.getWindow()).save(csv_name(baseName + "win.csv"));
-    eig2armaVec(ola.getCqt().getDiagonalization()).save(csv_name(baseName + "d.csv"));
-    for (int k = 0; k < ola.getCqt().getNumBands(); k++) {
-        std::string name     = baseName + "g" + std::to_string(k + 1) + ".csv";
-        std::string dualName = baseName + "gDual" + std::to_string(k + 1) + ".csv";
-    }
 
     for (int n = 0; n < N; n++) {
         y[n] = ola.processSample(x[n]);
@@ -85,8 +76,6 @@ BOOST_AUTO_TEST_CASE(ExtendedTest1)
     x = x.head(N - latency);
     y = y.tail(N - latency);
 
-    eig2armaVec(x).save(csv_name(baseName + "x.csv"));
-    eig2armaVec(y).save(csv_name(baseName + "y.csv"));
 
     double err = rms(y - x);
     std::cout << err << std::endl;
@@ -111,13 +100,6 @@ BOOST_AUTO_TEST_CASE(ExtendedTest2)
     CqtSparse ola(fs, blockSize, frac, fMin, fMax, fRef);
     string    baseName = "CqtSparse_";
 
-    eig2armaVec(ola.getCqt().NsgfCqtCommon::getFrequencyAxis()).save(csv_name(baseName + "fax.csv"));
-    eig2armaVec(ola.getWindow()).save(csv_name(baseName + "win.csv"));
-    eig2armaVec(ola.getCqt().getDiagonalization()).save(csv_name(baseName + "d.csv"));
-    for (int k = 0; k < ola.getCqt().getNumBands(); k++) {
-        std::string name     = baseName + "g" + std::to_string(k + 1) + ".csv";
-        std::string dualName = baseName + "gDual" + std::to_string(k + 1) + ".csv";
-    }
 
     for (int n = 0; n < N; n++) {
         y[n] = ola.processSample(x[n]);
@@ -128,8 +110,6 @@ BOOST_AUTO_TEST_CASE(ExtendedTest2)
     x = x.head(N - latency);
     y = y.tail(N - latency);
 
-    eig2armaVec(x).save(csv_name(baseName + "x.csv"));
-    eig2armaVec(y).save(csv_name(baseName + "y.csv"));
 
     double err = rms(y - x);
     std::cout << err << std::endl;
@@ -154,13 +134,6 @@ BOOST_AUTO_TEST_CASE(ExtendedTest3)
 
     SliCqtDense ola(fs, blockSize, frac, fMin, fMax, fRef);
     string      baseName = "SliCQTDense_";
-    eig2armaVec(ola.getCqt().NsgfCqtCommon::getFrequencyAxis()).save(csv_name(baseName + "fax.csv"));
-    eig2armaVec(ola.getWindow()).save(csv_name(baseName + "win.csv"));
-    eig2armaVec(ola.getCqt().getDiagonalization()).save(csv_name(baseName + "d.csv"));
-    for (int k = 0; k < ola.getCqt().getNumBands(); k++) {
-        std::string name     = baseName + "g" + std::to_string(k + 1) + ".csv";
-        std::string dualName = baseName + "gDual" + std::to_string(k + 1) + ".csv";
-    }
 
     for (int n = 0; n < N; n++) {
         y[n] = ola.processSample(x[n]);
@@ -172,8 +145,6 @@ BOOST_AUTO_TEST_CASE(ExtendedTest3)
     x = x.head(N - latency);
     y = y.tail(N - latency);
 
-    eig2armaVec(x).save(csv_name(baseName + "x.csv"));
-    eig2armaVec(y).save(csv_name(baseName + "y.csv"));
 
     double err = rms(y - x);
     std::cout << err << std::endl;
@@ -196,17 +167,6 @@ BOOST_AUTO_TEST_CASE(ExtendedTest4)
 
     SliCqtSparse ola(fs, blockSize, frac, fMin, fMax, fRef);
     string       baseName = "";
-    eig2armaVec(ola.getCqt().NsgfCqtCommon::getFrequencyAxis()).save(csv_name(baseName + "fax.csv"));
-    eig2armaVec(ola.getWindow()).save(csv_name(baseName + "win.csv"));
-    eig2armaVec(ola.getCqt().getDiagonalization()).save(csv_name(baseName + "d.csv"));
-    for (int k = 0; k < ola.getCqt().getNumBands(); k++) {
-        std::string name     = baseName + "g" + std::to_string(k + 1) + ".csv";
-        std::string dualName = baseName + "gDual" + std::to_string(k + 1) + ".csv";
-        std::string winName  = baseName + "Win" + std::to_string(k + 1) + ".csv";
-        eig2armaVec(ola.getCqt().getAtom(k)).save(csv_name(name));
-        eig2armaVec(ola.getCqt().getDualAtom(k)).save(csv_name(dualName));
-        eig2armaVec(ola.getCqtWindow(k)).save(csv_name(winName));
-    }
 
     for (int n = 0; n < N; n++) {
         y[n] = ola.processSample(x[n]);
@@ -217,8 +177,6 @@ BOOST_AUTO_TEST_CASE(ExtendedTest4)
     x = x.head(N - latency);
     y = y.tail(N - latency);
 
-    eig2armaVec(x).save(csv_name(baseName + "x.csv"));
-    eig2armaVec(y).save(csv_name(baseName + "y.csv"));
 
     double err = rms(y - x);
     std::cout << err << std::endl;

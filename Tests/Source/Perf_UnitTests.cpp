@@ -5,7 +5,6 @@
 //  Created by Juan Sierra on 4/6/25.
 //
 
-#include <armadillo>
 #include <boost/test/unit_test.hpp>
 #include <numbers>
 
@@ -27,7 +26,6 @@
 #define REF_FREQUENCY 1e3
 
 using namespace Eigen;
-using namespace arma;
 using namespace std;
 using namespace jsa;
 
@@ -42,7 +40,6 @@ BOOST_AUTO_TEST_CASE(perf1)
     double frac        = 1.0 / POINTS_PER_OCTAVE;
     Index  N           = NUM_SAMPLES;
     Index  blockSize   = BLOCK_SIZE;
-    Index  overlapSize = blockSize / 2;
 
     ArrayXd x = ArrayXd::Random(N);
     ArrayXd y = ArrayXd::Zero(N);
@@ -70,7 +67,6 @@ BOOST_AUTO_TEST_CASE(perf2)
     double frac        = 1.0 / POINTS_PER_OCTAVE;
     Index  N           = NUM_SAMPLES;
     Index  blockSize   = BLOCK_SIZE;
-    Index  overlapSize = blockSize / 2;
 
     ArrayXd x = ArrayXd::Random(N);
     ArrayXd y = ArrayXd::Zero(N);
@@ -101,7 +97,6 @@ BOOST_AUTO_TEST_CASE(perf3)
     double frac        = 1.0 / POINTS_PER_OCTAVE;
     Index  N           = NUM_SAMPLES;
     Index  blockSize   = BLOCK_SIZE;
-    Index  overlapSize = blockSize / 2;
 
     ArrayXd x = ArrayXd::Random(N);
     ArrayXd y = ArrayXd::Zero(N);
@@ -129,7 +124,6 @@ BOOST_AUTO_TEST_CASE(perf4)
     double frac        = 1.0 / POINTS_PER_OCTAVE;
     Index  N           = NUM_SAMPLES;
     Index  blockSize   = BLOCK_SIZE;
-    Index  overlapSize = blockSize / 2;
 
     ArrayXd x = ArrayXd::Random(N);
     ArrayXd y = ArrayXd::Zero(N);

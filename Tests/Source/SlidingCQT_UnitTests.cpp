@@ -5,7 +5,6 @@
 //  Created by Juan Sierra on 3/23/25.
 //
 
-#include <armadillo>
 #include <boost/test/unit_test.hpp>
 #include <numbers>
 
@@ -17,7 +16,6 @@
 #include "VectorOps.h"
 
 using namespace Eigen;
-using namespace arma;
 using namespace std;
 using namespace jsa;
 
@@ -25,10 +23,9 @@ using namespace jsa;
 
 BOOST_AUTO_TEST_CASE(OlaProc1)
 {
-    double fs          = 48000;
-    Index  N           = 1 << 10;
-    Index  blockSize   = 1 << 5;
-    Index  overlapSize = 1 << 4;
+    double fs        = 48000;
+    Index  N         = 1 << 10;
+    Index  blockSize = 1 << 5;
 
     ArrayXd x = ArrayXd::Random(N);
     ArrayXd y = ArrayXd::Zero(N);
@@ -60,20 +57,16 @@ BOOST_AUTO_TEST_CASE(OlaProc2)
 
     x = x.head(N - blockSize - blockSize / 2);
     y = y.tail(N - blockSize - blockSize / 2);
-    //    jsa::eig2armaVec(x).save(csv_name("x.csv"));
-    //    jsa::eig2armaVec(y).save(csv_name("y.csv"));
 
     ArrayXd d = x - y;
-    //    cout << rms(d) << endl;
     //    BOOST_CHECK(rms(d) < 1e-4);
 }
 
 BOOST_AUTO_TEST_CASE(OlaProc3)
 {
-    double fs          = 48000;
-    Index  N           = 1 << 16;
-    Index  blockSize   = 1 << 10;
-    Index  overlapSize = blockSize / 2;
+    double fs        = 48000;
+    Index  N         = 1 << 16;
+    Index  blockSize = 1 << 10;
 
     ArrayXd x = ArrayXd::Random(N);
     ArrayXd y = ArrayXd::Zero(N);
@@ -109,10 +102,7 @@ BOOST_AUTO_TEST_CASE(OlaProc4)
 
     x = x.head(N - blockSize - blockSize / 2);
     y = y.tail(N - blockSize - blockSize / 2);
-    jsa::eig2armaVec(x).save(csv_name("x.csv"));
-    jsa::eig2armaVec(y).save(csv_name("y.csv"));
 
     ArrayXd d = x - y;
-    //    cout << rms(d) << endl;
     //    BOOST_CHECK(rms(d) < 1e-4);
 }

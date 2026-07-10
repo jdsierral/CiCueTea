@@ -5,7 +5,6 @@
 //  Created by Juan Sierra on 4/8/25.
 //
 
-#include <armadillo>
 #include <boost/test/unit_test.hpp>
 #include <numbers>
 
@@ -14,12 +13,10 @@
 #include "VectorOps.h"
 
 using namespace Eigen;
-using namespace arma;
 using namespace std;
 using namespace jsa;
 
 #define FFT_SIZE 32
-#define SHOULD_PRINT false
 
 BOOST_AUTO_TEST_CASE(DFTTest1)
 {
@@ -29,11 +26,8 @@ BOOST_AUTO_TEST_CASE(DFTTest1)
     ArrayXcd X(fftSize / 2 + 1);
     dft.rdft(x, X);
 
-    if (SHOULD_PRINT) {
-        eig2armaVec(X).print();
-    }
 
-    BOOST_CHECK(X[0] == dcomplex(fftSize));
+    BOOST_CHECK(X[0] == complex<double>(fftSize));
 }
 
 BOOST_AUTO_TEST_CASE(DFTTest2)
@@ -46,11 +40,8 @@ BOOST_AUTO_TEST_CASE(DFTTest2)
     dft.rdft(x, X);
     dft.irdft(X, y);
 
-    if (SHOULD_PRINT) {
-        eig2armaVec(X).print();
-    }
 
-    BOOST_CHECK(X[0] == dcomplex(fftSize));
+    BOOST_CHECK(X[0] == complex<double>(fftSize));
     BOOST_CHECK(y[0] == 1);
 }
 
@@ -62,11 +53,8 @@ BOOST_AUTO_TEST_CASE(DFTTest3)
     ArrayXcd Y(fftSize);
     dft.dft(X, Y);
 
-    if (SHOULD_PRINT) {
-        eig2armaVec(X).print();
-    }
 
-    BOOST_CHECK(Y[0] == dcomplex(fftSize));
+    BOOST_CHECK(Y[0] == complex<double>(fftSize));
 }
 
 BOOST_AUTO_TEST_CASE(DFTTest4)
@@ -77,9 +65,6 @@ BOOST_AUTO_TEST_CASE(DFTTest4)
     ArrayXcd Y(fftSize);
     dft.idft(X, Y);
 
-    if (SHOULD_PRINT) {
-        eig2armaVec(Y).print();
-    }
 
-    BOOST_CHECK(Y[0] == dcomplex(1));
+    BOOST_CHECK(Y[0] == complex<double>(1));
 }

@@ -5,7 +5,6 @@
 //  Created by Juan Sierra on 3/17/25.
 //
 
-#include <armadillo>
 #include <boost/test/unit_test.hpp>
 #include <numbers>
 
@@ -188,8 +187,5 @@ BOOST_AUTO_TEST_CASE(CQTSlicing2)
     y         = y.tail(N - blockSize - overlapSize);
     x         = x.head(N - blockSize - overlapSize);
     ArrayXd d = x - y;
-    eig2armaVec(x).save(arma::csv_name("x.csv"));
-    eig2armaVec(y).save(arma::csv_name("y.csv"));
-    cout << rms(d) << endl;
     BOOST_CHECK(rms(d) < 1e-3);
 }
