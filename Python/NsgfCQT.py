@@ -35,7 +35,9 @@ class NsgfCQT:
         freq_axis = np.arange(n_freqs) * sample_rate / n_freqs  
 
         c = np.log(4) / (frac ** 2.0)                   # Horizontal Scale Factor
-        outer_diff = np.subtract.outer(np.log2(freq_axis), np.log2(band_axis))
+        # log2(0) at the DC bin is fine: -inf yields a Gaussian weight of exactly 0
+        with np.errstate(divide="ignore"):
+            outer_diff = np.subtract.outer(np.log2(freq_axis), np.log2(band_axis))
         g = np.exp(-c * outer_diff ** 2.0)              # Analytic Gaussians
         g[np.where(freq_axis < band_axis[0]), 0] = 1    # Make lowest band an LPF
         g[np.where(freq_axis > band_axis[-1]), -1] = 1  # Make highest band an HPF
@@ -192,10 +194,13 @@ class NsgfVQT(NsgfCQT):
         freq_axis = np.arange(n_freqs) * sample_rate / n_freqs  
 
         c = np.log(4) / (frac ** 2.0)                   # Horizontal Scale Factor
-        outer_diff = np.subtract.outer(f_map(freq_axis), band_axis)
+        # f_map(0) at the DC bin may be -inf (e.g. log2): Gaussian weight becomes exactly 0
+        with np.errstate(divide="ignore"):
+            warped_fax = f_map(freq_axis)
+        outer_diff = np.subtract.outer(warped_fax, band_axis)
         g = np.exp(-c * outer_diff ** 2.0)              # Analytic Gaussians
-        g[np.where(f_map(freq_axis) < band_axis[0]), 0] = 1    # Make lowest band an LPF
-        g[np.where(f_map(freq_axis) > band_axis[-1]), -1] = 1  # Make highest band an HPF
+        g[np.where(warped_fax < band_axis[0]), 0] = 1    # Make lowest band an LPF
+        g[np.where(warped_fax > band_axis[-1]), -1] = 1  # Make highest band an HPF
 
         if mode == "sparse":                # In sparse mode truncate gaussians
             g[np.where(g < threshold)] = 0

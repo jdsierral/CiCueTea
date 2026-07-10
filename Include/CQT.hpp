@@ -22,7 +22,7 @@
 
 #include "FFT.hpp"
 
-namespace jsa {
+namespace jsa::cicuetea {
 
 /**
  * @class NsgfCqtCommon
@@ -325,4 +325,4 @@ class NsgfCqtSparse : public NsgfCqtCommon
     std::vector<std::unique_ptr<DFT>> dfts;      ///< DFT objects for each band.
 };
 
-} // namespace jsa
+} // namespace jsa::cicuetea

@@ -18,7 +18,7 @@
 
 #include <array>
 
-namespace jsa {
+namespace jsa::cicuetea {
 
 /**
  * @class DoubleBuffer
@@ -96,4 +96,4 @@ class DoubleBuffer
     bool             state = false; ///< The current state of the buffer (true or false).
 };
 
-} // namespace jsa
+} // namespace jsa::cicuetea

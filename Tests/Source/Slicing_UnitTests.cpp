@@ -22,8 +22,8 @@
 
 using namespace Eigen;
 using namespace std;
-using namespace jsa;
-using namespace jsa::test;
+using namespace jsa::cicuetea;
+using namespace jsa::cicuetea::test;
 
 // Slicer contract, verified on a ramp input. The slicer streams from time
 // zero (its buffer starts zeroed), so the first blockSize/hopSize − 1 blocks

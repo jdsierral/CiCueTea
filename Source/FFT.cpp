@@ -25,7 +25,7 @@
 #    include "FFT_MKL.h"
 #endif
 
-using namespace jsa;
+using namespace jsa::cicuetea;
 using namespace Eigen;
 
 DFT::DFT(size_t fftSize) : pImpl(std::make_unique<DFTImpl>(fftSize)) {}

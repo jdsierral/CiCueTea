@@ -19,7 +19,7 @@
 
 #include <Eigen/Core>
 
-namespace jsa {
+namespace jsa::cicuetea {
 
 /**
  * @brief Computes the next power of 2 greater than or equal to the given
@@ -126,4 +126,4 @@ inline Eigen::ArrayXd logspace(double start, double end, Eigen::Index num)
     return Eigen::ArrayXd::LinSpaced(num, std::log(start), std::log(end)).exp();
 }
 
-} // namespace jsa
+} // namespace jsa::cicuetea

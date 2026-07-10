@@ -22,7 +22,7 @@
 
 using namespace Eigen;
 
-namespace jsa {
+namespace jsa::cicuetea {
 class DFTImpl
 {
   public:
@@ -107,4 +107,4 @@ class DFTImpl
     const vDSP_Stride singleStride  = 1;
     const vDSP_Stride doubleStride  = 2;
 };
-} // namespace jsa
+} // namespace jsa::cicuetea

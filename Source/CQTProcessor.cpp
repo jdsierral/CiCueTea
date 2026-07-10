@@ -11,7 +11,7 @@
 #include "SignalUtils.h"
 
 using namespace Eigen;
-using namespace jsa;
+using namespace jsa::cicuetea;
 
 CqtDenseProcessor::CqtDenseProcessor(double sampleRate, Index numSamples,
                                      double fraction, double minFrequency,

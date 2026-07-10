@@ -20,7 +20,7 @@
 
 #include <Eigen/Core>
 
-namespace jsa {
+namespace jsa::cicuetea {
 
 class DFTImpl;
 
@@ -153,4 +153,4 @@ class DFT
     std::unique_ptr<DFTImpl> pImpl;
 };
 
-} // namespace jsa
+} // namespace jsa::cicuetea

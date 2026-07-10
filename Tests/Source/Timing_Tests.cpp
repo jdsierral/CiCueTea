@@ -18,8 +18,8 @@
 #include "Benchtools.h"
 
 using namespace Eigen;
-using namespace jsa;
-using namespace jsa::test;
+using namespace jsa::cicuetea;
+using namespace jsa::cicuetea::test;
 
 BOOST_AUTO_TEST_CASE(BenchmarkTest1)
 {
@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(BenchmarkTest1)
     double fMax       = 10000;
     double fRef       = 1000;
 
-    jsa::NsgfCqtDense cqt1(sampleRate, nSamps, fraction, fMin, fMax, fRef);
+    jsa::cicuetea::NsgfCqtDense cqt1(sampleRate, nSamps, fraction, fMin, fMax, fRef);
 
     Index     nBands = cqt1.getNumBands();
     ArrayXd   x      = ArrayXd::Random(nSamps);
@@ -70,12 +70,12 @@ BOOST_AUTO_TEST_CASE(BenchmarkTest2)
     double fMax       = 10000;
     double fRef       = 1000;
 
-    jsa::NsgfCqtSparse cqt(sampleRate, nSamps, fraction, fMin, fMax, fRef);
+    jsa::cicuetea::NsgfCqtSparse cqt(sampleRate, nSamps, fraction, fMin, fMax, fRef);
 
     Index                     nBands = cqt.getNumBands();
     ArrayXd                   x      = ArrayXd::Random(nSamps);
     ArrayXd                   y      = ArrayXd::Zero(nSamps);
-    jsa::NsgfCqtSparse::Coefs Xcq    = cqt.getCoefs();
+    jsa::cicuetea::NsgfCqtSparse::Coefs Xcq    = cqt.getCoefs();
 
     Timer tFwd(false);
     cqt.forward(x, Xcq);

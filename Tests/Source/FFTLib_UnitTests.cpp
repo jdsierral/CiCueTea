@@ -20,16 +20,16 @@
 
 #define N_TESTS 100
 
-using namespace jsa;
-using namespace jsa::test;
+using namespace jsa::cicuetea;
+using namespace jsa::cicuetea::test;
 using namespace Eigen;
 
 BOOST_AUTO_TEST_CASE(FFTLibTest1)
 {
-    std::cout << "Testing " << jsa::DFT::getName() << std::endl;
+    std::cout << "Testing " << jsa::cicuetea::DFT::getName() << std::endl;
     for (int j = 2; j < 18; j++) {
         Index    N = 1 << j;
-        jsa::DFT dft(N);
+        jsa::cicuetea::DFT dft(N);
         std::cout << "FFT Size: " << N << std::endl;
 
         {
@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE(FFTLibTest1)
 BOOST_AUTO_TEST_CASE(FFTLibTest2)
 {
     Index    N = 1 << 16;
-    jsa::DFT dft(N);
+    jsa::cicuetea::DFT dft(N);
 
     {
         Timer t;

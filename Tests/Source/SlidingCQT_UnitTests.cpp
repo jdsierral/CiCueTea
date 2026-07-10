@@ -20,8 +20,8 @@
 
 using namespace Eigen;
 using namespace std;
-using namespace jsa;
-using namespace jsa::test;
+using namespace jsa::cicuetea;
+using namespace jsa::cicuetea::test;
 
 // Block-processor, dense: exact reconstruction (painless frame, no sliding).
 // (blockSize must be large enough for the atoms to be resolved — a 32-sample

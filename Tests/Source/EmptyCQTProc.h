@@ -16,30 +16,30 @@
 #include <CQT.hpp>
 #include <CQTProcessor.hpp>
 
-class CqtDense : public jsa::CqtDenseProcessor
+class CqtDense : public jsa::cicuetea::CqtDenseProcessor
 {
   public:
-    using jsa::CqtDenseProcessor::CqtDenseProcessor;
+    using jsa::cicuetea::CqtDenseProcessor::CqtDenseProcessor;
     void processBlock(Eigen::ArrayXXcd& /*block*/) override {}
 };
 
-class SliCqtDense : public jsa::SlidingCqtDenseProcessor
+class SliCqtDense : public jsa::cicuetea::SlidingCqtDenseProcessor
 {
   public:
-    using jsa::SlidingCqtDenseProcessor::SlidingCqtDenseProcessor;
+    using jsa::cicuetea::SlidingCqtDenseProcessor::SlidingCqtDenseProcessor;
     void processBlock(Eigen::ArrayXXcd& /*block*/) override {};
 };
 
-class CqtSparse : public jsa::CqtSparseProcessor
+class CqtSparse : public jsa::cicuetea::CqtSparseProcessor
 {
   public:
-    using jsa::CqtSparseProcessor::CqtSparseProcessor;
-    void processBlock(jsa::NsgfCqtSparse::Coefs& /*block*/) override {}
+    using jsa::cicuetea::CqtSparseProcessor::CqtSparseProcessor;
+    void processBlock(jsa::cicuetea::NsgfCqtSparse::Coefs& /*block*/) override {}
 };
 
-class SliCqtSparse : public jsa::SlidingCqtSparseProcessor
+class SliCqtSparse : public jsa::cicuetea::SlidingCqtSparseProcessor
 {
   public:
-    using jsa::SlidingCqtSparseProcessor::SlidingCqtSparseProcessor;
-    void processBlock(jsa::NsgfCqtSparse::Coefs& /*block*/) override {};
+    using jsa::cicuetea::SlidingCqtSparseProcessor::SlidingCqtSparseProcessor;
+    void processBlock(jsa::cicuetea::NsgfCqtSparse::Coefs& /*block*/) override {};
 };

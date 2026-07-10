@@ -64,7 +64,7 @@ double fMin   = 100;
 double fMax   = 10000;
 double fRef   = 440;
 
-jsa::NsgfCqtDense cqt(fs, nSamps, frac, fMin, fMax, fRef);
+jsa::cicuetea::NsgfCqtDense cqt(fs, nSamps, frac, fMin, fMax, fRef);
 
 Eigen::ArrayXd   x(cqt.getNumSamples());
 Eigen::ArrayXd   y(cqt.getNumSamples());
@@ -77,7 +77,7 @@ cqt.inverse(Xcq, y);   // Inverse transform
 The sparse variant differs only in construction and coefficient storage:
 
 ```cpp
-jsa::NsgfCqtSparse cqt(fs, nSamps, frac, fMin, fMax, fRef);
+jsa::cicuetea::NsgfCqtSparse cqt(fs, nSamps, frac, fMin, fMax, fRef);
 
 Eigen::ArrayXd x(cqt.getNumSamples());
 Eigen::ArrayXd y(cqt.getNumSamples());
@@ -106,6 +106,7 @@ cqt.inverse(Xcq, y);
 ## How It Compares
 
 Existing CQT implementations each offer some, but not all, of: formal invertibility, real-time-safe streaming, and log-symmetric passbands.
+Measured round-trip errors and timings backing this section live in [Benchmarks/](Benchmarks/), together with a reproducible comparison script.
 
 - [librosa](https://librosa.org) (Python) — several CQT algorithms, none NSGF-based, so none is formally invertible. An inverse (`icqt`) exists via least-squares reconstruction, but with default parameters the high frequencies are undersampled and reconstruction is approximate at best. Offline analysis only.
 - [nnAudio](https://github.com/KinWaiCheuk/nnAudio) (Python/PyTorch) — GPU-accelerated, differentiable CQT layers for machine-learning pipelines; kernel-based rather than NSGF-based. Its inverse (`iCQT`, added in nnAudio 2) is an iterative Landweber reconstruction reaching ~30 dB SNR — useful for training loops, far from formal invertibility.

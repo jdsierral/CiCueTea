@@ -22,7 +22,7 @@
 
 #include "MathUtils.h"
 
-namespace jsa {
+namespace jsa::cicuetea {
 
 /**
  * @brief Periodic Hann window of length N: sin²(πn/N).
@@ -38,4 +38,4 @@ inline Eigen::ArrayXd hann(Eigen::Index N)
     return win;
 }
 
-} // namespace jsa
+} // namespace jsa::cicuetea

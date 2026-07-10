@@ -10,7 +10,7 @@
 #include <chrono>
 #include <iostream>
 
-namespace jsa::test {
+namespace jsa::cicuetea::test {
 
 // Scope timer. By default prints the elapsed time on destruction; construct
 // with Timer(false) to keep it silent and read the value via get() instead.
@@ -39,4 +39,4 @@ class Timer
     std::chrono::high_resolution_clock::time_point startTime;
 };
 
-} // namespace jsa::test
+} // namespace jsa::cicuetea::test

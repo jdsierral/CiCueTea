@@ -19,7 +19,7 @@
 
 using namespace Eigen;
 using namespace std;
-using namespace jsa;
+using namespace jsa::cicuetea;
 
 #define FFT_SIZE 32
 

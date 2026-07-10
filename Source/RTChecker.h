@@ -49,7 +49,7 @@
 #    define EXITING_REAL_TIME_CRITICAL_CODE
 #endif
 
-namespace jsa {
+namespace jsa::cicuetea {
 
 class RealTimeChecker
 {
@@ -59,4 +59,4 @@ class RealTimeChecker
     ~RealTimeChecker() { EXITING_REAL_TIME_CRITICAL_CODE }
 };
 
-} // namespace jsa
+} // namespace jsa::cicuetea

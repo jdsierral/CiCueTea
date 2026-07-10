@@ -22,7 +22,7 @@
 #include "Slicer.hpp"
 #include "Splicer.hpp"
 
-namespace jsa {
+namespace jsa::cicuetea {
 
 /**
  * @class CqtDenseProcessor
@@ -392,4 +392,4 @@ class SlidingCqtSparseProcessor
     Splicer                            splicer; ///< Splicer for data reconstruction.
 };
 
-} // namespace jsa
+} // namespace jsa::cicuetea

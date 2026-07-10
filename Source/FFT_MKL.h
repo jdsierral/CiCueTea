@@ -20,7 +20,7 @@
 
 using namespace Eigen;
 
-namespace jsa {
+namespace jsa::cicuetea {
 class DFTImpl
 {
   public:
@@ -87,4 +87,4 @@ class DFTImpl
     DFTI_DESCRIPTOR_HANDLE cplxSetup;
     long                   status = DFTI_NO_ERROR;
 };
-} // namespace jsa
+} // namespace jsa::cicuetea

@@ -30,8 +30,8 @@
 
 using namespace Eigen;
 using namespace std;
-using namespace jsa;
-using namespace jsa::test;
+using namespace jsa::cicuetea;
+using namespace jsa::cicuetea::test;
 
 BOOST_AUTO_TEST_CASE(perf1)
 {

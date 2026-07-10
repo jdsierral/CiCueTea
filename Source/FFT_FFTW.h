@@ -20,7 +20,7 @@
 
 using namespace Eigen;
 
-namespace jsa {
+namespace jsa::cicuetea {
 class DFTImpl
 {
   public:
@@ -84,4 +84,4 @@ class DFTImpl
     fftw_plan    c2cPlan  = nullptr;
     fftw_plan    ic2cPlan = nullptr;
 };
-} // namespace jsa
+} // namespace jsa::cicuetea

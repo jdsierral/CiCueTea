@@ -12,7 +12,7 @@
 #include "MathUtils.h"
 #include "RTChecker.h"
 
-using namespace jsa;
+using namespace jsa::cicuetea;
 using namespace Eigen;
 
 Slicer::Slicer(Index newBlockSize, Index newHopSize)

@@ -22,7 +22,7 @@
 
 using namespace Eigen;
 
-namespace jsa {
+namespace jsa::cicuetea {
 class DFTImpl
 {
   public:
@@ -83,4 +83,4 @@ class DFTImpl
     PFFFTD_Setup*  complexSetup = nullptr;
     PFFFTD_Setup*  realSetup    = nullptr;
 };
-} // namespace jsa
+} // namespace jsa::cicuetea

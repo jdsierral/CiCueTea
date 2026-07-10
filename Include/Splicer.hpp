@@ -18,7 +18,7 @@
 
 #include <Eigen/Core>
 
-namespace jsa {
+namespace jsa::cicuetea {
 
 /**
  * @class Splicer
@@ -95,4 +95,4 @@ class Splicer
     size_t         rp = 0;      ///< The read pointer for the buffer.
 };
 
-} // namespace jsa
+} // namespace jsa::cicuetea

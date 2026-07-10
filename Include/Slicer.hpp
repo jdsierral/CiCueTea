@@ -17,7 +17,7 @@
 
 #include <Eigen/Core>
 
-namespace jsa {
+namespace jsa::cicuetea {
 
 /**
  * @class Slicer
@@ -105,4 +105,4 @@ class Slicer
     size_t         rp = 0;      ///< Read pointer for the buffer.
 };
 
-} // namespace jsa
+} // namespace jsa::cicuetea

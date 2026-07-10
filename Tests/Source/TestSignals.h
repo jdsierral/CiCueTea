@@ -4,8 +4,8 @@
 //
 //  Created by Juan Sierra on 3/17/25.
 //
-//  Test-only signal generation and metrics. Lives in jsa::test so helpers
-//  can never collide with library symbols in jsa (e.g. MathUtils.h).
+//  Test-only signal generation and metrics. Lives in jsa::cicuetea::test so helpers
+//  can never collide with library symbols in jsa::cicuetea (e.g. MathUtils.h).
 //
 
 #pragma once
@@ -14,7 +14,7 @@
 
 #include <Eigen/Core>
 
-namespace jsa::test {
+namespace jsa::cicuetea::test {
 
 /// Root-mean-square of a signal; the reconstruction-error metric used
 /// throughout the test suite.
@@ -33,4 +33,4 @@ inline Eigen::ArrayXd logChirp(const Eigen::ArrayXd& t, double f0, double f1)
     return (phase * 2 * M_PI).cos(); // Chirp signal
 }
 
-} // namespace jsa::test
+} // namespace jsa::cicuetea::test
