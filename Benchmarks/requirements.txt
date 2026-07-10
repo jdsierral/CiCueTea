@@ -1,0 +1,9 @@
+# Libraries compared by compare.py. CiCueTea's Python reference itself only
+# needs numpy + scipy; everything below exists purely for the comparison.
+numpy
+scipy
+librosa
+nsgt
+torch
+nnAudio
+cqt-pytorch
