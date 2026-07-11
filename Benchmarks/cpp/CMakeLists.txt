@@ -1,7 +1,8 @@
-# Standalone C++ benchmark: CiCueTea vs (optionally) The Gaborator.
+# Standalone C++ benchmark: CiCueTea vs (optionally) The Gaborator and rt-cqt.
 #
 #   cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
-#         -DGABORATOR_DIR=/path/to/gaborator-2.1        # optional
+#         -DGABORATOR_DIR=/path/to/gaborator-2.1 \       # optional
+#         -DRTCQT_DIR=/path/to/rt-cqt                    # optional
 #   cmake --build build -j && ./build/cqt_bench
 #
 # The Gaborator is AGPLv3-or-commercial and is therefore not vendored, fetched,
@@ -9,6 +10,10 @@
 # GABORATOR_DIR at the unpacked source to enable the comparison. Everything it
 # needs is header-only. On macOS it is given vDSP (its fastest backend, and the
 # same FFT CiCueTea uses by default) so the comparison is fair.
+#
+# rt-cqt (BSD-3) is also opt-in, only to keep this repository free of vendored
+# code: point RTCQT_DIR at `git clone --recursive https://github.com/jmerkt/rt-cqt`
+# (the recursive clone matters — its pffft submodule is compiled in below).
 
 cmake_minimum_required(VERSION 3.22)
 project(CiCueTeaBench C CXX) # C for rt-cqt's pffft

@@ -31,6 +31,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <numbers>
 #include <random>
 #include <sstream>
 #include <string>
@@ -111,7 +112,7 @@ ArrayXd makeSweep(Index n)
         double t   = double(i) / fs;
         double r   = 2.0 * double(i) / double(n - 1) - 1.0;
         double win = besselI0(beta * std::sqrt(1.0 - r * r)) / den;
-        x(i) = win * std::sin(2.0 * M_PI * fMin * (std::exp(k * t) - 1.0) / k);
+        x(i) = win * std::sin(2.0 * std::numbers::pi * fMin * (std::exp(k * t) - 1.0) / k);
     }
     return x;
 }

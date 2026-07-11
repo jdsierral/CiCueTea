@@ -13,6 +13,7 @@
 
 #include <boost/test/unit_test.hpp>
 #include <cmath>
+#include <numbers>
 
 #include <Eigen/Core>
 
@@ -63,7 +64,7 @@ BOOST_AUTO_TEST_CASE(CQTTestDense2)
 
     NsgfCqtDense cqt(fs, nSamps, frac, fMin, fMax, fRef);
     ArrayXd      t = regspace(int(nSamps)) / fs;
-    ArrayXd      x = (2 * M_PI * fRef * t).sin();
+    ArrayXd      x = (2 * std::numbers::pi * fRef * t).sin();
     ArrayXd      y(nSamps);
     ArrayXXcd    Xcq(cqt.getNumSamps(), cqt.getNumBands());
 
@@ -114,7 +115,7 @@ BOOST_AUTO_TEST_CASE(CQTTestSparse2)
         NsgfCqtSparse cqt(fs, nSamps, frac, fMin, fMax, fRef);
 
         ArrayXd t = regspace(int(nSamps)) / fs;
-        ArrayXd x = (2 * M_PI * fRef * t + M_PI_4 / 2).sin();
+        ArrayXd x = (2 * std::numbers::pi * fRef * t + std::numbers::pi / 8).sin();
         ArrayXd y(nSamps);
         auto    Xcq = cqt.getCoefs();
 

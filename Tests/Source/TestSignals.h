@@ -11,6 +11,7 @@
 #pragma once
 
 #include <cmath>
+#include <numbers>
 
 #include <Eigen/Core>
 
@@ -30,7 +31,7 @@ inline Eigen::ArrayXd logChirp(const Eigen::ArrayXd& t, double f0, double f1)
     Eigen::ArrayXd r =
         t.unaryExpr([&](double val) { return pow(f1 / f0, val / t1); });
     Eigen::ArrayXd phase = (t1 / std::log(f1 / f0) * f0) * (r - 1.0);
-    return (phase * 2 * M_PI).cos(); // Chirp signal
+    return (phase * 2 * std::numbers::pi).cos(); // Chirp signal
 }
 
 } // namespace jsa::cicuetea::test
