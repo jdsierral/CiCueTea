@@ -15,14 +15,24 @@ concurrency:
   group: pages
   cancel-in-progress: false
 
+env:
+  DOXYGEN_VERSION: "1.17.0"
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Doxygen
-        run: sudo apt-get update && sudo apt-get install -y doxygen
+      - name: Install Doxygen ${{ env.DOXYGEN_VERSION }}
+        run: |
+          curl -fsSL -o doxygen.tar.gz \
+            "https://github.com/doxygen/doxygen/releases/download/Release_${DOXYGEN_VERSION//./_}/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz"
+          tar xzf doxygen.tar.gz
+          echo "$PWD/doxygen-${DOXYGEN_VERSION}/bin" >> "$GITHUB_PATH"
+
+      - name: Verify Doxygen version
+        run: doxygen --version
 
       - name: Generate documentation
         working-directory: docs
