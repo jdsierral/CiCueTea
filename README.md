@@ -23,9 +23,9 @@
 ## Requirements
 
 - A **C++20** compiler
-- **CMake ≥ 3.30**
+- **CMake ≥ 3.22** (Ubuntu 22.04 LTS stock)
 - **Eigen ≥ 3.4** (Eigen 5.x supported)
-- An FFT backend: **vDSP** (macOS, system-provided; default) or **MKL** / **FFTW** / **PFFFT** — selected via `FFTSelection.cmake`
+- An FFT backend, selected via `FFTSelection.cmake` with per-platform defaults: **vDSP** (macOS, system-provided), **MKL** (Windows), **FFTW** (Linux — `apt install libfftw3-dev`; note FFTW is GPL), or **PFFFT** anywhere with `-DFFT_PFFFT=ON`
 - **Boost ≥ 1.70**, headers only (unit tests only — the library itself has no Boost dependency)
 
 ---

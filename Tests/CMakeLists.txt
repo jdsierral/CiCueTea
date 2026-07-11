@@ -3,7 +3,9 @@ message(STATUS ${SEP} ${TARGET_NAME} ${SEP})
 
 # Tests use the header-only Boost.Test variant (boost/test/included/unit_test.hpp),
 # so only Boost headers are needed — no compiled components, nothing to link.
-cmake_policy(SET CMP0167 NEW)
+if(POLICY CMP0167) # CMake >= 3.30: prefer Boost's own config over FindBoost
+    cmake_policy(SET CMP0167 NEW)
+endif()
 find_package(Boost 1.70 REQUIRED)
 
 set(SourceFiles

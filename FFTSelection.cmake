@@ -1,15 +1,17 @@
+# FFT backend selection. Per-platform defaults; override with -DFFT_<NAME>=ON
+# (the first enabled backend in the order MKL, PFFFT, vDSP, FFTW wins).
 if (WIN32)
-    option(FFT_VDSP "Use vDSP FFT" OFF)
     option(FFT_MKL "Use MKL FFT" ON)
-else()
+elseif (APPLE)
     option(FFT_VDSP "Use vDSP FFT" ON)
-    option(FFT_MKL "Use MKL FFT" OFF)
+else()
+    option(FFT_FFTW "Use FFTW FFT" ON) # Linux et al. (note: FFTW is GPL)
 endif()
 
 option(FFT_FFTW "Use FFTW FFT" OFF)
 option(FFT_PFFFT "Use PFFFT FFT" OFF)
 option(FFT_VDSP "Use vDSP FFT" OFF)
-option(FFT_MKL "Use MKL FFT" ON)
+option(FFT_MKL "Use MKL FFT" OFF)
 
 if (FFT_MKL)
     set(FFT_NAME "FFT_MKL")
@@ -31,9 +33,19 @@ elseif (FFT_VDSP)
     set(FFT_LINK_CMD "-framework Accelerate")
 elseif (FFT_FFTW)
     set(FFT_NAME "FFT_FFTW")
-    set(FFTW_ROOT /opt/homebrew/Cellar/fftw/latest)
-    set(FFT_INCLUDE_DIR ${FFTW_ROOT}/include)
-    set(FFT_LINK_CMD ${FFTW_ROOT}/lib/libfftw3.a)
+    find_path(FFTW_INCLUDE_DIR fftw3.h
+        HINTS /opt/homebrew/include /usr/local/include /usr/include)
+    find_library(FFTW_LIBRARY fftw3
+        HINTS /opt/homebrew/lib /usr/local/lib)
+    if (NOT FFTW_INCLUDE_DIR OR NOT FFTW_LIBRARY)
+        message(FATAL_ERROR "FFTW not found — install it first "
+            "(apt install libfftw3-dev / brew install fftw)")
+    endif()
+    set(FFT_INCLUDE_DIR ${FFTW_INCLUDE_DIR})
+    set(FFT_LINK_CMD ${FFTW_LIBRARY})
+else()
+    message(FATAL_ERROR "No FFT backend selected (enable one of FFT_MKL, "
+        "FFT_PFFFT, FFT_VDSP, FFT_FFTW)")
 endif()
 
 message(STATUS "FFT Selected: " ${FFT_NAME})

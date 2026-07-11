@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 3.30)
+# 3.22 = Ubuntu 22.04 LTS stock; the ...3.30 upper bound just enables newer
+# policies when a newer CMake is running.
+cmake_minimum_required(VERSION 3.22)
 
 
 set(SEP " ========= ")
@@ -10,8 +12,6 @@ set(TARGET_NAME ${PROJECT_NAME})
 message(STATUS ${SEP} ${TARGET_NAME} ${SEP})
 option(BUILD_TESTS "Build all the unit tests" OFF)
 
-# Eigen's package config only matches same-major requests, so ask for any
-# version and enforce the floor ourselves (3.4+ and 5.x both work).
 find_package(Eigen3 REQUIRED)
 if(Eigen3_VERSION VERSION_LESS 3.4)
     message(FATAL_ERROR "CiCueTea requires Eigen >= 3.4 (found ${Eigen3_VERSION})")

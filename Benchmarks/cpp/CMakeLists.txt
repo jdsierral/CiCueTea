@@ -10,7 +10,7 @@
 # needs is header-only. On macOS it is given vDSP (its fastest backend, and the
 # same FFT CiCueTea uses by default) so the comparison is fair.
 
-cmake_minimum_required(VERSION 3.30)
+cmake_minimum_required(VERSION 3.22)
 project(CiCueTeaBench C CXX) # C for rt-cqt's pffft
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -24,6 +24,19 @@ add_executable(cqt_bench bench.cpp)
 target_compile_features(cqt_bench PRIVATE cxx_std_20)
 target_include_directories(cqt_bench PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../Include)
 target_link_libraries(cqt_bench PRIVATE CiCueTea Eigen3::Eigen)
+
+# Configure-time facts baked in as macros: this tool is compiled and run on
+# the same machine, so CMake is the authority on CPU, compiler, and where the
+# results folder lives (the binary can't know the source tree otherwise).
+cmake_host_system_information(RESULT BENCH_CPU QUERY PROCESSOR_NAME)
+if(NOT BENCH_CPU OR BENCH_CPU STREQUAL "unknown")
+    cmake_host_system_information(RESULT BENCH_CPU QUERY PROCESSOR_DESCRIPTION)
+endif()
+target_compile_definitions(cqt_bench PRIVATE
+    BENCH_CPU_NAME="${BENCH_CPU}"
+    BENCH_COMPILER="${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}"
+    BENCH_RESULTS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../results"
+)
 
 if(GABORATOR_DIR)
     target_include_directories(cqt_bench SYSTEM PRIVATE ${GABORATOR_DIR})

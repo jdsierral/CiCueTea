@@ -2,25 +2,37 @@
 //  bench.cpp
 //  CiCueTea Benchmarks
 //
-//  C++ counterpart of ../compare.py: round-trip reconstruction error and
-//  forward/inverse wall time on the same task (white noise, 2^20 samples at
-//  48 kHz, 12 bands/octave), best of 3 runs, printed as a markdown table with
-//  a self-documenting environment report.
+//  C++ counterpart of ../compare.py: round-trip reconstruction error,
+//  coefficient footprint, and forward/inverse wall time on the same task
+//  (2^20 samples at 48 kHz, 12 bands/octave), best of N runs. Like the
+//  Python harness it exercises both probes — white noise (strict exactness)
+//  and the in-range Kaiser-windowed log sweep (realistic streaming use
+//  case) — prints one table per probe, and auto-saves the report to
+//  ../results/<date>-<machine>-cpp.md.
+//
+//  Machine name, compiler, and the results directory are baked in by CMake
+//  as preprocessor macros: this tool is meant to be compiled and run on the
+//  same machine, so configure-time facts are the ground truth and there is
+//  no runtime detection to go wrong.
 //
 //  The Gaborator comparison is compiled in only when the build is pointed at
 //  a locally downloaded copy (-DGABORATOR_DIR=...); it is AGPLv3/commercial,
 //  so this repository neither vendors nor depends on it. See ../README.md.
 //
 
+#include <cctype>
 #include <chrono>
 #include <climits>
 #include <cmath>
 #include <complex>
 #include <cstdint>
 #include <ctime>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <random>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -37,8 +49,15 @@
 #include <ConstantQTransform.h>
 #endif
 
-#ifdef __APPLE__
-#include <sys/sysctl.h>
+// Baked in by CMake; fallbacks only so the file is self-contained.
+#ifndef BENCH_CPU_NAME
+#define BENCH_CPU_NAME "unknown"
+#endif
+#ifndef BENCH_COMPILER
+#define BENCH_COMPILER "unknown"
+#endif
+#ifndef BENCH_RESULTS_DIR
+#define BENCH_RESULTS_DIR "."
 #endif
 
 using namespace Eigen;
@@ -51,9 +70,53 @@ constexpr double frac    = 1.0 / 12;
 constexpr double fMin    = 100.0;
 constexpr double fMax    = 10000.0;
 constexpr double fRef    = 1000.0;
-constexpr int    repeats = 3;
+constexpr int    repeats = 10;
 
 double rms(const ArrayXd& a, const ArrayXd& b) { return std::sqrt((a - b).square().mean()); }
+
+// --- test signals (mirrors compare.py::make_signal) --------------------------
+
+double besselI0(double x)
+{
+    // Series expansion of the zeroth-order modified Bessel function.
+    double sum = 1.0, term = 1.0;
+    for (int k = 1; k < 64; k++) {
+        term *= (x / (2.0 * k)) * (x / (2.0 * k));
+        sum += term;
+        if (term < 1e-18 * sum) break;
+    }
+    return sum;
+}
+
+ArrayXd makeNoise(Index n)
+{
+    std::mt19937_64                  gen(42);
+    std::normal_distribution<double> dist;
+    ArrayXd                          x(n);
+    for (Index i = 0; i < n; i++) x(i) = dist(gen);
+    return x;
+}
+
+ArrayXd makeSweep(Index n)
+{
+    // Log sweep confined to the transform range (fMin-fMax), under a single
+    // full-length Kaiser window (beta=9, ~60 dB edges, smooth derivatives):
+    // sub-range content and onset/tail transients are real effects but not
+    // algorithmic ones — see ../README.md, "Signal probes".
+    const double T = double(n - 1) / fs;
+    const double k = std::log(fMax / fMin) / T;
+    const double beta = 9.0, den = besselI0(beta);
+    ArrayXd      x(n);
+    for (Index i = 0; i < n; i++) {
+        double t   = double(i) / fs;
+        double r   = 2.0 * double(i) / double(n - 1) - 1.0;
+        double win = besselI0(beta * std::sqrt(1.0 - r * r)) / den;
+        x(i) = win * std::sin(2.0 * M_PI * fMin * (std::exp(k * t) - 1.0) / k);
+    }
+    return x;
+}
+
+// --- measurement --------------------------------------------------------------
 
 struct Row {
     std::string name, config;
@@ -81,62 +144,12 @@ Row timeRoundTrip(std::string name, std::string config, const ArrayXd& x,
     return {std::move(name), std::move(config), rms(x, y), bestF, bestI, nCoefs};
 }
 
-std::string cpuName()
+std::vector<Row> runSuite(const ArrayXd& x, Index n)
 {
-#ifdef __APPLE__
-    char   buf[256];
-    size_t len = sizeof(buf);
-    if (sysctlbyname("machdep.cpu.brand_string", buf, &len, nullptr, 0) == 0)
-        return buf;
-#endif
-    return "unknown";
-}
-
-std::string compilerName()
-{
-#if defined(__clang__)
-    return "clang " __clang_version__;
-#elif defined(__GNUC__)
-    return "gcc " __VERSION__;
-#else
-    return "unknown";
-#endif
-}
-
-} // namespace
-
-int main()
-{
-    const Index n = Index(1) << 20;
-
-    std::cout << "## CQT C++ benchmark\n\n```\n";
-    std::time_t now = std::time(nullptr);
-    char        date[16];
-    std::strftime(date, sizeof(date), "%Y-%m-%d", std::localtime(&now));
-    std::cout << "date:     " << date << "\n"
-              << "machine:  " << cpuName() << "\n"
-              << "compiler: " << compilerName() << "\n"
-              << "eigen:    " << EIGEN_WORLD_VERSION << "." << EIGEN_MAJOR_VERSION
-              << "." << EIGEN_MINOR_VERSION << "\n"
-#ifdef HAVE_GABORATOR
-              << "gaborator:" << " " << GABORATOR_VERSION_MAJOR << "."
-              << GABORATOR_VERSION_MINOR << "\n"
-#else
-              << "gaborator: not built (set -DGABORATOR_DIR to include it)\n"
-#endif
-              << "signal:   white noise, N = 2^20 = " << n << " samples @ 48000 Hz ("
-              << double(n) / fs << " s), best of " << repeats << " runs\n"
-              << "```\n\n";
-
-    ArrayXd x(n), y(n);
-    {
-        std::mt19937_64                  gen(42);
-        std::normal_distribution<double> dist;
-        for (Index i = 0; i < n; i++) x(i) = dist(gen);
-    }
-
+    ArrayXd          y(n);
     std::vector<Row> rows;
 
+    std::cerr << "  running: CiCueTea (dense)" << std::endl;
     {
         NsgfCqtDense cqt(fs, n, frac, fMin, fMax, fRef);
         ArrayXXcd    Xcq(cqt.getNumSamps(), cqt.getNumBands());
@@ -146,9 +159,10 @@ int main()
             x, y, [&] { cqt.forward(x, Xcq); }, [&] { cqt.inverse(Xcq, y); },
             (long long)Xcq.size()));
     }
+    std::cerr << "  running: CiCueTea (sparse)" << std::endl;
     {
         NsgfCqtSparse cqt(fs, n, frac, fMin, fMax, fRef);
-        auto          Xcq = cqt.getCoefs();
+        auto          Xcq    = cqt.getCoefs();
         long long     nCoefs = 0;
         for (const auto& c : Xcq) nCoefs += (long long)c.size();
         rows.push_back(timeRoundTrip(
@@ -159,6 +173,7 @@ int main()
     }
 
 #ifdef HAVE_GABORATOR
+    std::cerr << "  running: Gaborator" << std::endl;
     {
         gaborator::log_fq_scale     scale(1.0 / frac, fMin / fs);
         gaborator::parameters       params(scale);
@@ -191,33 +206,39 @@ int main()
 #endif
 
 #ifdef HAVE_RTCQT
+    std::cerr << "  running: rt-cqt" << std::endl;
     {
-        // Based on Juan's adapted rt-cqt example (BenchTests/Cpp/rt-cqt,
-        // examples/cqt.cpp): the whole signal is pushed as one block and the
+        // Based on adapted rt-cqt example: streamed block by block; the
         // schedule interleaves forward and inverse per band/hop, so only the
         // combined time is measurable.
         constexpr int bpo = 12, nOct = 8; // compile-time in rt-cqt's API
-        constexpr int blockSize = 1024;   // its designed streaming granularity
+        // rt-cqt's kernel FFT is fixed at 512 points (Fft_Size in its
+        // header), which caps the hop at 256 — larger hops overrun its
+        // internal buffers (heap corruption, verified). 256/1024 is the
+        // configuration its own examples use.
+        constexpr int hopSize   = 256;
+        constexpr int blockSize = 1024;
 
         using clk   = std::chrono::steady_clock;
-        double best = 0;
+        double  best = 0;
+        ArrayXd yRt(n);
         for (int r = 0; r < repeats; r++) {
             // Fresh instance per run (untimed): rt-cqt's internal circular
             // buffers accumulate across calls, so it cannot be re-run on the
             // same instance without reinitialization.
             auto cqt = std::make_unique<Cqt::ConstantQTransform<bpo, nOct>>();
-            cqt->init(256); // hop size
+            cqt->init(hopSize);
             cqt->initFs(fs, blockSize);
 
             auto t0 = clk::now();
             for (Index i0 = 0; i0 + blockSize <= n; i0 += blockSize) {
-                cqt->inputBlock(x.data() + i0, blockSize);
+                cqt->inputBlock(const_cast<double*>(x.data()) + i0, blockSize);
                 for (const auto& s : cqt->getCqtSchedule()) {
                     cqt->cqt(s);
                     cqt->icqt(s);
                 }
                 auto* out = cqt->outputBlock(blockSize);
-                for (Index i = 0; i < blockSize; i++) y(i0 + i) = out[i];
+                for (Index i = 0; i < blockSize; i++) yRt(i0 + i) = out[i];
             }
             auto   t1 = clk::now();
             double ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
@@ -233,22 +254,31 @@ int main()
         ArrayXcd X = ArrayXcd::Zero(n), Y = ArrayXcd::Zero(n);
         ArrayXd  r(n);
         dftN.rdft(x, X);
-        dftN.rdft(y, Y);
+        dftN.rdft(yRt, Y);
         X = X.conjugate() * Y;
         dftN.irdft(X, r);
         Index lag = 0;
         r.abs().maxCoeff(&lag);
         ArrayXd yAligned(n);
-        for (Index i = 0; i < n; i++) yAligned(i) = y((i + lag) % n);
+        for (Index i = 0; i < n; i++) yAligned(i) = yRt((i + lag) % n);
 
         rows.push_back({"rt-cqt",
-                        std::to_string(bpo * nOct) +
-                            " bins, 8 octaves below Nyquist, hop 256, streamed "
-                            "1024-sample blocks, best global alignment",
+                        std::to_string(bpo * nOct) + " bins, " +
+                            std::to_string(nOct) + " octaves below Nyquist, hop " +
+                            std::to_string(hopSize) + ", streamed " +
+                            std::to_string(blockSize) +
+                            "-sample blocks, best global alignment",
                         rms(x, yAligned), best, -1.0, -1});
     }
 #endif
 
+    return rows;
+}
+
+// --- report -------------------------------------------------------------------
+
+std::string renderTable(const std::vector<Row>& rows, Index n)
+{
     auto fmtErr = [](double e) {
         char b[32];
         std::snprintf(b, sizeof(b), "%.2e", e);
@@ -265,7 +295,6 @@ int main()
         std::snprintf(b, sizeof(b), x < 10 ? "%.1fx" : "%.0fx", x);
         return std::string(b);
     };
-
     auto fmtCoefs = [n](long long c) {
         if (c < 0) return std::string("n/a");
         char b[48];
@@ -286,18 +315,85 @@ int main()
     std::vector<size_t> w(nCols, 0);
     for (auto& row : cells)
         for (size_t c = 0; c < nCols; c++) w[c] = std::max(w[c], row[c].size());
+
+    std::ostringstream out;
     for (size_t i = 0; i < cells.size(); i++) {
-        std::cout << "|";
+        out << "|";
         for (size_t c = 0; c < nCols; c++)
-            std::cout << " " << cells[i][c]
-                      << std::string(w[c] - cells[i][c].size(), ' ') << " |";
-        std::cout << "\n";
+            out << " " << cells[i][c]
+                << std::string(w[c] - cells[i][c].size(), ' ') << " |";
+        out << "\n";
         if (i == 0) {
-            std::cout << "|";
+            out << "|";
             for (size_t c = 0; c < nCols; c++)
-                std::cout << std::string(w[c] + 2, '-') << "|";
-            std::cout << "\n";
+                out << std::string(w[c] + 2, '-') << "|";
+            out << "\n";
         }
     }
+    return out.str();
+}
+
+std::string slugify(std::string s)
+{
+    std::string out;
+    for (char c : s) {
+        if (std::isalnum(static_cast<unsigned char>(c)))
+            out += char(std::tolower(static_cast<unsigned char>(c)));
+        else if (!out.empty() && out.back() != '-')
+            out += '-';
+    }
+    while (!out.empty() && out.back() == '-') out.pop_back();
+    return out.empty() ? "unknown" : out;
+}
+
+} // namespace
+
+int main()
+{
+    const Index n = Index(1) << 20;
+
+    std::time_t now = std::time(nullptr);
+    char        date[16];
+    std::strftime(date, sizeof(date), "%Y-%m-%d", std::localtime(&now));
+
+    std::ostringstream report;
+    report << "## CQT C++ benchmark\n\n```\n"
+           << "date:     " << date << "\n"
+           << "machine:  " << BENCH_CPU_NAME << "\n"
+           << "compiler: " << BENCH_COMPILER << "\n"
+           << "eigen:    " << EIGEN_WORLD_VERSION << "." << EIGEN_MAJOR_VERSION
+           << "." << EIGEN_MINOR_VERSION << "\n"
+#ifdef HAVE_GABORATOR
+           << "gaborator: " << GABORATOR_VERSION_MAJOR << "."
+           << GABORATOR_VERSION_MINOR << "\n"
+#else
+           << "gaborator: not built (set -DGABORATOR_DIR to include it)\n"
+#endif
+#ifndef HAVE_RTCQT
+           << "rt-cqt:   not built (set -DRTCQT_DIR to include it)\n"
+#endif
+           << "signal:   N = 2^20 = " << n << " samples @ 48000 Hz ("
+           << double(n) / fs << " s), best of " << repeats
+           << " runs, both probes (noise + in-range sweep)\n"
+           << "```\n\n";
+
+    report << "### White noise - strict exactness probe (flat weighting, "
+              "nothing in the band can hide)\n\n";
+    std::cerr << "-- noise --" << std::endl;
+    report << renderTable(runSuite(makeNoise(n), n), n) << "\n";
+
+    report << "### Log sweep " << int(fMin) << "-" << int(fMax)
+           << " Hz, Kaiser(beta=9) - realistic in-range streaming use case\n\n";
+    std::cerr << "-- sweep --" << std::endl;
+    report << renderTable(runSuite(makeSweep(n), n), n);
+
+    std::cout << report.str();
+
+    namespace fs_ = std::filesystem;
+    fs_::path dir(BENCH_RESULTS_DIR);
+    fs_::create_directories(dir);
+    fs_::path file = dir / (std::string(date) + "-" + slugify(BENCH_CPU_NAME) + "-cpp.md");
+    std::ofstream(file) << report.str();
+    std::cerr << "\nsaved: " << file.string() << std::endl;
     return 0;
 }

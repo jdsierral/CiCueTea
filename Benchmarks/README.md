@@ -61,14 +61,15 @@ How to read this:
 Same task, compiled Release, every library on its fastest available FFT
 backend (vDSP for CiCueTea and the Gaborator on macOS; rt-cqt's pffft is
 scalar by its own design, `SIMD_SZ 1`). Latest run — Apple M2 Max, clang 21,
-Eigen 3.5 (archived in [`results/`](results/)):
+Eigen 3.5, best of 10 (both probes archived in [`results/`](results/)).
+Noise probe shown here:
 
 | Implementation    | Configuration                                             | Round-trip RMS error | Coefficients (xN) | Forward (ms)   | Inverse (ms) | x realtime |
 |-------------------|------------------------------------------------------------|----------------------|-------------------|----------------|--------------|------------|
-| CiCueTea (dense)  | dense, 81 bands, 100-10000 Hz                             | 6.03e-16             | 8.49e+07 (81.00x) | 831.5          | 1120.8       | 11x        |
-| CiCueTea (sparse) | sparse, 81 bands, 100-10000 Hz                            | 6.08e-16             | 2.47e+06 (2.36x)  | 28.3           | 28.2         | 387x       |
-| Gaborator         | 12 bpo, 97 bands, 100 Hz-Nyquist (by design), double      | 7.88e-08             | 5.02e+06 (4.79x)  | 37.5           | 68.4         | 206x       |
-| rt-cqt            | 96 bins, 8 octaves below Nyquist, hop 256, streamed 1024  | 1.34e+00             | n/a (TBD)         | 99.6 (fwd+inv) | n/a          | 219x       |
+| CiCueTea (dense)  | dense, 81 bands, 100-10000 Hz                             | 6.03e-16             | 8.49e+07 (81.00x) | 810.2          | 1099.2       | 11x        |
+| CiCueTea (sparse) | sparse, 81 bands, 100-10000 Hz                            | 6.08e-16             | 2.47e+06 (2.36x)  | 25.9           | 25.7         | 423x       |
+| Gaborator         | 12 bpo, 97 bands, 100 Hz-Nyquist (by design), double      | 7.88e-08             | 5.02e+06 (4.79x)  | 37.4           | 69.7         | 204x       |
+| rt-cqt            | 96 bins, 8 octaves below Nyquist, hop 256, streamed 1024  | 1.34e+00             | n/a (TBD)         | 99.4 (fwd+inv) | n/a          | 220x       |
 
 Against its closest competitor, CiCueTea sparse wins on all three axes: eight
 orders of magnitude closer to exact reconstruction, ~2x faster, and half the
@@ -106,10 +107,19 @@ cmake -S cpp -B cpp/build -DCMAKE_BUILD_TYPE=Release \
       -DGABORATOR_DIR=/path/to/gaborator-2.1 \
       -DRTCQT_DIR=/path/to/rt-cqt
 cmake --build cpp/build -j
-./cpp/build/cqt_bench > results/$(date +%F)-<machine>-cpp.md
+./cpp/build/cqt_bench
 ```
 
 Either `*_DIR` may be omitted; the CiCueTea engines are always benchmarked.
+Like the Python harness, the binary runs **both probes** (noise + in-range
+sweep) and auto-saves the report to `results/<date>-<machine>-cpp.md`.
+Machine name, compiler, and the results path are baked in at configure time
+(the tool is compiled and run on the same machine by design). Two rt-cqt
+constraints found the hard way, documented in `bench.cpp`: its kernel FFT is
+fixed at 512 points so its hop cannot exceed 256 (larger hops corrupt its
+internal buffers), and instances cannot be re-run without reinitialization.
+On the sweep probe rt-cqt improves to ~0.39 RMS (from 1.34 on noise) —
+partial per-band reconstruction, still dispersed.
 
 ## Methodology
 
