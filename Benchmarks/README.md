@@ -14,18 +14,18 @@ be downloaded from gaborator.com and pointed at explicitly (see below).
 
 ## Results
 
-Latest run — Apple M2 Max, macOS, Python 3.12 (full provenance and archived runs
-in [`results/`](results/)):
+Latest run — Apple M2 Max, macOS, Python 3.12, best of 10 (full provenance,
+plus the sweep-probe table, in [`results/`](results/)). Noise probe shown here:
 
-| Implementation    | Configuration                                            | Round-trip RMS error | Coefficients (xN) | Forward (ms) | Inverse (ms) | x realtime      |
-|-------------------|----------------------------------------------------------|----------------------|-------------------|--------------|--------------|-----------------|
-| CiCueTea (dense)  | dense, 81 bands, 100-10000 Hz                            | 5.74e-16             | 8.49e+07 (81.00x) | 1916.7       | 1716.6       | 6.0x            |
-| CiCueTea (sparse) | sparse, 81 bands, 100-10000 Hz                           | 5.98e-16             | 2.47e+06 (2.36x)  | 38.8         | 40.2         | 277x            |
-| librosa           | 80 bins, 100-10000 Hz, default hop                       | 1.29e+00             | 1.64e+05 (0.16x)  | 34.0         | 68.9         | 212x            |
-| nsgt (matrixform) | matrixform, 81 channels, 100-10000 Hz                    | 2.75e-15             | 4.95e+07 (47.25x) | 3913.5       | 4070.3       | 2.7x            |
-| nsgt (ragged)     | ragged, 81 channels, 100-10000 Hz                        | 2.28e-15             | 1.36e+06 (1.29x)  | 122.0        | 114.6        | 92x             |
-| cqt-pytorch       | 8 octaves, float32, torch 8 threads                      | 6.03e-02             | 5.82e+06 (5.55x)  | 152.9        | 156.6        | 71x             |
-| nnAudio           | forward only (no exact inverse), float32, magnitude bins | n/a                  | 1.64e+05 (0.16x)  | 22.0         | n/a          | 993x (fwd only) |
+| Implementation    | Configuration                                            | Round-trip RMS error | Coefficients (xN) | Forward (ms) | Inverse (ms) | x realtime       |
+|-------------------|----------------------------------------------------------|----------------------|-------------------|--------------|--------------|------------------|
+| CiCueTea (dense)  | dense, 81 bands, 100-10000 Hz                            | 5.74e-16             | 8.49e+07 (81.00x) | 1832.8       | 1668.3       | 6.2x             |
+| CiCueTea (sparse) | sparse, 81 bands, 100-10000 Hz                           | 5.98e-16             | 2.47e+06 (2.36x)  | 36.9         | 40.0         | 284x             |
+| librosa           | 80 bins, 100-10000 Hz, default hop                       | 1.29e+00             | 1.64e+05 (0.16x)  | 28.8         | 58.9         | 249x             |
+| nsgt (matrixform) | matrixform, 81 channels, 100-10000 Hz                    | 2.75e-15             | 4.95e+07 (47.25x) | 3731.7       | 4047.2       | 2.8x             |
+| nsgt (ragged)     | ragged, 81 channels, 100-10000 Hz                        | 2.28e-15             | 1.36e+06 (1.29x)  | 121.4        | 114.0        | 93x              |
+| cqt-pytorch       | 8 octaves, float32, torch 8 threads                      | 6.03e-02             | 5.82e+06 (5.55x)  | 155.3        | 155.3        | 70x              |
+| nnAudio           | forward only (no exact inverse), float32, magnitude bins | n/a                  | 1.64e+05 (0.16x)  | 18.0         | n/a          | 1212x (fwd only) |
 
 How to read this:
 
@@ -34,7 +34,9 @@ How to read this:
   NSGF-based implementations (CiCueTea, nsgt) achieve numerical-precision
   round trips. librosa's least-squares inverse loses more than the signal's
   own RMS on broadband input (its high bands are undersampled at the default
-  hop); cqt-pytorch reconstructs to about -24 dB; nnAudio has no exact inverse.
+  hop); cqt-pytorch reconstructs broadband noise at only ~-24 dB, though
+  in-range band-limited material comes back at its float32 floor (see
+  *Signal choice* below); nnAudio has no exact inverse.
 * **Coefficients (xN)** is the representation's redundancy: stored coefficient
   values (complex, except nnAudio's magnitudes) relative to the N input
   samples. Exact reconstruction is only meaningful together with this number —
@@ -116,6 +118,24 @@ Either `*_DIR` may be omitted; the CiCueTea engines are always benchmarked.
   allows that range to be specified (each row's actual configuration is in the
   table). White noise is the adversarial case for invertibility: it has energy
   everywhere, so any under-covered frequency region shows up in the error.
+* Signal probes: every run exercises both, one table each. Every transform
+  here is linear, so the round-trip error is the input spectrum weighted by
+  the per-frequency reconstruction failure. The two probes test different
+  claims. **Noise** weights all frequencies equally — the strict exactness
+  probe; nothing in the band can hide. **Sweep** is the realistic-use-case probe: a
+  log sweep *confined to the transform range* (100–10000 Hz) under a single
+  full-length Kaiser window (beta=9, ~60 dB edges, smooth derivatives) — so
+  it deliberately excludes two things that are real but not algorithmic:
+  content below the block-supported range (a CQT never reaches DC; that
+  limit is set by block length identically for every strategy) and
+  onset/tail transients (warmup is not the steady-state streaming
+  condition). Measured: the exact frames sit at ~2e-16 under both probes
+  (signal-independence is what exactness means); librosa still loses 27%
+  RMS even on the fair in-range sweep (its HF undersampling is a
+  within-range failure, not an edge gotcha); cqt-pytorch reconstructs
+  in-range material at ~5e-6 (its float32 floor) — its 6e-2 noise-probe
+  error is dominated by out-of-range/edge content. Non-exact reconstruction
+  is signal-dependent; exact reconstruction is not.
 * Timing: `time.perf_counter` around forward and inverse separately, best of
   3 runs (absorbs one-time costs such as librosa's numba JIT on first call).
   Error is RMS of `x - inverse(forward(x))`.
@@ -146,10 +166,13 @@ pip install -r requirements.txt
 python compare.py            # options: --repeats N --samples M
 ```
 
-Every run prints its own environment report (machine, OS, Python, library
-versions, CiCueTea commit), so pasted output is self-documenting. To archive a
-run, redirect stdout to `results/<date>-<machine>.md`. Runs with missing
-libraries still work — absent entries are skipped and listed.
+Every run exercises **both probes** (noise, then the in-range sweep — one
+table each), prints the full report, and writes it to
+`results/<date>-<machine>.md` automatically (same day + same machine
+overwrites: latest run wins). The report starts with an environment block
+(machine, OS, Python, library versions, CiCueTea commit), so it is
+self-documenting. Runs with missing libraries still work — absent entries
+are skipped and listed.
 
 A note on **nsgt**: the project is dormant. Its 2017 PyPI release no longer
 builds on modern Python, and git master crashes with numpy >= 2 (an integer

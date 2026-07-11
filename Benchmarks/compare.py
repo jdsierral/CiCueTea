@@ -20,7 +20,12 @@ full set. The Gaborator (C++) is deliberately absent: it is AGPLv3/commercial,
 so we neither vendor nor depend on it — download it from gaborator.com to
 compare against it yourself.
 
-Usage: python compare.py [--repeats 3] [--samples 1048576]
+Every run exercises both probes — white noise (strict exactness) and the
+in-range Kaiser-windowed log sweep (realistic streaming use case) — prints
+one table per probe, and auto-saves the report to
+results/<date>-<machine>.md (latest run wins for the same day + machine).
+
+Usage: python compare.py [--repeats N] [--samples M]
 """
 
 import argparse
@@ -28,6 +33,7 @@ import datetime
 import importlib
 import importlib.metadata
 import platform
+import re
 import subprocess
 import sys
 import time
@@ -41,10 +47,37 @@ FS = 48000
 PPO = 12          # bands per octave
 F_MIN = 100.0
 F_MAX = 10000.0   # ~6.64 octaves; 80-81 bands at 12 bpo depending on convention
+N_BINS = int(np.ceil(PPO * np.log2(F_MAX / F_MIN)))
 
 
 def rms(a, b):
     return float(np.sqrt(np.mean((np.asarray(a) - np.asarray(b)) ** 2.0)))
+
+
+def make_signal(kind, n):
+    """Test signals. All transforms here are linear, so the round-trip error
+    is the input spectrum weighted by the per-frequency reconstruction
+    failure:
+      * noise — flat weighting, the complete/adversarial probe (default:
+        nothing in the band can hide, incl. librosa's HF undersampling);
+      * sweep — log sweep confined to the transform range (F_MIN-F_MAX):
+        the less strict but audio-realistic use case. Confined deliberately:
+        a CQT can never reach DC, and very low frequencies expose the
+        interaction between block size and frequency range — a real limit,
+        but one only longer blocks can address, identically for every
+        strategy; we are comparing algorithms, not block-length gotchas.
+        Windowed with a single full-length Kaiser (beta=9, ~60 dB edge
+        attenuation, smooth derivatives) so onset/tail transients don't
+        register: warmup is not the steady-state streaming condition.
+    """
+    if kind == "noise":
+        return np.random.default_rng(42).standard_normal(n)
+    from scipy.signal import chirp
+    from scipy.signal.windows import kaiser
+
+    t = np.arange(n) / FS
+    x = chirp(t, f0=F_MIN, f1=F_MAX, t1=t[-1], method="logarithmic")
+    return x * kaiser(n, beta=9.0)
 
 
 def count_coefs(X):
@@ -92,7 +125,7 @@ def bench_cicuetea(mode, x, n, repeats):
 def bench_librosa(x, n, repeats):
     import librosa
 
-    n_bins = int(np.ceil(PPO * np.log2(F_MAX / F_MIN)))  # 80
+    n_bins = N_BINS # ~80
     kw = dict(sr=FS, fmin=F_MIN, bins_per_octave=PPO)
     fwd = lambda s: librosa.cqt(y=s, n_bins=n_bins, **kw)
     inv = lambda C: librosa.icqt(C=C, length=n, **kw)
@@ -136,9 +169,7 @@ def bench_nnaudio(x, n, repeats):
     # and the target use case (real-time audio) cannot afford GPU round trips.
     # nnAudio's GPU/batch throughput is a different benchmark. See README.
     torch.set_default_device("cpu")
-    T = features.CQT(sr=FS, fmin=F_MIN,
-                     n_bins=int(np.ceil(PPO * np.log2(F_MAX / F_MIN))),
-                     bins_per_octave=PPO, verbose=False)
+    T = features.CQT(sr=FS, fmin=F_MIN, n_bins=N_BINS, bins_per_octave=PPO, verbose=False)
     xt = torch.from_numpy(x.astype(np.float32)).reshape(1, -1)
     _, fwd_ms, inv_ms, n_coefs = timed_round_trip(T.forward, None, xt, repeats)
     note = "forward only (no exact inverse), float32, magnitude bins"
@@ -163,8 +194,9 @@ def env_report(n, repeats):
         f"machine:  {cpu_name()} ({platform.machine()})",
         f"os:       {platform.platform()}",
         f"python:   {platform.python_version()}",
-        f"signal:   white noise, N = 2^{int(np.log2(n))} = {n} samples "
-        f"@ {FS} Hz ({n / FS:.1f} s), best of {repeats} runs",
+        f"signal:   N = 2^{int(np.log2(n))} = {n} samples "
+        f"@ {FS} Hz ({n / FS:.1f} s), best of {repeats} runs, "
+        "both probes (noise + in-range sweep)",
     ]
     for pkg, dist in [("numpy", None), ("scipy", None), ("librosa", None),
                       ("nsgt", None), ("torch", None), ("nnAudio", None),
@@ -192,28 +224,16 @@ def env_report(n, repeats):
 
 # --- main --------------------------------------------------------------------
 
-def main():
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--repeats", type=int, default=3)
-    ap.add_argument("--samples", type=int, default=2 ** 20)
-    args = ap.parse_args()
-    n = args.samples
-
-    print("## CQT library comparison\n")
-    print("```")
-    print(env_report(n, args.repeats))
-    print("```\n")
-
-    x = np.random.default_rng(42).standard_normal(n)
-
+def run_suite(x, n, repeats):
+    """Run every benchmark on signal x; returns (table_lines, skipped)."""
     benches = [
-        ("CiCueTea (dense)", lambda: bench_cicuetea("dense", x, n, args.repeats)),
-        ("CiCueTea (sparse)", lambda: bench_cicuetea("sparse", x, n, args.repeats)),
-        ("librosa", lambda: bench_librosa(x, n, args.repeats)),
-        ("nsgt (matrixform)", lambda: bench_nsgt(True, x, n, args.repeats)),
-        ("nsgt (ragged)", lambda: bench_nsgt(False, x, n, args.repeats)),
-        ("cqt-pytorch", lambda: bench_cqt_pytorch(x, n, args.repeats)),
-        ("nnAudio", lambda: bench_nnaudio(x, n, args.repeats)),
+        ("CiCueTea (dense)", lambda: bench_cicuetea("dense", x, n, repeats)),
+        ("CiCueTea (sparse)", lambda: bench_cicuetea("sparse", x, n, repeats)),
+        ("librosa", lambda: bench_librosa(x, n, repeats)),
+        ("nsgt (matrixform)", lambda: bench_nsgt(True, x, n, repeats)),
+        ("nsgt (ragged)", lambda: bench_nsgt(False, x, n, repeats)),
+        ("cqt-pytorch", lambda: bench_cqt_pytorch(x, n, repeats)),
+        ("nnAudio", lambda: bench_nnaudio(x, n, repeats)),
     ]
 
     rows, skipped = [], []
@@ -241,15 +261,48 @@ def main():
               "Coefficients (xN)", "Forward (ms)", "Inverse (ms)", "x realtime")
     widths = [max(len(r[i]) for r in [header, *rows]) for i in range(7)]
     fmt = lambda r: "| " + " | ".join(c.ljust(w) for c, w in zip(r, widths)) + " |"
-    print(fmt(header))
-    print("|" + "|".join("-" * (w + 2) for w in widths) + "|")
-    for r in rows:
-        print(fmt(r))
-
+    lines = [fmt(header),
+             "|" + "|".join("-" * (w + 2) for w in widths) + "|"]
+    lines += [fmt(r) for r in rows]
     if skipped:
-        print("\nSkipped:")
-        for s in skipped:
-            print(f"  - {s}")
+        lines += ["", "Skipped:"] + [f"  - {s}" for s in skipped]
+    return lines
+
+
+SIGNAL_TITLES = {
+    "noise": "White noise — strict exactness probe (flat weighting, "
+             "nothing in the band can hide)",
+    "sweep": f"Log sweep {F_MIN:.0f}-{F_MAX:.0f} Hz, Kaiser(beta=9) — "
+             "realistic in-range streaming use case",
+}
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--repeats", type=int, default=10)
+    ap.add_argument("--samples", type=int, default=2 ** 20)
+    args = ap.parse_args()
+    n = args.samples
+
+    report = ["## CQT library comparison", "", "```",
+              env_report(n, args.repeats), "```", ""]
+
+    for kind in ("noise", "sweep"):
+        print(f"-- {kind} --", file=sys.stderr)
+        x = make_signal(kind, n)
+        report += [f"### {SIGNAL_TITLES[kind]}", ""]
+        report += run_suite(x, n, args.repeats)
+        report += [""]
+
+    text = "\n".join(report)
+    print(text)
+
+    slug = re.sub(r"[^a-z0-9]+", "-", cpu_name().lower()).strip("-")
+    out = Path(__file__).resolve().parent / "results" / \
+        f"{datetime.date.today().isoformat()}-{slug}.md"
+    out.parent.mkdir(exist_ok=True)
+    out.write_text(text + "\n")
+    print(f"\nsaved: {out}", file=sys.stderr)
 
 
 if __name__ == "__main__":
