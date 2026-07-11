@@ -42,7 +42,7 @@ DOXYFILE_ENCODING      = UTF-8
 # title of most generated pages and in a few other places.
 # The default value is: My Project.
 
-PROJECT_NAME           = "CQTLib"
+PROJECT_NAME           = "CiCueTea"
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number. This
 # could be handy for archiving the generated documentation or if some version
@@ -993,7 +993,8 @@ WARN_LOGFILE           =
 
 INPUT                  = ../Include \
                           ../Source \
-                          ../README.md
+                          ../README.md \ 
+                          ../Benchmarks/README.md
 
 # This tag can be used to specify the character encoding of the source files
 # that Doxygen parses. Internally Doxygen uses the UTF-8 encoding. Doxygen uses
