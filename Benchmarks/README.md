@@ -17,15 +17,15 @@ be downloaded from gaborator.com and pointed at explicitly (see below).
 Latest run — Apple M2 Max, macOS, Python 3.12, best of 10 (full provenance,
 plus the sweep-probe table, in [`results/`](results/)). Noise probe shown here:
 
-| Implementation    | Configuration                                            | Round-trip RMS error | Coefficients (xN) | Forward (ms) | Inverse (ms) | x realtime       |
-|-------------------|----------------------------------------------------------|----------------------|-------------------|--------------|--------------|------------------|
-| CiCueTea (dense)  | dense, 81 bands, 100-10000 Hz                            | 5.74e-16             | 8.49e+07 (81.00x) | 1832.8       | 1668.3       | 6.2x             |
-| CiCueTea (sparse) | sparse, 81 bands, 100-10000 Hz                           | 5.98e-16             | 2.47e+06 (2.36x)  | 36.9         | 40.0         | 284x             |
-| librosa           | 80 bins, 100-10000 Hz, default hop                       | 1.29e+00             | 1.64e+05 (0.16x)  | 28.8         | 58.9         | 249x             |
-| nsgt (matrixform) | matrixform, 81 channels, 100-10000 Hz                    | 2.75e-15             | 4.95e+07 (47.25x) | 3731.7       | 4047.2       | 2.8x             |
-| nsgt (ragged)     | ragged, 81 channels, 100-10000 Hz                        | 2.28e-15             | 1.36e+06 (1.29x)  | 121.4        | 114.0        | 93x              |
-| cqt-pytorch       | 8 octaves, float32, torch 8 threads                      | 6.03e-02             | 5.82e+06 (5.55x)  | 155.3        | 155.3        | 70x              |
-| nnAudio           | forward only (no exact inverse), float32, magnitude bins | n/a                  | 1.64e+05 (0.16x)  | 18.0         | n/a          | 1212x (fwd only) |
+| Implementation    | Configuration                                               | Round-trip RMS error | Coefficients (xN) | Forward (ms) | Inverse (ms) | x realtime |
+|-------------------|-------------------------------------------------------------|----------------------|-------------------|--------------|--------------|------------|
+| CiCueTea (dense)  | dense, 81 bands, 100-10000 Hz                               | 5.74e-16             | 8.49e+07 (81.00x) | 1875.6       | 1682.0       | 6.1x       |
+| CiCueTea (sparse) | sparse, 81 bands, 100-10000 Hz                              | 5.98e-16             | 2.47e+06 (2.36x)  | 43.5         | 42.2         | 255x       |
+| librosa           | 80 bins, 100-10000 Hz, default hop                          | 1.29e+00             | 1.64e+05 (0.16x)  | 29.3         | 60.1         | 244x       |
+| nsgt (matrixform) | matrixform, 81 channels, 100-10000 Hz                       | 2.75e-15             | 4.95e+07 (47.25x) | 3677.1       | 4025.7       | 2.8x       |
+| nsgt (ragged)     | ragged, 81 channels, 100-10000 Hz                           | 2.28e-15             | 1.36e+06 (1.29x)  | 122.1        | 111.7        | 93x        |
+| cqt-pytorch       | 8 octaves, float32, torch 8 threads                         | 6.03e-02             | 5.82e+06 (5.55x)  | 155.7        | 153.6        | 71x        |
+| nnAudio2          | CQT1992v2 + iCQT (Landweber, 32 iter), float32, default hop | 9.25e-01             | 1.64e+05 (0.16x)  | 20.1         | 4694.8       | 4.6x       |
 
 How to read this:
 
@@ -36,14 +36,18 @@ How to read this:
   own RMS on broadband input (its high bands are undersampled at the default
   hop); cqt-pytorch reconstructs broadband noise at only ~-24 dB, though
   in-range band-limited material comes back at its float32 floor (see
-  *Signal choice* below); nnAudio has no exact inverse.
-* **Coefficients (xN)** is the representation's redundancy: stored coefficient
-  values (complex, except nnAudio's magnitudes) relative to the N input
-  samples. Exact reconstruction is only meaningful together with this number —
+  *Signal choice* below); nnAudio2's Landweber iCQT cannot recover broadband
+  input for the same structural reason as librosa — see the next bullet —
+  and its 32 iterations make it by far the slowest inverse in the table.
+* **Coefficients (xN)** is the representation's redundancy: stored complex
+  coefficient values relative to the N input samples. Exact reconstruction is
+  only meaningful together with this number —
   anyone can be invertible at 81x oversampling (dense/matrixform rasterized
   forms, meant for analysis/display, not storage). The telling cases: librosa
-  sits at **0.16x — below critical sampling, which is *why* its high bands
-  cannot reconstruct**; ragged nsgt is the most compact exact frame (1.29x);
+  and nnAudio2 both sit at **0.16x — below critical sampling, which is *why*
+  their high bands cannot reconstruct, no matter the inverse algorithm**
+  (least-squares and 32-iteration Landweber respectively);
+  ragged nsgt is the most compact exact frame (1.29x);
   CiCueTea sparse pays a modest premium over it (2.36x, spans padded to
   powers of two — that padding is where the ~2.6x speed advantage comes from).
 * **Wall times are machine-specific.** The relative ordering is fairly stable;
@@ -141,8 +145,9 @@ partial per-band reconstruction, still dispersed.
   onset/tail transients (warmup is not the steady-state streaming
   condition). Measured: the exact frames sit at ~2e-16 under both probes
   (signal-independence is what exactness means); librosa still loses 27%
-  RMS even on the fair in-range sweep (its HF undersampling is a
-  within-range failure, not an edge gotcha); cqt-pytorch reconstructs
+  RMS even on the fair in-range sweep, and nnAudio2 14% (their HF
+  undersampling is a within-range failure, not an edge gotcha);
+  cqt-pytorch reconstructs
   in-range material at ~5e-6 (its float32 floor) — its 6e-2 noise-probe
   error is dominated by out-of-range/edge content. Non-exact reconstruction
   is signal-dependent; exact reconstruction is not.
@@ -154,7 +159,7 @@ partial per-band reconstruction, still dispersed.
   samples; a complete, stably invertible frame needs at least 1x
   (critical sampling) — anything below cannot reconstruct broadband input.
 * Fairness caveats: the libraries do not compute identical objects — librosa
-  and nnAudio produce hop-decimated frames, the NSGF implementations produce
+  and nnAudio2 produce hop-decimated frames, the NSGF implementations produce
   critically-sampled (sparse/ragged) or fully-rasterized (dense/matrixform)
   coefficients, and the torch-based libraries run in float32. The comparison
   is at the *task* level (same signal in, resynthesized signal out), which is
@@ -163,7 +168,7 @@ partial per-band reconstruction, still dispersed.
   is algorithmic (same silicon for every row), and the target use case —
   real-time audio, with a per-block budget of a few milliseconds — rules out
   GPU dispatch regardless (the host-device transfer round trip alone breaks a
-  callback budget). nnAudio and cqt-pytorch are designed for GPU *batch/ML*
+  callback budget). nnAudio2 and cqt-pytorch are designed for GPU *batch/ML*
   pipelines and would post much higher throughput there; that is a different
   benchmark for a different use case. Note the asymmetry that remains runs in
   their favor: torch parallelizes across all cores (thread count in the

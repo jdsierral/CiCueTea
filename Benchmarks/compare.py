@@ -161,19 +161,35 @@ def bench_cqt_pytorch(x, n, repeats):
     return note, err, fwd_ms, inv_ms, n_coefs
 
 
-def bench_nnaudio(x, n, repeats):
+def bench_nnaudio2(x, n, repeats):
+    import os
+    os.environ["NNAUDIO_DISABLE_CITATION_REMINDER"] = "1"
     import torch
-    from nnAudio import features
+    from nnAudio2.features.cqt import CQT1992v2, iCQT
 
     # Deliberately CPU, like every other row: the comparison is algorithmic
     # and the target use case (real-time audio) cannot afford GPU round trips.
-    # nnAudio's GPU/batch throughput is a different benchmark. See README.
+    # nnAudio2's GPU/batch throughput is a different benchmark. See README.
     torch.set_default_device("cpu")
-    T = features.CQT(sr=FS, fmin=F_MIN, n_bins=N_BINS, bins_per_octave=PPO, verbose=False)
+    kw = dict(sr=FS, fmin=F_MIN, n_bins=N_BINS, bins_per_octave=PPO,
+              verbose=False)
+    T = CQT1992v2(output_format="Complex", **kw)
+    I = iCQT(**kw)  # Landweber inversion, n_iter=32 default
+
     xt = torch.from_numpy(x.astype(np.float32)).reshape(1, -1)
-    _, fwd_ms, inv_ms, n_coefs = timed_round_trip(T.forward, None, xt, repeats)
-    note = "forward only (no exact inverse), float32, magnitude bins"
-    return note, None, fwd_ms, inv_ms, n_coefs
+
+    def inv(C):
+        y = I(C).reshape(-1)[:n]
+        return torch.nn.functional.pad(y, (0, n - y.numel()))
+
+    err, fwd_ms, inv_ms, n_coefs = timed_round_trip(T.forward, inv, xt, repeats)
+    # Complex output is stacked (real, imag) in the last dim: numel double-counts
+    n_coefs //= 2
+    # rms() on tensors: redo against the float32 input explicitly
+    y = inv(T(xt))
+    err = rms(xt.numpy().squeeze(), y.detach().numpy().squeeze())
+    note = "CQT1992v2 + iCQT (Landweber, 32 iter), float32, default hop"
+    return note, err, fwd_ms, inv_ms, n_coefs
 
 
 # --- environment report ------------------------------------------------------
@@ -199,7 +215,7 @@ def env_report(n, repeats):
         "both probes (noise + in-range sweep)",
     ]
     for pkg, dist in [("numpy", None), ("scipy", None), ("librosa", None),
-                      ("nsgt", None), ("torch", None), ("nnAudio", None),
+                      ("nsgt", None), ("torch", None), ("nnAudio2", "nnaudio2"),
                       ("cqt_pytorch", "cqt-pytorch")]:
         try:
             mod = importlib.import_module(pkg)
@@ -233,7 +249,7 @@ def run_suite(x, n, repeats):
         ("nsgt (matrixform)", lambda: bench_nsgt(True, x, n, repeats)),
         ("nsgt (ragged)", lambda: bench_nsgt(False, x, n, repeats)),
         ("cqt-pytorch", lambda: bench_cqt_pytorch(x, n, repeats)),
-        ("nnAudio", lambda: bench_nnaudio(x, n, repeats)),
+        ("nnAudio2", lambda: bench_nnaudio2(x, n, repeats)),
     ]
 
     rows, skipped = [], []
