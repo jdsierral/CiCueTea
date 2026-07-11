@@ -47,6 +47,16 @@ def rms(a, b):
     return float(np.sqrt(np.mean((np.asarray(a) - np.asarray(b)) ** 2.0)))
 
 
+def count_coefs(X):
+    """Total stored coefficient values in a container (array, tensor, or
+    nested lists thereof). Complex values count as one coefficient."""
+    if hasattr(X, "numel"):        # torch tensor
+        return int(X.numel())
+    if isinstance(X, (list, tuple)):
+        return sum(count_coefs(c) for c in X)
+    return int(np.asarray(X).size)
+
+
 def timed_round_trip(forward, inverse, x, repeats):
     """Best-of-N forward/inverse timing; error from the fastest run."""
     best = None
@@ -60,13 +70,15 @@ def timed_round_trip(forward, inverse, x, repeats):
         if best is None or fwd_ms + inv_ms < best[0] + best[1]:
             best = (fwd_ms, inv_ms, y)
     fwd_ms, inv_ms, y = best
+    n_coefs = count_coefs(X)
     if inverse is None:
-        return None, fwd_ms, None
-    return rms(x, y), fwd_ms, inv_ms
+        return None, fwd_ms, None, n_coefs
+    return rms(x, y), fwd_ms, inv_ms, n_coefs
 
 
 # --- benchmark entries -------------------------------------------------------
-# Each returns (config_note, error, fwd_ms, inv_ms). Raises ImportError to skip.
+# Each returns (config_note, error, fwd_ms, inv_ms, n_coefs).
+# Raises ImportError to skip.
 
 def bench_cicuetea(mode, x, n, repeats):
     from NsgfCQT import NsgfCQT
@@ -107,26 +119,30 @@ def bench_cqt_pytorch(x, n, repeats):
     T = cqt_pytorch.CQT(num_octaves=n_octaves, num_bins_per_octave=PPO,
                         sample_rate=FS, block_length=n)
     xt = torch.from_numpy(x.astype(np.float32)).reshape(1, 1, -1)
-    err, fwd_ms, inv_ms = timed_round_trip(
+    err, fwd_ms, inv_ms, n_coefs = timed_round_trip(
         T.encode, T.decode, xt, repeats=repeats)
     # rms() on tensors: redo against the float32 input explicitly
     y = T.decode(T.encode(xt))
     err = rms(xt.numpy().squeeze(), y.detach().numpy().squeeze())
     note = f"{n_octaves} octaves, float32, torch {torch.get_num_threads()} threads"
-    return note, err, fwd_ms, inv_ms
+    return note, err, fwd_ms, inv_ms, n_coefs
 
 
 def bench_nnaudio(x, n, repeats):
     import torch
     from nnAudio import features
 
+    # Deliberately CPU, like every other row: the comparison is algorithmic
+    # and the target use case (real-time audio) cannot afford GPU round trips.
+    # nnAudio's GPU/batch throughput is a different benchmark. See README.
+    torch.set_default_device("cpu")
     T = features.CQT(sr=FS, fmin=F_MIN,
                      n_bins=int(np.ceil(PPO * np.log2(F_MAX / F_MIN))),
                      bins_per_octave=PPO, verbose=False)
     xt = torch.from_numpy(x.astype(np.float32)).reshape(1, -1)
-    _, fwd_ms, inv_ms = timed_round_trip(T.forward, None, xt, repeats)
-    note = "forward only (no exact inverse), float32"
-    return note, None, fwd_ms, inv_ms
+    _, fwd_ms, inv_ms, n_coefs = timed_round_trip(T.forward, None, xt, repeats)
+    note = "forward only (no exact inverse), float32, magnitude bins"
+    return note, None, fwd_ms, inv_ms, n_coefs
 
 
 # --- environment report ------------------------------------------------------
@@ -203,7 +219,7 @@ def main():
     rows, skipped = [], []
     for name, fn in benches:
         try:
-            note, err, fwd, inv = fn()
+            note, err, fwd, inv, n_coefs = fn()
         except ImportError as e:
             skipped.append(f"{name}: not installed ({e.name})")
             continue
@@ -216,13 +232,14 @@ def main():
                 (" (fwd only)" if fwd_only else "")
         err_s = f"{err:.2e}" if err is not None else "n/a"
         inv_s = "n/a" if fwd_only else f"{inv:.1f}"
-        rows.append((name, note, err_s, f"{fwd:.1f}", inv_s, xrt_s))
-        print(f"  done: {name:<20s} err={err_s:<9s} "
+        coef_s = f"{n_coefs:.2e} ({n_coefs / n:.2f}x)"
+        rows.append((name, note, err_s, coef_s, f"{fwd:.1f}", inv_s, xrt_s))
+        print(f"  done: {name:<20s} err={err_s:<9s} coefs={coef_s:<18s} "
               f"fwd={fwd:8.1f} ms  inv={inv_s:>8s} ms", file=sys.stderr)
 
     header = ("Implementation", "Configuration", "Round-trip RMS error",
-              "Forward (ms)", "Inverse (ms)", "x realtime")
-    widths = [max(len(r[i]) for r in [header, *rows]) for i in range(6)]
+              "Coefficients (xN)", "Forward (ms)", "Inverse (ms)", "x realtime")
+    widths = [max(len(r[i]) for r in [header, *rows]) for i in range(7)]
     fmt = lambda r: "| " + " | ".join(c.ljust(w) for c, w in zip(r, widths)) + " |"
     print(fmt(header))
     print("|" + "|".join("-" * (w + 2) for w in widths) + "|")

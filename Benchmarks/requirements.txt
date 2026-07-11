@@ -3,7 +3,11 @@
 numpy
 scipy
 librosa
-nsgt
 torch
 nnAudio
 cqt-pytorch
+# nsgt is dormant: the 2017 PyPI sdist no longer builds on modern Python, and
+# git master crashes with numpy >= 2 (integer `out` + float inf in np.clip,
+# nsgfwin_sl.py). This pin is the open upstream fix (grrrr/nsgt PR #38),
+# fetched through the upstream repo so it survives the contributor's fork.
+nsgt @ git+https://github.com/grrrr/nsgt@b9288761f1a63f838fd5a3758515e5475b9fef28
