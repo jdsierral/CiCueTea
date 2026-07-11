@@ -53,13 +53,18 @@ git submodule update --init --recursive
 
 ## Example Usage
 
+### Whole-buffer transform
+
+The transform objects themselves work on a full buffer — useful for analysis,
+offline processing, and understanding the parameters:
+
 ```cpp
 #include <Eigen/Core>
 #include <CQT.hpp>
 
-long   nSamps = 1 << 16;
+long   nSamps = 1<<16;
 double fs     = 48000;
-double frac   = 1.0 / 48;  // 48 bands per octave
+double frac   = 1.0/48.0;  // 48 bands per octave
 double fMin   = 100;
 double fMax   = 10000;
 double fRef   = 440;
@@ -87,6 +92,73 @@ cqt.forward(x, Xcq);
 cqt.inverse(Xcq, y);
 ```
 
+### Real-time streaming
+
+The whole point of CiCueTea is that the above also runs **inside an audio
+callback**. The processor classes in `CQTProcessor.hpp` wrap a transform in a
+slice → forward → *your processing* → inverse → overlap-add chain: derive from
+one, put your spectral manipulation in `processBlock()` (it receives the CQT
+coefficients of one block, to be modified in place), and drive it one sample at
+a time:
+
+```cpp
+#include <CQTProcessor.hpp>
+
+using namespace jsa::cicuetea;
+
+class LowBandGain : public SlidingCqtSparseProcessor
+{
+  public:
+    using SlidingCqtSparseProcessor::SlidingCqtSparseProcessor;
+
+    void processBlock(NsgfCqtSparse::Coefs& Xcq) override
+    {
+        // Xcq[k] is band k's complex coefficient series (decimated per band).
+        for (size_t k = 0; k < Xcq.size() / 2; k++)
+            Xcq[k] *= 0.5;  // -6 dB below the spectral midpoint
+    }
+};
+
+long   nSamps = 1<<14;     // blockSize
+double fs     = 48000;
+double frac   = 1.0/12.0;  // 12 bands per octave
+double fMin   = 100;
+double fMax   = 10000;
+double fRef   = 440;
+
+// Setup (e.g. prepareToPlay). nSamps is the internal blockSize (must be long
+// enough to resolve the lowest band), and it sets the latency.
+LowBandGain proc(fs, nSamps, frac, fMin, fMax, fRef);
+if (!proc.isValid())
+    return;  // configuration rejected — the processor is inert (see below)
+
+// Audio callback — allocation-free by construction:
+for (int n = 0; n < numSamples; n++)
+    out[n] = proc.processSample(in[n]);
+```
+
+The output is the processed input delayed by exactly `getLatency()` samples —
+report that to the host for plugin-delay compensation. An empty
+`processBlock()` is the identity: the input comes back out at reconstruction
+precision (this is how the unit tests verify the chain).
+
+There are two processor families, each in a dense and a sparse variant:
+
+- **`Cqt{Dense,Sparse}Processor`** — consecutive blocks, each transformed and
+  inverted independently (latency = block size). Machine-exact reconstruction,
+  but a coefficient manipulation that *changes over time* can jump at block
+  boundaries.
+- **`SlidingCqt{Dense,Sparse}Processor`** — the sliCQ-style path: overlapped,
+  windowed slices whose modifications cross-fade smoothly across block
+  boundaries (latency = block size + hop). The overlap windowing trades a
+  small reconstruction error (~-60 dB at the example's block size, shrinking
+  as the block grows) for that smoothness. This is the one for time-varying
+  processing — and the piece most other libraries are missing.
+
+`isValid()` reports whether the configuration passed the frame-health check
+(e.g. a block too short to resolve `minFrequency` is rejected); an invalid
+processor is inert and outputs silence rather than misbehaving.
+
 ---
 
 ## Parameters & Design Notes
@@ -94,7 +166,7 @@ cqt.inverse(Xcq, y);
 | Parameter      | Description                                                                |
 | -------------- | -------------------------------------------------------------------------- |
 | `fs`           | Sample rate — in a CQT the design is tied to it                            |
-| `nSamples`     | Number of samples to transform                                             |
+| `nSamples`     | Number of samples to transform (for the streaming processors: the internal analysis block size, which sets the latency) |
 | `frac`         | Reciprocal of bands per octave; fractional values allowed                  |
 | `minFrequency` | Start of frequency range (going too low increases latency)                 |
 | `maxFrequency` | Upper limit of the transform (bounds the range with the Constant-Q property) |
@@ -163,8 +235,7 @@ If you use CiCueTea in academic work, please cite it — see [`CITATION.cff`](CI
 
 The theory behind CiCueTea — the pitch-symmetric log-Gaussian frame design and the real-time implementation strategy — is developed in:
 
-<!-- TODO(juan): confirm year and add the repository/ProQuest link once available -->
-- J. Sierra, *Constant-Q Spectral Processing*, Ph.D. dissertation, New York University, 2026.
+- J. Sierra, *[Constant-Q Spectral Signal Processing](https://www.proquest.com/openview/ffa6564d1fea773073832212b08bf0e1/1?pq-origsite=gscholar&cbl=18750&diss=y)*, Ph.D. dissertation, New York University, 2025.
 
 Foundational literature on nonstationary Gabor frames and the invertible CQT:
 
