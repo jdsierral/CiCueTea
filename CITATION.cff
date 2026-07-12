@@ -8,6 +8,13 @@ authors:
     affiliation: "New York University Abu Dhabi"
 version: 1.0.0
 date-released: 2026-07-12
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.21326373"
+    description: "Archived snapshot of this version (v1.0.0) on Zenodo."
+  - type: doi
+    value: "10.5281/zenodo.21326372"
+    description: "Concept DOI representing all versions; always resolves to the latest."
 repository-code: "https://github.com/jdsierral/CiCueTea"
 license: MIT
 keywords:
