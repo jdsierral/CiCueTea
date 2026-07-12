@@ -1,12 +1,9 @@
 import matplotlib.pyplot as plt
-import IPython.display as ipd
 import numpy as np
 import scipy.fft as fft
 import scipy.signal as sg
-import control as ctl
-import NsgfCQT
-from Slicing import *
-from psychoacoustics import *
+import cicuetea.nsgf_cqt as NsgfCQT
+from cicuetea.slicing import *
 
 def pow2db(x):
     return 10.0 * np.log10(np.abs(x))

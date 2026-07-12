@@ -9,6 +9,7 @@ clc
 
 % Add source code to path
 addpath(genpath("../src"));
+addpath(genpath("Psychoacoustics"));
 
 
 % Load example audio (Handel)

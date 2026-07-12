@@ -1,0 +1,36 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cicuetea"
+version = "1.0.0"
+description = "Real-time invertible Constant-Q Transform (CQT) engine based on nonstationary Gabor frames — Python reference implementation"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+authors = [{ name = "Juan Sierra" }]
+keywords = ["constant-q transform", "cqt", "nsgf", "spectral processing", "audio", "dsp"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+    "Intended Audience :: Science/Research",
+]
+dependencies = [
+    "numpy",
+    "scipy",
+]
+
+[project.optional-dependencies]
+demo = ["matplotlib"]
+test = ["pytest"]
+
+[project.urls]
+Homepage = "https://github.com/jdsierral/CiCueTea"
+Documentation = "https://jdsierral.github.io/CiCueTea/"
+Repository = "https://github.com/jdsierral/CiCueTea"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cicuetea"]
